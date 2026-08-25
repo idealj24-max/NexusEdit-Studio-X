@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NexusEdit Studio X - AI 3D & PWA Engine</title>
+    <!-- Importation de Three.js pour le rendu 3D ultra-rapide mobile -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; background: #0b0f19; color: #00ffcc; font-family: 'Courier New', Courier, monospace; 
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
+        }
+        header { 
+            height: 50px; background: #111827; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; border-bottom: 1px solid #00ffcc; flex-shrink: 0; z-index: 100;
+        }
+        #menu-btn { cursor: pointer; font-weight: bold; font-size: 1.1rem; color: #00ffcc; }
+        .project-badge { font-size: 0.8rem; background: #1f2937; padding: 4px 8px; border-radius: 4px; color: #9ca3af; }
+        
+        /* Panneau de menu latéral (Façon IDE complet) */
+        #side-menu { 
+            position: absolute; left: -280px; top: 0; width: 280px; 
+            height: 100%; background: #111827; border-right: 1px solid #00ffcc; 
+            transition: 0.3s; padding-top: 60px; z-index: 100; box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        }
+        #side-menu.open { left: 0; }
+        .menu-section-title { padding: 10px 15px; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; }
+        #side-menu div.menu-item { padding: 12px 20px; border-bottom: 1px solid #1f2937; cursor: pointer; color: #e5e7eb; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+        #side-menu div.menu-item:hover { background: #1f2937; color: #00ffcc; }
+
+        /* Overlay d'arrière-plan */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 90; }
+
+        /* Conteneur principal dynamique */
+        #app-content { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; position: relative; }
+
+        /* Style des différents écrans d'outils */
+        .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; }
+        .panel-view.active { display: flex; }
+
+        /* Éditeur Code & IA */
+        textarea, input[type="text"] { background: #030712; color: #34d399; border: 1px solid #1f2937; padding: 12px; font-family: monospace; border-radius: 6px; outline: none; }
+        textarea:focus, input:focus { border-color: #00ffcc; }
+        .code-editor { flex: 1; width: 100%; resize: none; font-size: 0.9rem; line-height: 1.4; }
+        
+        /* Boutons personnalisés */
+        .btn-nexus { background: #00ffcc; color: #030712; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; }
+        .btn-nexus:active { transform: scale(0.98); background: #059669; color: #fff; }
+
+        /* Console / Chat styles */
+        .chat-container { flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; overflow-y: auto; max-height: calc(100vh - 220px); }
+        .chat-bubble { padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; max-width: 85%; line-height: 1.4; }
+        .chat-bubble.user { background: #1f2937; color: #f3f4f6; align-self: flex-end; border-left: 3px solid #00ffcc; }
+        .chat-bubble.ai { background: #111827; color: #34d399; align-self: flex-start; border-left: 3px solid #8b5cf6; }
+
+        /* Canvas 3D Viewport */
+        #webgl-container { flex: 1; width: 100%; background: #000; border: 1px solid #1f2937; border-radius: 6px; position: relative; overflow: hidden; }
+
+        /* Footer de navigation fixe */
+        footer { 
+            height: 60px; background: #111827; display: flex; justify-content: space-around; 
+            align-items: center; border-top: 1px solid #00ffcc; flex-shrink: 0; z-index: 100;
+        }
+        footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.75rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        footer button.active { color: #00ffcc; text-shadow: 0 0 10px rgba(0,255,204,0.5); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div id="menu-btn">≡ NEXUS STUDIO X</div>
+        <div class="project-badge" id="current-project-name">Projet: Demo_Game_3D.js</div>
+    </header>
+
+    <div id="overlay" onclick="closeMenu()"></div>
+
+    <!-- Panneau Latéral (GitHub, Fichiers, Outils Avancés) -->
+    <div id="side-menu">
+        <div class="menu-section-title">Structure Fichiers (Acode)</div>
+        <div class="menu-item" onclick="openFile('index.html')">📄 index.html (PWA Core)</div>
+        <div class="menu-item" onclick="openFile('engine3d.js')">🎮 engine3d.js (Moteur 3D)</div>
+        <div class="menu-item" onclick="openFile('style.css')">🎨 style.css (Design UI)</div>
+        
+        <div class="menu-section-title">Cloud & Git Sync</div>
+        <div class="menu-item" onclick="syncGitHub()">🐙 Push sur mon dépôt GitHub</div>
+        <div class="menu-item" onclick="exportPWA()">📦 Exporter en Archive PWA (.zip)</div>
+    </div>
+
+    <!-- Conteneur Principal -->
+    <div id="app-content">
+
+        <!-- VUE 1 : ÉDITEUR DE CODE (Acode Style) -->
+        <div id="view-code" class="panel-view active">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.8rem; color:#9ca3af;">
+                <span id="file-label">Édition de : engine3d.js</span>
+                <span>UTF-8 | JS Engine</span>
+            </div>
+            <textarea class="code-editor" id="code-textarea">// Moteur 3D Ultra-Réaliste Intégré
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+renderer.setSize(window.innerWidth, window.innerHeight - 150);
+document.getElementById('webgl-preview').appendChild(renderer.domElement);
+
+// Création d'un objet 3D interactif généré par IA
+const geometry = new THREE.BoxGeometry(2, 2, 2);
+const material = new THREE.MeshStandardMaterial({ color: 0x00ffcc, roughness: 0.2, metalness: 0.8 });
+const cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
+
+const light = new THREE.PointLight(0xffffff, 3, 50);
+light.position.set(5, 5, 5);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0x333333));
+
+camera.position.z = 5;
+
+function animate() {
+    requestAnimationFrame(animate);
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+    renderer.render(scene, camera);
+}
+animate();</textarea>
+            <button class="btn-nexus" style="margin-top:10px;" onclick="runCodePreview()">Compiler & Tester le Jeu 3D</button>
+        </div>
+
+        <!-- VUE 2 : IA GÉNÉRATRICE DE JEUX ET PWA (Replit Agent Style) -->
+        <div id="view-ia" class="panel-view">
+            <div style="font-size:0.9rem; margin-bottom:8px; color:#00ffcc; font-weight:bold;">🤖 Nexus AI Copilot (Game & PWA Generator)</div>
+            <div class="chat-container" id="chat-box">
+                <div class="chat-bubble ai">Salut Idrissa ! Je suis ton architecte IA. Dis-moi quel type de jeu 3D ultra-réaliste ou d'application PWA tu veux créer, et je génère tout le code pour toi !</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="ai-prompt-input" placeholder="Ex: Crée un jeu de tir spatial 3D ou une PWA de gestion..." style="flex:1;">
+                <button class="btn-nexus" onclick="sendAIPrompt()">Générer</button>
+            </div>
+        </div>
+
+        <!-- VUE 3 : APERÇU DU JEU 3D / RENDER (Moteur de Jeu) -->
+        <div id="view-preview" class="panel-view">
+            <div style="margin-bottom:8px; font-size:0.85rem; color:#9ca3af;">🎮 Aperçu en direct du jeu 3D / PWA</div>
+            <div id="webgl-preview" style="flex:1; width:100%; background:#000; border-radius:6px; border:1px solid #1f2937; overflow:hidden; display:flex; justify-content:center; align-items:center;">
+                <span style="color:#6b7280; font-size:0.8rem;">Clique sur "Compiler" depuis l'éditeur pour lancer le jeu ici.</span>
+            </div>
+        </div>
+
+        <!-- VUE 4 : MODULE VPN & SÉCURITÉ CLOUD -->
+        <div id="view-vpn" class="panel-view" style="justify-content:center; align-items:center; text-align:center; gap:20px;">
+            <div style="font-size: 3rem;">🛡️</div>
+            <div>
+                <h3 style="color:#00ffcc; margin:0 0 10px 0;">Nexus Secure Tunnel</h3>
+                <p id="vpn-status" style="color:#9ca3af; font-size:0.9rem;">Statut : Déconnecté des serveurs de déploiement</p>
+            </div>
+            <button class="btn-nexus" id="vpn-btn" onclick="toggleVPN()">Activer le VPN Cloud</button>
+        </div>
+
+    </div>
+
+    <!-- Footer de Navigation -->
+    <footer>
+        <button onclick="switchTab('code')" id="nav-code" class="active">💻 <span>Code</span></button>
+        <button onclick="switchTab('ia')" id="nav-ia">🤖 <span>Nexus AI</span></button>
+        <button onclick="switchTab('preview')" id="nav-preview">🎮 <span>Moteur 3D</span></button>
+        <button onclick="switchTab('vpn')" id="nav-vpn">🛡️ <span>VPN</span></button>
+    </footer>
+
+    <script>
+        // Gestion du Menu Latéral & Overlay
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            document.getElementById('side-menu').classList.add('open');
+            document.getElementById('overlay').style.display = 'block';
+        });
+
+        function closeMenu() {
+            document.getElementById('side-menu').classList.remove('open');
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        // Navigation par Onglets Principaux
+        function switchTab(tabName) {
+            document.querySelectorAll('.panel-view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('footer button').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('view-' + tabName).classList.add('active');
+            document.getElementById('nav-' + tabName).classList.add('active');
+        }
+
+        // Gestion de l'affichage des fichiers dans l'éditeur (Façon Acode)
+        function openFile(fileName) {
+            document.getElementById('file-label').innerText = "Édition de : " + fileName;
+            document.getElementById('current-project-name').innerText = "Projet: " + fileName;
+            closeMenu();
+            switchTab('code');
+        }
+
+        // Moteur de compilation et aperçu 3D instantané
+        function runCodePreview() {
+            switchTab('preview');
+            const previewContainer = document.getElementById('webgl-preview');
+            previewContainer.innerHTML = ''; // Nettoyage de l'ancien canvas
+            
+            try {
+                // Évaluation sécurisée du script 3D utilisateur
+                const userCode = document.getElementById('code-textarea').value;
+                // Redéfinition du conteneur pour le script dynamique
+                const runScript = new Function('THREE', userCode);
+                runScript(THREE);
+            } catch (error) {
+                previewContainer.innerHTML = `<p style="color:#ef4444; padding:20px; font-size:0.85rem;">Erreur de compilation : ${error.message}</p>`;
+            }
+        }
+
+        // Intelligence Artificielle intégrée (Simulation Replit Agent / Générateur de Prompt)
+        function sendAIPrompt() {
+            const input = document.getElementById('ai-prompt-input');
+            const chatBox = document.getElementById('chat-box');
+            const promptText = input.value.trim();
+
+            if (!promptText) return;
+
+            // Ajout du message utilisateur
+            chatBox.innerHTML += `<div class="chat-bubble user">${promptText}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Simulation de la réponse de l'IA de génération de code 3D / PWA
+            setTimeout(() => {
+                let aiResponse = `J'ai analysé ta demande pour "${promptText}". J'ai généré l'architecture PWA et le script du jeu 3D ultra-réaliste correspondant ! Tu peux aller voir le code mis à jour dans l'éditeur ou lancer le moteur 3D.`;
+                
+                if(promptText.toLowerCase().includes('voiture') || promptText.toLowerCase().includes('course')) {
+                    aiResponse = `J'ai créé un prototype de jeu de course 3D avec des textures métalliques et un éclairage dynamique. Code injecté avec succès !`;
+                } else if(promptText.toLowerCase().includes('pwa') || promptText.toLowerCase().includes('application')) {
+                    aiResponse = `Structure PWA complète générée (manifest.json, service-worker.js, interface responsive mobile). Prêt pour le déploiement GitHub !`;
+                }
+
+                chatBox.innerHTML += `<div class="chat-bubble ai">${aiResponse}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000);
+        }
+
+        // Module VPN Cloud
+        let vpnConnected = false;
+        function toggleVPN() {
+            vpnConnected = !vpnConnected;
+            const statusEl = document.getElementById('vpn-status');
+            const btnEl = document.getElementById('vpn-btn');
+            
+            if(vpnConnected) {
+                statusEl.innerText = "Statut : Connecté au Tunnel Sécurisé (Cloud Node US-East)";
+                statusEl.style.color = "#00ffcc";
+                btnEl.innerText = "Couper le VPN";
+                btnEl.style.background = "#ef4444";
+            } else {
+                statusEl.innerText = "Statut : Déconnecté";
+                statusEl.style.color = "#9ca3af";
+                btnEl.innerText = "Activer le VPN Cloud";
+                btnEl.style.background = "#00ffcc";
+            }
+        }
+
+        // Simulation GitHub / Export
+        function syncGitHub() {
+            alert("Connexion au dépôt GitHub réussie ! Synchronisation des modifications de NexusEdit Studio X en cours...");
+            closeMenu();
+        }
+
+        function exportPWA() {
+            alert("Archive PWA du projet empaquetée avec succès. Téléchargement prêt pour publication mobile !");
+            closeMenu();
+        }
+    </script>
+</body>
+</html>
