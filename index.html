@@ -86,7 +86,7 @@
     footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
 
     @media (max-width: 900px) {
-      #ai-panel { display: none; } /* En mode mobile, l'IA s'ouvre dans un onglet dédié pour ne pas surcharger l'écran */
+      #ai-panel { display: none; }
       #ai-panel.mobile-active { display: flex; position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 90; }
     }
   </style>
@@ -100,7 +100,7 @@
 
   <div id="overlay" onclick="closeMenu()"></div>
 
-  <!-- Panneau Latéral (Fichiers & Git & Outils) -->
+  <!-- Panneau Latéral -->
   <div id="side-menu">
     <div class="menu-section-title">Explorateur (Acode)</div>
     <div class="file-item active" onclick="openFile('main.js')">📄 main.js (Moteur Physique)</div>
@@ -115,10 +115,8 @@
 
   <div id="main-layout">
     
-    <!-- Espace de Travail Principal -->
     <div id="workspace">
       
-      <!-- Barre d'onglets internes -->
       <div class="mode-tabs">
         <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Éditeur Code</div>
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Viewport Physique 3D</div>
@@ -126,15 +124,12 @@
         <div class="tab" id="tab-vpn" onclick="switchMainView('vpn')">VPN Sécurisé</div>
       </div>
       
-      <!-- 1. Vue Éditeur Monaco -->
       <div id="editor-container" style="display:block;"></div>
       
-      <!-- 2. Vue Rendu 3D + Physique Cannon.js -->
       <div id="preview-container">
         <canvas id="canvas3d"></canvas>
       </div>
 
-      <!-- 3. Vue Module VPN -->
       <div id="vpn-view" class="panel-view">
         <div style="font-size: 3rem;">🛡️</div>
         <div>
@@ -144,20 +139,17 @@
         <button class="btn-nexus" id="vpn-btn" onclick="toggleVPN()">Activer le VPN Cloud</button>
       </div>
 
-      <!-- Console de Logs -->
       <div id="console-bar">
         [System] Moteur 3D Three.js + Physique Cannon.js initialisés.<br>
       </div>
     </div>
 
-    <!-- Panneau IA Intelligent & Connecté (OpenAI / Gemini) -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:10px; display:flex; justify-content:space-between; align-items:center;">
         <span>Nexus AI Engine</span>
         <span style="font-size:0.65rem; color:var(--accent);">API Connect</span>
       </div>
       
-      <!-- Configuration API en direct -->
       <div class="api-config-box">
         <label>Fournisseur IA :</label>
         <select id="ai-provider" style="margin-bottom:6px;">
@@ -173,14 +165,13 @@
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une pluie de sphères physiques qui rebondissent sur un sol inclinable..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée un jeu de foot 3D style Score Hero avec Cristiano Ronaldo..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer via API IA</button>
       </div>
     </div>
 
   </div>
 
-  <!-- Footer de Navigation Mobile -->
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">🎮 <span>3D & Physique</span></button>
@@ -189,7 +180,6 @@
   </footer>
 
   <script>
-    // --- Application State & Fichiers avec Physique Cannon.js par défaut ---
     let editor;
     let files = {
       'main.js': `// Scene Setup avec Gravité et Physique Cannon.js
@@ -205,20 +195,17 @@ const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: tru
 renderer.setSize(window.innerWidth > 900 ? window.innerWidth - 340 : window.innerWidth, window.innerHeight - 200);
 renderer.shadowMap.enabled = true;
 
-// Lumières PBR
 scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 const dirLight = new THREE.DirectionalLight(0x00ffcc, 2);
 dirLight.position.set(5, 15, 5);
 dirLight.castShadow = true;
 scene.add(dirLight);
 
-// --- CONFIGURATION PHYSIQUE CANNON.JS ---
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
 
-// Sol Physique
 const floorShape = new CANNON.Plane();
-const floorBody = new CANNON.Body({ mass: 0 }); // Masse 0 = statique
+const floorBody = new CANNON.Body({ mass: 0 });
 floorBody.addShape(floorShape);
 floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
 world.addBody(floorBody);
@@ -230,7 +217,6 @@ floorMesh.rotation.x = -Math.PI / 2;
 floorMesh.receiveShadow = true;
 scene.add(floorMesh);
 
-// Boîte tombante interactive avec Physique
 const boxGeo = new THREE.BoxGeometry(2, 2, 2);
 const boxMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, roughness: 0.2, metalness: 0.8 });
 const boxMesh = new THREE.Mesh(boxGeo, boxMat);
@@ -245,18 +231,11 @@ world.addBody(boxBody);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-const clock = new THREE.Clock();
-
 function animate() {
   requestAnimationFrame(animate);
-  
-  // Mettre à jour la simulation physique
   world.step(1/60);
-  
-  // Synchroniser la position Three.js avec Cannon.js
   boxMesh.position.copy(boxBody.position);
   boxMesh.quaternion.copy(boxBody.quaternion);
-
   controls.update();
   renderer.render(scene, camera);
 }
@@ -268,7 +247,6 @@ animate();`,
 
     let activeFile = 'main.js';
 
-    // --- Initialisation Monaco Editor ---
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
     require(['vs/editor/editor.main'], function() {
       editor = monaco.editor.create(document.getElementById('editor-container'), {
@@ -282,7 +260,6 @@ animate();`,
       });
     });
 
-    // --- Gestion du Menu Latéral & Overlay ---
     function toggleMenu() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
@@ -299,7 +276,6 @@ animate();`,
         document.getElementById('overlay').style.display = 'none';
     }
 
-    // --- Navigation entre Vues Principales ---
     function switchMainView(view) {
       const ed = document.getElementById('editor-container');
       const prev = document.getElementById('preview-container');
@@ -311,7 +287,6 @@ animate();`,
       const tabAi = document.getElementById('tab-ai');
       const tabVpn = document.getElementById('tab-vpn');
 
-      // Masquer tout
       ed.style.display = 'none';
       prev.style.display = 'none';
       vpn.classList.remove('active-panel');
@@ -339,7 +314,6 @@ animate();`,
       }
     }
 
-    // --- Gestion des Fichiers ---
     function openFile(filename) {
       files[activeFile] = editor.getValue();
       activeFile = filename;
@@ -358,7 +332,6 @@ animate();`,
       switchMainView('editor');
     }
 
-    // --- Console Logger ---
     function logConsole(msg, isErr = false) {
       const c = document.getElementById('console-bar');
       const color = isErr ? '#ef4444' : '#10b981';
@@ -366,7 +339,6 @@ animate();`,
       c.scrollTop = c.scrollHeight;
     }
 
-    // --- Exécution du Code 3D & Physique ---
     function executeCode() {
       try {
         logConsole("Compilation du moteur 3D & Physique Cannon.js...");
@@ -377,7 +349,6 @@ animate();`,
       }
     }
 
-    // --- Connexion Réelle API IA (OpenAI / Gemini) ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -392,7 +363,7 @@ animate();`,
       chatBox.scrollTop = chatBox.scrollHeight;
 
       if (!apiKey) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API dans le champ ci-dessus pour interroger l'IA.</div>`;
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API dans le champ ci-dessus.</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
         return;
       }
@@ -405,24 +376,25 @@ animate();`,
         let aiGeneratedCode = "";
 
         if (provider === 'gemini') {
-          // Appel réel de l'API Google Gemini
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{
-                parts: [{ text: `Tu es un expert en développement Three.js et Cannon.js. Génère UNIQUEMENT du code JavaScript pur (sans markdown \`\`\`js autour, juste le code brut exécutable) pour répondre à cette demande de jeu/scène 3D physique : ${promptText}` }]
+                parts: [{ text: `Tu es un expert en développement Three.js et Cannon.js. Génère UNIQUEMENT du code JavaScript pur (sans balises markdown \`\`\` autour, juste le code brut exécutable) pour répondre à cette demande de jeu/scène 3D physique : ${promptText}` }]
               }]
             })
           });
           const data = await response.json();
-          if (data.candidates && data.candidates[0].content.parts[0].text) {
+          if (data.error) {
+            throw new Error(data.error.message || "Erreur de l'API Gemini.");
+          }
+          if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
             aiGeneratedCode = data.candidates[0].content.parts[0].text.replace(/```javascript|```js|```/g, '').trim();
           } else {
-            throw new Error("Réponse API invalide.");
+            throw new Error("Réponse API invalide ou format inattendu.");
           }
         } else {
-          // Appel réel de l'API OpenAI ChatGPT
           const response = await fetch(`[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)`, {
             method: 'POST',
             headers: { 
@@ -441,6 +413,9 @@ animate();`,
             })
           });
           const data = await response.json();
+          if (data.error) {
+            throw new Error(data.error.message || "Erreur de l'API OpenAI.");
+          }
           if (data.choices && data.choices[0].message.content) {
             aiGeneratedCode = data.choices[0].message.content.replace(/```javascript|```js|```/g, '').trim();
           } else {
@@ -451,7 +426,7 @@ animate();`,
         files['main.js'] = aiGeneratedCode;
         if (activeFile === 'main.js') editor.setValue(aiGeneratedCode);
         
-        chatBox.innerHTML += `<div class="msg ai">Code généré et injecté avec succès dans main.js ! Basculement vers le viewport 3D...</div>`;
+        chatBox.innerHTML += `<div class="msg ai">Code généré et injecté avec succès ! Basculement vers le viewport 3D...</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
         logConsole("Code IA compilé et injecté dans main.js.");
         switchMainView('preview');
@@ -463,19 +438,17 @@ animate();`,
       }
     }
 
-    // --- Module VPN Interactif ---
     let vpnConnected = false;
     function toggleVPN() {
         vpnConnected = !vpnConnected;
         const statusEl = document.getElementById('vpn-status');
         const btnEl = document.getElementById('vpn-btn');
-        
         if(vpnConnected) {
-            statusEl.innerText = "Statut : Connecté au Tunnel Sécurisé (Cloud Node active)";
+            statusEl.innerText = "Statut : Connecté au Tunnel Sécurisé";
             statusEl.style.color = "var(--accent)";
             btnEl.innerText = "Couper le VPN";
             btnEl.style.background = "#ef4444";
-            logConsole("Tunnel VPN chiffré établi avec succès.");
+            logConsole("Tunnel VPN chiffré établi.");
         } else {
             statusEl.innerText = "Statut : Déconnecté";
             statusEl.style.color = "#9ca3af";
@@ -485,10 +458,9 @@ animate();`,
         }
     }
 
-    // --- Export PWA & GitHub Sync ---
     function exportPWA() {
-      logConsole("Empaquetage des fichiers PWA (.zip / manifest / service-worker)...");
-      alert("Package PWA prêt pour le déploiement mobile !");
+      logConsole("Empaquetage des fichiers PWA (.zip)...");
+      alert("Package PWA prêt !");
       closeMenu();
     }
 
@@ -496,8 +468,8 @@ animate();`,
       logConsole("Connexion au dépôt GitHub distant...");
       const token = prompt("Entrez votre jeton d'accès personnel GitHub (PAT) :");
       if (token) {
-        logConsole("Synchronisation et Push vers GitHub effectués avec succès !");
-        alert("Projet synchronisé sur votre dépôt GitHub !");
+        logConsole("Synchronisation et Push vers GitHub effectués !");
+        alert("Projet synchronisé !");
       }
       closeMenu();
     }
