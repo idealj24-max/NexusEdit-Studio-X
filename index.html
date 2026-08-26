@@ -23,9 +23,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
     
-    header { height: 48px; background: var(--bg-panel); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
-    #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent); padding: 6px; }
-    .project-badge { font-size: 0.7rem; background: #1f2937; padding: 4px 8px; border-radius: 4px; color: #9ca3af; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    header { height: 48px; background: var(--bg-panel); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; border-bottom: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.8rem; color: var(--accent); padding: 4px; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .project-badge { font-size: 0.65rem; background: #1f2937; padding: 3px 6px; border-radius: 4px; color: #9ca3af; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .btn-header-dl { background: rgba(0,255,204,0.1); border: 1px solid var(--accent); color: var(--accent); font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-header-dl:active { background: var(--accent); color: #000; }
 
     #side-menu { 
         position: fixed; left: -300px; top: 0; width: 280px; 
@@ -87,13 +90,10 @@
         overflow: hidden;
         z-index: 100;
     }
-    .ad-banner span {
-        color: var(--accent);
-        font-weight: bold;
-    }
+    .ad-banner span { color: var(--accent); font-weight: bold; }
 
     footer { height: 60px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
-    footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 10px; }
+    footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.65rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 6px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
 
     @media (max-width: 900px) {
@@ -106,7 +106,10 @@
 
   <header>
     <div id="menu-btn" onclick="toggleMenu()">≡ MENU STUDIO</div>
-    <div class="project-badge" id="current-project-name">Projet: index.html (PWA App)</div>
+    <div class="header-right">
+      <button class="btn-header-dl" onclick="telechargerCodePWA()">📥 Télécharger</button>
+      <div class="project-badge" id="current-project-name">index.html</div>
+    </div>
   </header>
 
   <div id="overlay" onclick="closeMenu()"></div>
@@ -116,10 +119,6 @@
     <div class="file-item active" onclick="openFile('index.html')">📄 index.html (App Complète)</div>
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css (Design)</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
-    
-    <div class="menu-section-title">Actions Rapides</div>
-    <div class="file-item" onclick="telechargerCodePWA()" style="color:var(--accent);">📥 Télécharger le Code Source</div>
-    <div class="file-item" onclick="installerApplicationPWA()">📱 Installer sur le Téléphone</div>
 
     <div class="menu-section-title">Déploiement</div>
     <div class="file-item" onclick="syncGitHub()">🐙 Push sur GitHub</div>
@@ -152,7 +151,7 @@
       </div>
 
       <div id="console-bar">
-        [System] Studio Pro prêt avec support de téléchargement et installation PWA.<br>
+        [System] Studio Pro prêt avec accès direct au téléchargement et installation PWA.<br>
       </div>
     </div>
 
@@ -188,7 +187,8 @@
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
-    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">📱 <span>Aperçu PWA</span></button>
+    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">📱 <span>Aperçu</span></button>
+    <button onclick="installerApplicationPWA()" id="nav-install" style="color: var(--accent);">📱 <span>Installer</span></button>
     <button onclick="toggleMenu()">📂 <span>Fichiers</span></button>
     <button onclick="switchMainView('vpn'); closeMenu();" id="nav-vpn">🛡️ <span>VPN</span></button>
   </footer>
@@ -281,7 +281,7 @@
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
       event.currentTarget.classList.add('active');
-      document.getElementById('current-project-name').innerText = "Projet: " + filename;
+      document.getElementById('current-project-name').innerText = filename;
       
       let lang = 'html';
       if(filename.endsWith('.css')) lang = 'css';
@@ -313,9 +313,8 @@
       }
     }
 
-    // FONCTION DE TÉLÉCHARGEMENT DIRECT
+    // TÉLÉCHARGEMENT DIRECT
     function telechargerCodePWA() {
-        closeMenu();
         const codeSource = editor ? editor.getValue() : files['index.html'];
         const blob = new Blob([codeSource], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -337,9 +336,8 @@
         deferredPrompt = e;
     });
 
-    // FONCTION D'INSTALLATION PWA
+    // INSTALLATION PWA
     function installerApplicationPWA() {
-        closeMenu();
         if (deferredPrompt) {
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
@@ -403,17 +401,11 @@
 
     async function syncGitHub() {
       closeMenu();
-      
-      let token = localStorage.getItem('nexus_github_pat');
-      if (!token) {
-        token = "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";
-        localStorage.setItem('nexus_github_pat', token);
-      }
+      let token = localStorage.getItem('nexus_github_pat') || "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";
+      localStorage.setItem('nexus_github_pat', token);
 
       const repo = "idealj24-max/NexusEdit-Studio-X";
-
       logConsole(`Connexion à GitHub (${repo})...`);
-
       const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
       
       try {
@@ -421,7 +413,7 @@
           headers: { 'Authorization': `token ${token}` }
         });
         
-        sha = "";
+        let sha = "";
         if (getRes.ok) {
           const fileData = await getRes.json();
           sha = fileData.sha;
