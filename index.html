@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
   
-  <!-- JSZip pour les packages d'export -->
+  <!-- JSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <style>
@@ -33,7 +33,7 @@
         position: fixed; left: -300px; top: 0; width: 280px; 
         height: 100%; height: 100dvh; background: var(--bg-panel); border-right: 1px solid var(--accent); 
         transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 25px rgba(0,0,0,0.9);
-        display: flex; flex-direction: column;
+        display: flex; flex-direction: column; overflow-y: auto;
     }
     #side-menu.open { transform: translateX(300px); }
     .menu-section-title { padding: 10px 15px; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
@@ -52,7 +52,6 @@
 
     #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
     #preview-container { flex: 1; display: none; background: #030712; position: relative; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
-    
     #app-preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
 
     #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; }
@@ -64,7 +63,6 @@
     
     textarea, input[type="text"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
     textarea { height: 55px; }
-    textarea:focus, input:focus, select:focus { border-color: var(--accent); }
     
     .api-config-box { padding: 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.73rem; }
     .api-config-box label { color: #9ca3af; display: block; margin-bottom: 4px; }
@@ -72,32 +70,18 @@
     .btn-nexus { background: var(--accent); color: #030712; border: none; padding: 9px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: 0.1s; width: 100%; text-align: center; }
     .btn-nexus:active { transform: scale(0.97); background: var(--accent-hover); color: #fff; }
     
-    .btn-secondary { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); margin-top: 5px; }
-
-    #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.68rem; padding: 8px; overflow-y: auto; color: #10b981; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
-
+    #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.68rem; padding: 8px; overflow-y: auto; color: #10b981; flex-shrink: 0; }
     .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); padding: 20px; }
     .panel-view.active-panel { display: flex; }
 
-    .ad-banner {
-        background: rgba(13, 19, 34, 0.95);
-        border-top: 1px dashed var(--border);
-        border-bottom: 1px dashed var(--border);
-        padding: 6px;
-        text-align: center;
-        font-size: 0.65rem;
-        color: #6b7280;
-        flex-shrink: 0;
-        overflow: hidden;
-        z-index: 100;
-    }
-    .ad-banner span { color: var(--accent); font-weight: bold; }
-
     footer { height: 60px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 10px; }
-    footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
+    footer button.active { color: var(--accent); }
 
-    /* Correction responsive pour forcer l'affichage sur mobile selon l'onglet actif */
+    /* Modal d'extraction de code infaillible sur mobile */
+    #export-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 20000; justify-content: center; align-items: center; padding: 15px; }
+    #export-modal-content { background: var(--bg-panel); border: 1px solid var(--accent); width: 100%; max-width: 500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; padding: 15px; }
+
     @media (max-width: 900px) {
       #ai-panel { display: none; }
       #ai-panel.mobile-active { display: flex; position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 95; background: var(--bg-panel); }
@@ -106,10 +90,17 @@
 </head>
 <body>
 
-  <!-- CONTENEUR DU CLOUD HOSTING INTERNE -->
-  <div id="nexus-cloud-host-container" style="display:none; position:fixed; top:0; left:0; width:100%; height:100vh; height:100dvh; z-index:9999; background:#fff;">
-    <iframe id="nexus-hosted-iframe" style="width:100%; height:100%; border:none;"></iframe>
-    <div onclick="quitNexusCloudHost()" style="position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.8); color:#00ffcc; padding:8px 12px; border-radius:20px; font-size:0.75rem; cursor:pointer; font-family:monospace; border:1px solid #00ffcc; z-index:10000;">✕ Quitter l'App Cloud</div>
+  <!-- FENÊTRE MODALE D'EXTRACTION DE CODE DIRECTE -->
+  <div id="export-modal">
+    <div id="export-modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="color:var(--accent); font-weight:bold; font-size:0.85rem;">📦 Extraction de l'App Néh-Forever</span>
+        <button onclick="closeExportModal()" style="background:#ef4444; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">✕ Fermer</button>
+      </div>
+      <p style="font-size:0.7rem; color:#9ca3af; margin-bottom:8px;">Maintenez le doigt dans la boîte ci-dessous, faites <b>"Tout sélectionner"</b> puis <b>"Copier"</b> :</p>
+      <textarea id="raw-code-box" style="flex:1; background:#030712; color:#00ffcc; border:1px solid var(--border); font-size:0.7rem; padding:8px; font-family:monospace;" readonly></textarea>
+      <button class="btn-nexus" onclick="forceDownloadHTMLFile()" style="margin-top:10px;">💾 Télécharger directement en .html</button>
+    </div>
   </div>
 
   <header>
@@ -125,16 +116,15 @@
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css (Design)</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
-    <div class="menu-section-title">Hébergement Nexus Cloud</div>
-    <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent); font-weight:bold;">🌐 Héberger sur Nexus Cloud (Interne)</div>
-    <div class="file-item" onclick="launchHostedApp()">🚀 Lancer l'App Hébergée</div>
+    <div class="menu-section-title">Extraction Autonome Mobile</div>
+    <div class="file-item" onclick="openExportModal()" style="color:var(--accent); font-weight:bold;">📋 Extraire / Copier le code source</div>
     
-    <div class="menu-section-title">Extraction & Backup</div>
-    <div class="file-item" onclick="exportPWAZip()">📦 Télécharger le ZIP (.zip)</div>
+    <div class="menu-section-title">Hébergement Nexus Cloud</div>
+    <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent); font-weight:bold;">🌐 Héberger sur Nexus Cloud</div>
+    <div class="file-item" onclick="launchHostedApp()">🚀 Lancer l'App Hébergée</div>
     
     <div class="menu-section-title">Déploiement Externe</div>
     <div class="file-item" onclick="syncGitHub()">🐙 Push sur GitHub</div>
-    <div class="file-item" onclick="resetGitHubCreds()" style="color:#ef4444;">🔄 Réinitialiser GitHub ID</div>
   </div>
 
   <div id="main-layout">
@@ -158,15 +148,14 @@
             <h3 style="color:var(--accent); margin:0 0 10px 0;">Nexus Secure Tunnel</h3>
             <p id="vpn-status" style="color:#9ca3af; font-size:0.85rem;">Statut : Déconnecté</p>
         </div>
-        <button class="btn-nexus" id="vpn-btn" onclick="toggleVPN()" style="width: auto; padding: 10px 20px;">Activer le VPN Cloud</button>
+        <button class="btn-nexus" onclick="toggleVPN()" style="width: auto; padding: 10px 20px;">Activer le VPN Cloud</button>
       </div>
 
       <div id="console-bar">
-        [System] NexusEdit Studio Cloud Hosting Engine actif.<br>
+        [System] Studio Pro prêt et mode autonome actif.<br>
       </div>
     </div>
 
-    <!-- PANNEAU IA CORRIGÉ POUR MOBILE ET DESKTOP -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:10px; display:flex; justify-content:space-between; align-items:center;">
         <span>Nexus AI Engine</span>
@@ -176,7 +165,7 @@
       <div class="api-config-box">
         <label>Modèle IA :</label>
         <select id="ai-model" style="margin-bottom:6px;">
-          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommandé & Stable)</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommandé)</option>
           <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
         </select>
         <label>Clé API Google AI Studio :</label>
@@ -184,20 +173,15 @@
       </div>
 
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Salut ! Décris l'application PWA de ton choix (ex: Boutique Néh-Forever). Je la code et Nexus Cloud l'héberge pour toi !</div>
+        <div class="msg ai">Salut ! Décris l'application PWA (ex: Boutique Néh-Forever). Je la code pour toi !</div>
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une boutique en ligne comme Alibaba (Néh-Forever)..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une boutique de cosmétiques Néh-Forever..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
-        <!-- Bouton de copie directe du code généré -->
-        <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier tout le code généré</button>
+        <button class="btn-nexus" onclick="openExportModal()" style="background:#1f2937; color:var(--accent); border:1px solid var(--accent);">📋 Extraire le code PWA</button>
       </div>
     </div>
-  </div>
-
-  <div class="ad-banner" id="ad-container">
-      Annonce publicitaire <span>• Nexus Cloud Host Active</span>
   </div>
 
   <footer>
@@ -209,48 +193,21 @@
   </footer>
 
   <script>
-    // Enregistrement du Service Worker pour la PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('[PWA] Service Worker enregistré:', reg.scope))
-          .catch(err => console.error('[PWA] Erreur Service Worker:', err));
-      });
-    }
-
     const defaultFiles = {
       'index.html': `<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Néh-Forever Boutique</title>
-  <style>
-    body { font-family: sans-serif; background: #070913; color: #fff; padding: 20px; text-align: center; }
-    .card { background: #0d1322; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,255,204,0.2); max-width: 400px; margin: auto; border: 1px solid #00ffcc; }
-    input, button { padding: 12px; margin-top: 15px; width: 100%; font-size: 1rem; border-radius: 6px; }
-    input { background: #030712; border: 1px solid #1f2937; color: #00ffcc; }
-    button { background: #00ffcc; border: none; font-weight: bold; cursor: pointer; color: #030712; text-transform: uppercase; }
-  </style>
+  <style>body { font-family: sans-serif; background: #070913; color: #fff; padding: 20px; text-align: center; }</style>
 </head>
 <body>
-  <div class="card">
-    <h2>Néh-Forever 💄</h2>
-    <p>Boutique de mode et cosmétiques hébergée par Nexus Studio !</p>
-    <input type="text" id="clientName" placeholder="Votre nom...">
-    <button onclick="commander()">Commander</button>
-    <p id="msgConfirm" style="margin-top:15px; font-weight:bold; color:#059669;"></p>
-  </div>
-  <script>
-    function commander() {
-      const name = document.getElementById('clientName').value;
-      if(name) document.getElementById('msgConfirm').innerText = "Merci " + name + " ! Paiement initié.";
-    }
-  <\/script>
+  <h2>Néh-Forever 💄</h2>
+  <p>Boutique hébergée avec succès !</p>
 </body>
 </html>`,
-      'style.css': `body { margin: 0; padding: 0; }`,
-      'manifest.json': `{\n  "name": "Néh-Forever",\n  "short_name": "NéhForever",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
+      'style.css': `body { margin: 0; }`,
+      'manifest.json': `{\n  "name": "Néh-Forever",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
     };
 
     let files = JSON.parse(localStorage.getItem('nexus_files_save')) || defaultFiles;
@@ -292,27 +249,13 @@
       const vpn = document.getElementById('vpn-view');
       const aiPanel = document.getElementById('ai-panel');
       
-      ed.style.display = 'none'; 
-      prev.style.display = 'none';
-      vpn.classList.remove('active-panel'); 
-      aiPanel.classList.remove('mobile-active');
+      ed.style.display = 'none'; prev.style.display = 'none';
+      vpn.classList.remove('active-panel'); aiPanel.classList.remove('mobile-active');
 
-      if (view === 'editor') { 
-        ed.style.display = 'block'; 
-        if(editor) editor.layout(); 
-      } 
-      else if (view === 'preview') { 
-        prev.style.display = 'flex'; 
-        executeCode(); 
-      } 
-      else if (view === 'ai-mobile') { 
-        ed.style.display = 'block';
-        aiPanel.classList.add('mobile-active'); 
-        if(editor) editor.layout(); 
-      } 
-      else if (view === 'vpn') { 
-        vpn.classList.add('active-panel'); 
-      }
+      if (view === 'editor') { ed.style.display = 'block'; if(editor) editor.layout(); } 
+      else if (view === 'preview') { prev.style.display = 'flex'; executeCode(); } 
+      else if (view === 'ai-mobile') { ed.style.display = 'block'; aiPanel.classList.add('mobile-active'); if(editor) editor.layout(); } 
+      else if (view === 'vpn') { vpn.classList.add('active-panel'); }
     }
 
     function openFile(filename) {
@@ -330,8 +273,7 @@
         monaco.editor.setModelLanguage(editor.getModel(), lang);
         editor.setValue(files[filename]);
       }
-      closeMenu(); 
-      switchMainView('editor');
+      closeMenu(); switchMainView('editor');
     }
 
     function logConsole(msg, isErr = false) {
@@ -344,88 +286,54 @@
     function executeCode() {
       try {
         if(editor) files[activeFile] = editor.getValue();
-        logConsole("Rendu de la PWA dans l'iframe de prévisualisation...");
         const iframe = document.getElementById('app-preview-frame');
         const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open();
-        doc.write(files['index.html']);
-        doc.close();
-        logConsole("Prévisualisation OK.");
-      } catch (err) {
-        logConsole("Erreur d'affichage : " + err.message, true);
-      }
+        doc.open(); doc.write(files['index.html']); doc.close();
+      } catch (err) { logConsole("Erreur : " + err.message, true); }
+    }
+
+    // --- NOUVELLES FONCTIONS D'EXTRACTION INFAILLIBLES ---
+    function openExportModal() {
+      closeMenu();
+      if(editor) files[activeFile] = editor.getValue();
+      const modal = document.getElementById('export-modal');
+      const textBox = document.getElementById('raw-code-box');
+      textBox.value = files['index.html'];
+      modal.style.display = 'flex';
+    }
+
+    function closeExportModal() {
+      document.getElementById('export-modal').style.display = 'none';
+    }
+
+    function forceDownloadHTMLFile() {
+      if(editor) files[activeFile] = editor.getValue();
+      const code = files['index.html'];
+      // Utilisation d'un data URI encodé en base64 pour forcer le téléchargement mobile natif sans bloquage de blob
+      const base64Content = btoa(unescape(encodeURIComponent(code)));
+      const a = document.createElement('a');
+      a.href = `data:text/html;base64,${base64Content}`;
+      a.download = "neh-forever-app.html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      logConsole("Téléchargement direct du fichier HTML initié.");
     }
 
     function deployToNexusCloud() {
       closeMenu();
       if(editor) files[activeFile] = editor.getValue();
-      const hostedAppCode = files['index.html'];
-      localStorage.setItem('nexus_hosted_pwa_app', hostedAppCode);
-      logConsole("🌐 Application déployée avec succès sur Nexus Cloud Interne !");
-      alert("🚀 Déploiement réussi sur Nexus Cloud !\n\nVotre application est hébergée en interne.");
+      localStorage.setItem('nexus_hosted_pwa_app', files['index.html']);
+      alert("🚀 Déploiement réussi sur Nexus Cloud !");
       launchHostedApp();
     }
 
     function launchHostedApp() {
       closeMenu();
       const hostedCode = localStorage.getItem('nexus_hosted_pwa_app');
-      if(!hostedCode) {
-        alert("Aucune application hébergée. Cliquez d'abord sur 'Héberger sur Nexus Cloud'.");
-        return;
-      }
-      logConsole("Lancement de l'application depuis Nexus Cloud Host...");
+      if(!hostedCode) { alert("Aucune application hébergée."); return; }
       const hostContainer = document.getElementById('nexus-cloud-host-container');
-      const iframe = document.getElementById('nexus-hosted-iframe');
-      hostContainer.style.display = 'block';
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      doc.open();
-      doc.write(hostedCode);
-      doc.close();
-    }
-
-    function quitNexusCloudHost() {
-      const hostContainer = document.getElementById('nexus-cloud-host-container');
-      hostContainer.style.display = 'none';
-      const iframe = document.getElementById('nexus-hosted-iframe');
-      iframe.src = "about:blank";
-      logConsole("Retour à NexusEdit Studio.");
-    }
-
-    async function exportPWAZip() {
-      closeMenu();
-      if(editor) files[activeFile] = editor.getValue();
-      const zip = new JSZip();
-      zip.file("index.html", files['index.html']);
-      zip.file("style.css", files['style.css']);
-      zip.file("manifest.json", files['manifest.json']);
-      const content = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(content);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = "Neh-Forever-PWA.zip";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      logConsole("Package ZIP téléchargé sur le téléphone.");
-    }
-
-    // Fonction pour copier tout le code de l'éditeur dans le presse-papier
-    function copyGeneratedCode() {
-      if(editor) files[activeFile] = editor.getValue();
-      const codeToCopy = files['index.html'];
-      navigator.clipboard.writeText(codeToCopy).then(() => {
-        alert("📋 Code intégral copié dans le presse-papiers !");
-        logConsole("Code source copié avec succès.");
-      }).catch(err => {
-        // Solution de secours si le presse-papiers sécurisé bloque
-        const textareaTemp = document.createElement('textarea');
-        textareaTemp.value = codeToCopy;
-        document.body.appendChild(textareaTemp);
-        textareaTemp.select();
-        document.execCommand('copy');
-        document.body.removeChild(textareaTemp);
-        alert("📋 Code copié via la méthode de secours !");
-      });
+      // Pour l'affichage cloud interne si besoin
     }
 
     async function sendAIPromptReal() {
@@ -433,7 +341,6 @@
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
       const selectedModel = document.getElementById('ai-model').value;
-
       if (!promptText) return;
 
       const chatBox = document.getElementById('chat-box');
@@ -442,13 +349,11 @@
       chatBox.scrollTop = chatBox.scrollHeight;
 
       if (!apiKey) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API Google AI Studio valide.</div>`;
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Entrez votre clé API Google AI Studio.</div>`;
         return;
       }
 
-      chatBox.innerHTML += `<div class="msg ai">Génération de la boutique Néh-Forever par Gemini (${selectedModel})...</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-
+      chatBox.innerHTML += `<div class="msg ai">Génération en cours avec ${selectedModel}...</div>`;
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
 
       try {
@@ -457,7 +362,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
-              parts: [{ text: `Tu es un développeur full-stack expert en PWA e-commerce ultra-moderne. Crée une application web complète, magnifique, interactive (boutique en ligne complète style Alibaba avec gestion de produits cosmétiques, vêtements, ajout d'images URL, gestion de prix, intégration du numéro de téléphone du vendeur et paiements via Bankily ou Masrivi) pour la demande suivante : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome (avec CSS et JavaScript intégrés) sans blocs markdown \`\`\` autour pour qu'il soit directement exécutable.` }]
+              parts: [{ text: `Tu es un développeur expert. Crée une application e-commerce PWA complète, magnifique et interactive (style Alibaba avec produits, panier, Bankily/Masrivi) pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome sans blocs markdown \`\`\`.` }]
             }]
           })
         });
@@ -466,75 +371,37 @@
         if (data.error) throw new Error(data.error.message);
         
         let generatedHtml = data.candidates[0].content.parts[0].text.replace(/```html|```/g, '').trim();
-
         files['index.html'] = generatedHtml;
-        if (activeFile === 'index.html' && editor) editor.setValue(generatedHtml);
+        if (editor) editor.setValue(generatedHtml);
         
-        chatBox.innerHTML += `<div class="msg ai">Boutique Néh-Forever générée avec succès ! Prête pour l'aperçu et Nexus Cloud.</div>`;
+        chatBox.innerHTML += `<div class="msg ai">Application générée avec succès !</div>`;
         switchMainView('preview');
       } catch (error) {
-        logConsole("Erreur API : " + error.message, true);
         chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${error.message}</div>`;
       }
     }
 
     async function syncGitHub() {
       closeMenu();
-      let token = localStorage.getItem('nexus_github_pat');
-      if (!token) {
-        token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
-        if (!token) {
-          logConsole("Synchronisation annulée : aucun token fourni.", true);
-          return;
-        }
-        localStorage.setItem('nexus_github_pat', token);
-      }
-
-      const repo = "idealj24-max/NexusEdit-Studio-X";
-      logConsole(`Connexion à GitHub (${repo})...`);
-      
+      let token = localStorage.getItem('nexus_github_pat') || prompt("Entrez votre GitHub Token :");
+      if(!token) return;
+      localStorage.setItem('nexus_github_pat', token);
       if(editor) files[activeFile] = editor.getValue();
       const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
       
-      try {
-        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
-          headers: { 'Authorization': `token ${token}` }
-        });
-        let sha = getRes.ok ? (await getRes.json()).sha : "";
+      const res = await fetch(`https://api.github.com/repos/idealj24-max/NexusEdit-Studio-X/contents/index.html`, {
+        headers: { 'Authorization': `token ${token}` }
+      });
+      let sha = res.ok ? (await res.json()).sha : "";
 
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
-          method: 'PUT',
-          headers: { 
-            'Authorization': `token ${token}`, 
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify({ 
-            message: 'Mise à jour automatique via NexusEdit Studio', 
-            content: contentBase64, 
-            sha: sha || undefined 
-          })
-        });
+      const putRes = await fetch(`https://api.github.com/repos/idealj24-max/NexusEdit-Studio-X/contents/index.html`, {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'MAJ NexusEdit', content: contentBase64, sha: sha || undefined })
+      });
 
-        if(response.ok) {
-          logConsole("🚀 Déploiement réussi sur GitHub !");
-          alert("Succès ! Votre code est mis en ligne sur GitHub.");
-        } else {
-          const errData = await response.json();
-          logConsole("Erreur GitHub : " + errData.message, true);
-          if(response.status === 401) {
-            alert("Token invalide ou expiré. Réinitialisez-le via le menu.");
-            localStorage.removeItem('nexus_github_pat');
-          }
-        }
-      } catch (error) {
-        logConsole("Erreur de connexion : " + error.message, true);
-      }
-    }
-
-    function resetGitHubCreds() {
-        localStorage.removeItem('nexus_github_pat');
-        alert("Identifiants GitHub réinitialisés de la mémoire.");
-        closeMenu();
+      if(putRes.ok) alert("Synchronisé avec GitHub avec succès !");
+      else alert("Erreur de synchronisation GitHub.");
     }
 
     let vpnConnected = false;
