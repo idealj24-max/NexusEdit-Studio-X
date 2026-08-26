@@ -71,6 +71,24 @@
     .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); padding: 20px; }
     .panel-view.active-panel { display: flex; }
 
+    /* Style de la Bannière Publicitaire */
+    .ad-banner {
+        background: rgba(13, 19, 34, 0.95);
+        border-top: 1px dashed var(--border);
+        border-bottom: 1px dashed var(--border);
+        padding: 6px;
+        text-align: center;
+        font-size: 0.65rem;
+        color: #6b7280;
+        flex-shrink: 0;
+        overflow: hidden;
+        z-index: 100;
+    }
+    .ad-banner span {
+        color: var(--accent);
+        font-weight: bold;
+    }
+
     footer { height: 60px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 10px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
@@ -127,7 +145,7 @@
       </div>
 
       <div id="console-bar">
-        [System] Studio Pro prêt avec sauvegarde automatique et mode hors-ligne.<br>
+        [System] Studio Pro prêt avec support publicitaire et mode hors-ligne.<br>
       </div>
     </div>
 
@@ -157,6 +175,11 @@
     </div>
   </div>
 
+  <!-- Espace Publicitaire Intégré (Prêt pour AdSense) -->
+  <div class="ad-banner" id="ad-container">
+      Annonce publicitaire <span>• Soutenez le projet NexusEdit</span>
+  </div>
+
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">📱 <span>Aperçu PWA</span></button>
@@ -165,9 +188,6 @@
   </footer>
 
   <script>
-    // ==========================================
-    // 1. SAUVEGARDE AUTOMATIQUE (LocalStorage)
-    // ==========================================
     const defaultFiles = {
       'index.html': `<!DOCTYPE html>
 <html lang="fr">
@@ -202,14 +222,10 @@
       'manifest.json': `{\n  "name": "Nexus PWA",\n  "short_name": "PWA",\n  "start_url": "/index.html",\n  "display": "standalone"\n}`
     };
 
-    // Charge les fichiers sauvegardés ou utilise ceux par défaut
     let files = JSON.parse(localStorage.getItem('nexus_files_save')) || defaultFiles;
     let activeFile = 'index.html';
     let editor;
 
-    // ==========================================
-    // 2. INITIALISATION DE L'ÉDITEUR & AUTO-SAVE
-    // ==========================================
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
     require(['vs/editor/editor.main'], function() {
       editor = monaco.editor.create(document.getElementById('editor-container'), {
@@ -221,16 +237,12 @@
         minimap: { enabled: false }
       });
       
-      // Sauvegarde automatique à chaque frappe
       editor.onDidChangeModelContent(() => {
         files[activeFile] = editor.getValue();
         localStorage.setItem('nexus_files_save', JSON.stringify(files));
       });
     });
 
-    // ==========================================
-    // 3. ENREGISTREMENT DU SERVICE WORKER (HORS-LIGNE)
-    // ==========================================
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then((registration) => {
@@ -241,9 +253,6 @@
       });
     }
 
-    // ==========================================
-    // FONCTIONS D'INTERFACE
-    // ==========================================
     function toggleMenu() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
@@ -308,9 +317,6 @@
       }
     }
 
-    // ==========================================
-    // 4. ASSISTANT IA (Gemini API)
-    // ==========================================
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -358,9 +364,6 @@
       }
     }
 
-    // ==========================================
-    // 5. LE PONT GITHUB (Déploiement en 1 clic)
-    // ==========================================
     async function syncGitHub() {
       closeMenu();
       
