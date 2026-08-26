@@ -31,7 +31,7 @@
         position: fixed; left: -300px; top: 0; width: 280px; 
         height: 100%; height: 100dvh; background: var(--bg-panel); border-right: 1px solid var(--accent); 
         transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 25px rgba(0,0,0,0.9);
-        display: flex; flex-direction: column; transform: translateX(0);
+        display: flex; flex-direction: column; transform: translateX(0); overflow-y: auto;
     }
     #side-menu.open { transform: translateX(300px); }
     .menu-section-title { padding: 10px 15px; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
@@ -117,6 +117,10 @@
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css (Design)</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
+    <div class="menu-section-title">Actions Rapides</div>
+    <div class="file-item" onclick="telechargerCodePWA()" style="color:var(--accent);">📥 Télécharger le Code Source</div>
+    <div class="file-item" onclick="installerApplicationPWA()">📱 Installer sur le Téléphone</div>
+
     <div class="menu-section-title">Déploiement</div>
     <div class="file-item" onclick="syncGitHub()">🐙 Push sur GitHub</div>
     <div class="file-item" onclick="exportPWA()">📦 Exporter en PWA (.zip)</div>
@@ -148,7 +152,7 @@
       </div>
 
       <div id="console-bar">
-        [System] Studio Pro prêt avec support AdSense et mode hors-ligne.<br>
+        [System] Studio Pro prêt avec support de téléchargement et installation PWA.<br>
       </div>
     </div>
 
@@ -309,6 +313,46 @@
       }
     }
 
+    // NOUVELLES FONCTIONS : Téléchargement et Installation PWA
+    function telechargerCodePWA() {
+        closeMenu();
+        const codeSource = editor ? editor.getValue() : files['index.html'];
+        const blob = new Blob([codeSource], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = activeFile || 'index.html';
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        logConsole("Fichier source téléchargé avec succès !");
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+    });
+
+    function installerApplicationPWA() {
+        closeMenu();
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    logConsole("Application installée avec succès sur l'appareil !");
+                }
+                deferredPrompt = null;
+            });
+        } else {
+            alert("Pour installer cette application sur votre téléphone :\n\n1. Ouvrez le menu de votre navigateur (les 3 points en haut à droite).\n2. Sélectionnez 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.");
+            logConsole("Aide à l'installation affichée.");
+        }
+    }
+
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -365,7 +409,6 @@
         localStorage.setItem('nexus_github_pat', token);
       }
 
-      // Repo fixé automatiquement pour correspondre à ton GitHub Pages
       const repo = "idealj24-max/NexusEdit-Studio-X";
 
       logConsole(`Connexion à GitHub (${repo})...`);
