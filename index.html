@@ -11,6 +11,10 @@
 
   <!-- Monaco Editor -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+  
+  <!-- JSZip pour créer de vrais packages d'applications autonomes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
   <style>
     :root {
       --bg-dark: #070913;
@@ -118,7 +122,7 @@
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
     <div class="menu-section-title">Extraction & Installation</div>
-    <div class="file-item" onclick="exportAndInstallPWA()" style="color:var(--accent); font-weight:bold;">🚀 Installer / Ouvrir l'App</div>
+    <div class="file-item" onclick="exportAndInstallPWA()" style="color:var(--accent); font-weight:bold;">🚀 Télécharger Package PWA (.zip)</div>
     <div class="file-item" onclick="exportPWAZip()">📦 Télécharger les sources (.zip)</div>
     
     <div class="menu-section-title">Déploiement Cloud</div>
@@ -151,7 +155,7 @@
       </div>
 
       <div id="console-bar">
-        [System] Studio Pro prêt avec extraction d'application locale autonome.<br>
+        [System] Studio Pro prêt avec extraction de package PWA autonome.<br>
       </div>
     </div>
 
@@ -188,7 +192,7 @@
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">📱 <span>Aperçu</span></button>
-    <button onclick="exportAndInstallPWA(); closeMenu();" style="color:var(--accent);">⚡ <span>Installer</span></button>
+    <button onclick="exportAndInstallPWA(); closeMenu();" style="color:var(--accent);">⚡ <span>Package</span></button>
     <button onclick="toggleMenu()">📂 <span>Menu</span></button>
     <button onclick="switchMainView('vpn'); closeMenu();" id="nav-vpn">🛡️ <span>VPN</span></button>
   </footer>
@@ -313,39 +317,72 @@
       }
     }
 
-    // --- NOUVELLE FONCTION CLÉ : EXTRACTION ET INSTALLATION DIRECTE LOCALE ---
-    function exportAndInstallPWA() {
+    // --- SOLUTION CORRIGÉE : GÉNÉRATION D'UN ZIP AUTONOME DE LA PWA ---
+    async function exportPWAZip() {
       closeMenu();
-      if(editor) files[activeFile] = editor.getValue(); // Sauvegarde l'état actuel de l'éditeur
+      if(editor) files[activeFile] = editor.getValue();
 
-      // Crée un objet Blob autonome contenant le code HTML de l'application conçue
-      const htmlContent = files['index.html'];
-      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-      const blobUrl = URL.createObjectURL(blob);
-
-      logConsole("Génération du package d'installation local...");
-
-      // Ouvre l'application directement dans un nouvel onglet navigateur (Prêt pour PWA)
-      const newWindow = window.open(blobUrl, '_blank');
+      logConsole("Création du package ZIP autonome de la PWA...");
       
-      if(!newWindow) {
-        // Fallback si le bloqueur de pop-up empêche l'ouverture automatique
+      const zip = new JSZip();
+      
+      const appHtml = files['index.html'] || defaultFiles['index.html'];
+      const appCss = files['style.css'] || '/* Styles */';
+      
+      // Manifest dédié à l'application créée (et non NexusEdit Studio)
+      const appManifest = {
+        "name": "Néh-Forever Boutique",
+        "short_name": "NéhForever",
+        "start_url": "./index.html",
+        "display": "standalone",
+        "background_color": "#070913",
+        "theme_color": "#00ffcc",
+        "icons": [
+          {
+            "src": "icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      };
+
+      // Service Worker propre pour la PWA
+      const appSw = `
+      const CACHE_NAME = 'neh-forever-v1';
+      self.addEventListener('install', (e) => {
+        e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./index.html'])));
+      });
+      self.addEventListener('fetch', (e) => {
+        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+      });`;
+
+      // Ajout des fichiers au package ZIP
+      zip.file("index.html", appHtml);
+      zip.file("style.css", appCss);
+      zip.file("manifest.json", JSON.stringify(appManifest, null, 2));
+      zip.file("sw.js", appSw);
+
+      try {
+        const content = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(content);
+        
         const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = 'app-pwa.html';
+        a.href = url;
+        a.download = "Neh-Forever-PWA.zip";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        logConsole("Fichier PWA téléchargé sur l'appareil avec succès !");
-        alert("Pop-up bloqué : Ton application a été téléchargée sous le nom de 'app-pwa.html'. Ouvre ce fichier dans ton navigateur mobile pour l'installer.");
-      } else {
-        logConsole("Application ouverte en mode autonome. Appuie sur les 3 points du navigateur -> 'Ajouter à l'écran d'accueil'.");
-        alert("🚀 Ton application est ouverte dans un nouvel onglet !\n\nPour l'installer définitivement sur ton téléphone :\n1. Appuie sur les 3 petits points de ton navigateur.\n2. Sélectionne 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.");
+        
+        logConsole("✅ Package ZIP de l'application téléchargé avec succès !");
+        alert("📦 Le fichier 'Neh-Forever-PWA.zip' a été téléchargé dans votre dossier Téléchargements.\n\nIl contient l'application complète, son design et sa configuration PWA indépendante de NexusEdit Studio.");
+      } catch (err) {
+        logConsole("Erreur lors de la création du ZIP : " + err.message, true);
+        alert("Erreur : " + err.message);
       }
     }
 
-    function exportPWAZip() {
-      exportAndInstallPWA();
+    function exportAndInstallPWA() {
+      exportPWAZip();
     }
 
     async function sendAIPromptReal() {
