@@ -47,7 +47,6 @@
     #editor-container { flex: 1; width: 100%; height: 100%; position: relative; }
     #preview-container { flex: 1; display: none; background: #030712; position: relative; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
     
-    /* Frame d'exécution PWA Propre */
     #app-preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
 
     #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
@@ -100,6 +99,7 @@
     <div class="menu-section-title">Déploiement</div>
     <div class="file-item" onclick="syncGitHub()">🐙 Push sur GitHub</div>
     <div class="file-item" onclick="exportPWA()">📦 Exporter en PWA (.zip)</div>
+    <div class="file-item" onclick="resetGitHubCreds()" style="color:#ef4444;">🔄 Réinitialiser GitHub ID</div>
   </div>
 
   <div id="main-layout">
@@ -127,7 +127,7 @@
       </div>
 
       <div id="console-bar">
-        [System] Studio prêt à générer des PWA web hautement fonctionnelles.<br>
+        [System] Studio Pro prêt avec sauvegarde automatique et mode hors-ligne.<br>
       </div>
     </div>
 
@@ -147,11 +147,11 @@
       </div>
 
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Salut ! Décris l'application PWA de ton choix (ex: un outil de gestion de chantier, un tableau de bord, un outil de notes sécurisé, ou un jeu 2D fluide). Je code tout dans un fichier HTML unique ultra-propre !</div>
+        <div class="msg ai">Salut ! Décris l'application PWA de ton choix. Je code tout dans un fichier HTML unique ultra-propre !</div>
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une application PWA de gestion de tâches avec stockage LocalStorage..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une application PWA de gestion de tâches..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
       </div>
     </div>
@@ -165,8 +165,10 @@
   </footer>
 
   <script>
-    let editor;
-    let files = {
+    // ==========================================
+    // 1. SAUVEGARDE AUTOMATIQUE (LocalStorage)
+    // ==========================================
+    const defaultFiles = {
       'index.html': `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -183,7 +185,7 @@
 <body>
   <div class="card">
     <h2>Bienvenue sur ton application PWA</h2>
-    <p>Modifie ce code ou demande à l'IA de créer une application complète (gestion, outil, etc.) !</p>
+    <p>Modifie ce code ou demande à l'IA de créer une application complète !</p>
     <input type="text" id="userInput" placeholder="Tape quelque chose...">
     <button onclick="valider()">Valider</button>
     <p id="resultat" style="margin-top:15px; font-weight:bold; color:#059669;"></p>
@@ -200,8 +202,14 @@
       'manifest.json': `{\n  "name": "Nexus PWA",\n  "short_name": "PWA",\n  "start_url": "/index.html",\n  "display": "standalone"\n}`
     };
 
+    // Charge les fichiers sauvegardés ou utilise ceux par défaut
+    let files = JSON.parse(localStorage.getItem('nexus_files_save')) || defaultFiles;
     let activeFile = 'index.html';
+    let editor;
 
+    // ==========================================
+    // 2. INITIALISATION DE L'ÉDITEUR & AUTO-SAVE
+    // ==========================================
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
     require(['vs/editor/editor.main'], function() {
       editor = monaco.editor.create(document.getElementById('editor-container'), {
@@ -212,20 +220,35 @@
         fontSize: 13,
         minimap: { enabled: false }
       });
+      
+      // Sauvegarde automatique à chaque frappe
       editor.onDidChangeModelContent(() => {
         files[activeFile] = editor.getValue();
+        localStorage.setItem('nexus_files_save', JSON.stringify(files));
       });
     });
 
+    // ==========================================
+    // 3. ENREGISTREMENT DU SERVICE WORKER (HORS-LIGNE)
+    // ==========================================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((registration) => {
+          logConsole("Service Worker activé. Mode hors-ligne prêt.");
+        }).catch((err) => {
+          logConsole("Erreur Service Worker : " + err, true);
+        });
+      });
+    }
+
+    // ==========================================
+    // FONCTIONS D'INTERFACE
+    // ==========================================
     function toggleMenu() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
-        if (menu.classList.contains('open')) {
-            closeMenu();
-        } else {
-            menu.classList.add('open');
-            overlay.style.display = 'block';
-        }
+        if (menu.classList.contains('open')) { closeMenu(); } 
+        else { menu.classList.add('open'); overlay.style.display = 'block'; }
     }
 
     function closeMenu() {
@@ -239,24 +262,13 @@
       const vpn = document.getElementById('vpn-view');
       const aiPanel = document.getElementById('ai-panel');
       
-      ed.style.display = 'none';
-      prev.style.display = 'none';
-      vpn.classList.remove('active-panel');
-      aiPanel.classList.remove('mobile-active');
+      ed.style.display = 'none'; prev.style.display = 'none';
+      vpn.classList.remove('active-panel'); aiPanel.classList.remove('mobile-active');
 
-      if (view === 'editor') {
-        ed.style.display = 'block';
-        if(editor) editor.layout();
-      } else if (view === 'preview') {
-        prev.style.display = 'flex';
-        executeCode();
-      } else if (view === 'ai-mobile') {
-        ed.style.display = 'block';
-        aiPanel.classList.add('mobile-active');
-        if(editor) editor.layout();
-      } else if (view === 'vpn') {
-        vpn.classList.add('active-panel');
-      }
+      if (view === 'editor') { ed.style.display = 'block'; if(editor) editor.layout(); } 
+      else if (view === 'preview') { prev.style.display = 'flex'; executeCode(); } 
+      else if (view === 'ai-mobile') { ed.style.display = 'block'; aiPanel.classList.add('mobile-active'); if(editor) editor.layout(); } 
+      else if (view === 'vpn') { vpn.classList.add('active-panel'); }
     }
 
     function openFile(filename) {
@@ -272,8 +284,7 @@
       
       monaco.editor.setModelLanguage(editor.getModel(), lang);
       editor.setValue(files[filename]);
-      closeMenu();
-      switchMainView('editor');
+      closeMenu(); switchMainView('editor');
     }
 
     function logConsole(msg, isErr = false) {
@@ -285,7 +296,7 @@
 
     function executeCode() {
       try {
-        logConsole("Rendu de la PWA dans l'iframe sandbox...");
+        logConsole("Rendu de la PWA dans l'iframe...");
         const iframe = document.getElementById('app-preview-frame');
         const doc = iframe.contentDocument || iframe.contentWindow.document;
         doc.open();
@@ -297,6 +308,9 @@
       }
     }
 
+    // ==========================================
+    // 4. ASSISTANT IA (Gemini API)
+    // ==========================================
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -344,6 +358,61 @@
       }
     }
 
+    // ==========================================
+    // 5. LE PONT GITHUB (Déploiement en 1 clic)
+    // ==========================================
+    async function syncGitHub() {
+      closeMenu();
+      
+      let token = localStorage.getItem('nexus_github_pat');
+      if (!token) {
+        token = prompt("Entrez votre Token GitHub (PAT) pour autoriser le déploiement :");
+        if (!token) return logConsole("Déploiement annulé (Aucun Token).", true);
+        localStorage.setItem('nexus_github_pat', token);
+      }
+
+      let repo = localStorage.getItem('nexus_github_repo');
+      if (!repo) {
+        repo = prompt("Entrez le nom de votre dépôt (ex: mon-compte/mon-app) :");
+        if (!repo) return logConsole("Déploiement annulé (Aucun dépôt).", true);
+        localStorage.setItem('nexus_github_repo', repo);
+      }
+
+      logConsole(`Connexion à GitHub (${repo})...`);
+
+      const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
+      
+      try {
+        const response = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: 'Mise à jour via NexusEdit Studio Pro',
+            content: contentBase64
+          })
+        });
+
+        if(response.ok) {
+          logConsole("🚀 Déploiement réussi sur GitHub !");
+          alert("Votre PWA a été mise à jour sur GitHub !");
+        } else {
+          logConsole("Erreur API GitHub. Vérifiez les droits du Token ou le nom du repo.", true);
+        }
+      } catch (error) {
+        logConsole("Erreur de connexion : " + error.message, true);
+      }
+    }
+
+    function resetGitHubCreds() {
+        localStorage.removeItem('nexus_github_pat');
+        localStorage.removeItem('nexus_github_repo');
+        alert("Identifiants GitHub effacés de cet appareil.");
+        closeMenu();
+    }
+
     let vpnConnected = false;
     function toggleVPN() {
         vpnConnected = !vpnConnected;
@@ -351,7 +420,6 @@
     }
 
     function exportPWA() { alert("Package PWA exporté avec succès !"); closeMenu(); }
-    function syncGitHub() { prompt("Entrer le token GitHub (PAT) :"); closeMenu(); }
   </script>
 </body>
 </html>
