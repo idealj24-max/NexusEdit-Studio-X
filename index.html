@@ -313,7 +313,7 @@
       }
     }
 
-    // NOUVELLES FONCTIONS : Téléchargement et Installation PWA
+    // FONCTION DE TÉLÉCHARGEMENT DIRECT
     function telechargerCodePWA() {
         closeMenu();
         const codeSource = editor ? editor.getValue() : files['index.html'];
@@ -337,6 +337,7 @@
         deferredPrompt = e;
     });
 
+    // FONCTION D'INSTALLATION PWA
     function installerApplicationPWA() {
         closeMenu();
         if (deferredPrompt) {
@@ -420,7 +421,7 @@
           headers: { 'Authorization': `token ${token}` }
         });
         
-        let sha = "";
+        sha = "";
         if (getRes.ok) {
           const fileData = await getRes.json();
           sha = fileData.sha;
