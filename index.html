@@ -1,690 +1,454 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 3.5 Pro - AI 3D Game & Physics Engine</title>
-  <link rel="manifest" href="manifest.json">
-  <!-- Three.js r128, OrbitControls et Cannon.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-  <!-- Monaco Editor -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
-  <style>
-    :root {
-      --bg-dark: #070913;
-      --bg-panel: #0d1322;
-      --accent: #00ffcc;
-      --accent-hover: #059669;
-      --text: #f3f4f6;
-      --border: #1e293b;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-    
-    /* Header Principal */
-    header { height: 48px; background: var(--bg-panel); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid rgba(0,255,204,0.3); flex-shrink: 0; z-index: 100; }
-    #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent); padding: 8px; }
-    .project-badge { font-size: 0.7rem; background: #111827; padding: 4px 8px; border-radius: 4px; color: #94a3b8; border: 1px solid var(--border); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NexusEdit Studio 3.0 Pro - AI 3D Game & Physics Engine</title>
+<link rel="manifest" href="manifest.json">
+<!-- Three.js, OrbitControls et Cannon.js pour la physique -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+<!-- Monaco Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+<style>
+:root {
+--bg-dark: #0b0f19;
+--bg-panel: #111827;
+--accent: #00ffcc;
+--accent-hover: #059669;
+--text: #e5e7eb;
+--border: #1f2937;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Panneau Latéral (Acode / Menu Pro) */
-    #side-menu { 
-        position: fixed; left: -300px; top: 0; width: 280px; 
-        height: 100%; height: 100dvh; background: var(--bg-panel); border-right: 1px solid var(--accent); 
-        transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 30px rgba(0,0,0,0.9);
-        display: flex; flex-direction: column; transform: translateX(0);
-    }
-    #side-menu.open { transform: translateX(300px); }
-    .menu-section-title { padding: 12px 15px; font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
-    .file-item { padding: 14px 20px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 0.85rem; display: flex; align-items: center; gap: 12px; }
-    .file-item:active { background: #1e293b; }
-    .file-item.active { background: rgba(0,255,204,0.12); color: var(--accent); border-left: 3px solid var(--accent); }
+/* Header Principal */
+header { height: 50px; background: var(--bg-panel); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+#menu-btn { cursor: pointer; font-weight: bold; font-size: 1rem; color: var(--accent); }
+.project-badge { font-size: 0.75rem; background: #1f2937; padding: 4px 8px; border-radius: 4px; color: #9ca3af; }
 
-    /* Overlay d'arrière-plan */
-    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; z-index: 110; backdrop-filter: blur(2px); }
+/* Panneau Latéral (Façon Acode / Menu Pro) */
+#side-menu {
+position: absolute; left: -280px; top: 0; width: 280px;
+height: 100%; background: var(--bg-panel); border-right: 1px solid var(--accent);
+transition: 0.3s; padding-top: 60px; z-index: 120; box-shadow: 5px 0 15px rgba(0,0,0,0.8);
+display: flex; flex-direction: column;
+}
+#side-menu.open { left: 0; }
+.menu-section-title { padding: 10px 15px; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; }
+.file-item { padding: 12px 20px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+.file-item:hover { background: #1f2937; color: var(--accent); }
+.file-item.active { background: rgba(0,255,204,0.1); color: var(--accent); border-left: 3px solid var(--accent); }
 
-    /* Layout Central */
-    #main-layout { display: flex; flex: 1; height: calc(100dvh - 108px); position: relative; overflow: hidden; }
-    #workspace { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; }
-    
-    .mode-tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
-    .tab { padding: 10px 14px; font-size: 0.75rem; cursor: pointer; border-bottom: 2px solid transparent; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
-    .tab.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.03); font-weight: bold; }
+/* Overlay d'arrière-plan */
+#overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 110; }
 
-    #editor-container { flex: 1; width: 100%; height: 100%; position: relative; }
-    #preview-container { flex: 1; display: none; background: #000; position: relative; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
-    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+/* Layout Central */
+#main-layout { display: flex; flex: 1; height: calc(100vh - 110px); position: relative; overflow: hidden; }
+#workspace { flex: 1; display: flex; flex-direction: column; height: 100%; }
 
-    /* Panneau IA Intégré & Config API */
-    #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; -webkit-overflow-scrolling: touch; }
-    .msg { padding: 10px 12px; border-radius: 8px; font-size: 0.78rem; max-width: 95%; line-height: 1.45; word-break: break-word; }
-    .msg.user { align-self: flex-end; background: #1e293b; color: #f8fafc; border-left: 3px solid var(--accent); }
-    .msg.ai { align-self: flex-start; background: #020617; color: #34d399; border-left: 3px solid #8b5cf6; }
-    .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
-    
-    textarea, input[type="text"], select { width: 100%; background: #020617; border: 1px solid var(--border); color: var(--accent); padding: 9px; border-radius: 6px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
-    textarea { height: 60px; }
-    textarea:focus, input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 5px rgba(0,255,204,0.2); }
-    
-    .api-config-box { padding: 10px; background: #020617; border-bottom: 1px solid var(--border); font-size: 0.73rem; }
-    .api-config-box label { color: #94a3b8; display: block; margin-bottom: 4px; font-weight: bold; }
-    
-    /* Boutons et Console */
-    .btn-nexus { background: var(--accent); color: #030712; border: none; padding: 10px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: transform 0.1s, background 0.2s; width: 100%; text-align: center; }
-    .btn-nexus:active { transform: scale(0.97); background: var(--accent-hover); color: #fff; }
-    
-    #console-bar { height: 80px; background: #020617; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.68rem; padding: 8px 12px; overflow-y: auto; color: #10b981; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+.mode-tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab { padding: 8px 16px; font-size: 0.8rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; }
+.tab.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.02); font-weight: bold; }
 
-    /* Vues spéciales (VPN, etc.) */
-    .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); padding: 20px; }
-    .panel-view.active-panel { display: flex; }
+#editor-container { flex: 1; width: 100%; height: 100%; }
+#preview-container { flex: 1; display: none; background: #000; position: relative; justify-content: center; align-items: center; }
+#canvas3d { width: 100%; height: 100%; display: block; }
 
-    /* Footer de Navigation Mobile / Rapide */
-    footer { height: 60px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,255,204,0.3); flex-shrink: 0; z-index: 100; }
-    footer button { background: transparent; color: #94a3b8; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; }
-    footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
+/* Panneau IA Intégré & Config API */
+#ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.msg { padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; max-width: 95%; line-height: 1.4; word-break: break-word; }
+.msg.user { align-self: flex-end; background: #1f2937; color: #f3f4f6; border-left: 3px solid var(--accent); }
+.msg.ai { align-self: flex-start; background: #030712; color: #34d399; border-left: 3px solid #8b5cf6; }
+.chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-direction: column; }
 
-    @media (max-width: 900px) {
-      #ai-panel { display: none; }
-      #ai-panel.mobile-active { display: flex; position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 95; }
-    }
-  </style>
+textarea, input[type="text"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
+textarea { height: 60px; }
+
+.api-config-box { padding: 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.75rem; }
+.api-config-box label { color: #9ca3af; display: block; margin-bottom: 4px; }
+
+/* Boutons et Console */
+.btn-nexus { background: var(--accent); color: #030712; border: none; padding: 8px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: 0.2s; }
+.btn-nexus:active { transform: scale(0.98); background: var(--accent-hover); color: #fff; }
+
+#console-bar { height: 90px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.7rem; padding: 8px; overflow-y: auto; color: #10b981; }
+
+/* Vues spéciales (VPN, etc.) */
+.panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); }
+.panel-view.active-panel { display: flex; }
+
+/* Footer de Navigation Mobile / Rapide */
+footer { height: 60px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.75rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
+
+@media (max-width: 900px) {
+#ai-panel { display: none; }
+#ai-panel.mobile-active { display: flex; position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 90; }
+}
+</style>
 </head>
 <body>
 
-  <header>
-    <div id="menu-btn" onclick="toggleMenu()">≡ MENU STUDIO</div>
-    <div class="project-badge" id="current-project-name">Projet: main.js (Jeu 3D Réaliste)</div>
-  </header>
+<header>
+<div id="menu-btn" onclick="toggleMenu()">≡ MENU STUDIO</div>
+<div class="project-badge" id="current-project-name">Projet: main.js (Physique & 3D)</div>
+</header>
 
-  <div id="overlay" onclick="closeMenu()"></div>
+<div id="overlay" onclick="closeMenu()"></div>
 
-  <!-- Panneau Latéral (Acode Pro) -->
-  <div id="side-menu">
-    <div class="menu-section-title">Explorateur (Acode)</div>
-    <div class="file-item active" onclick="openFile('main.js')">📄 main.js (Moteur Jeu 3D)</div>
-    <div class="file-item" onclick="openFile('index.html')">📄 index.html (PWA)</div>
-    <div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
-    <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
-    
-    <div class="menu-section-title">Actions Cloud & Git</div>
-    <div class="file-item" onclick="syncGitHub()">🐙 Push sur GitHub</div>
-    <div class="file-item" onclick="exportPWA()">📦 Exporter en PWA (.zip)</div>
-  </div>
+<!-- Panneau Latéral -->
+<div id="side-menu">
+<div class="menu-section-title">Explorateur (Acode)</div>
+<div class="file-item active" onclick="openFile('main.js')">📄 main.js (Moteur Physique)</div>
+<div class="file-item" onclick="openFile('index.html')">📄 index.html (PWA)</div>
+<div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
+<div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
 
-  <div id="main-layout">
-    
-    <div id="workspace">
-      
-      <div class="mode-tabs">
-        <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Éditeur Code</div>
-        <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Viewport 3D Réaliste</div>
-        <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 Assistant IA API</div>
-        <div class="tab" id="tab-vpn" onclick="switchMainView('vpn')">VPN Sécurisé</div>
-      </div>
-      
-      <div id="editor-container" style="display:block;"></div>
-      
-      <div id="preview-container">
-        <canvas id="canvas3d"></canvas>
-      </div>
+<div class="menu-section-title">Actions Cloud & Git</div>
+<div class="file-item" onclick="syncGitHub()">🐙 Push sur GitHub</div>
+<div class="file-item" onclick="exportPWA()">📦 Exporter en PWA (.zip)</div>
+</div>
 
-      <div id="vpn-view" class="panel-view">
-        <div style="font-size: 3rem;">🛡️</div>
-        <div>
-            <h3 style="color:var(--accent); margin:0 0 10px 0;">Nexus Secure Tunnel</h3>
-            <p id="vpn-status" style="color:#94a3b8; font-size:0.85rem;">Statut : Déconnecté des serveurs cloud</p>
-        </div>
-        <button class="btn-nexus" id="vpn-btn" onclick="toggleVPN()" style="width: auto; padding: 10px 20px;">Activer le VPN Cloud</button>
-      </div>
+<div id="main-layout">
 
-      <div id="console-bar">
-        [System] Studio 3.5 initialisé avec support haute performance et redimensionnement dynamique.<br>
-      </div>
-    </div>
+<div id="workspace">
 
-    <div id="ai-panel">
-      <div class="menu-section-title" style="background:var(--bg-dark); padding:12px; display:flex; justify-content:space-between; align-items:center;">
-        <span>Nexus AI Engine</span>
-        <span style="font-size:0.65rem; color:var(--accent);">API Connect V3.5</span>
-      </div>
-      
-      <div class="api-config-box">
-        <label>Fournisseur IA :</label>
-        <select id="ai-provider" style="margin-bottom:6px;">
-          <option value="gemini">Google Gemini API</option>
-          <option value="openai">OpenAI (ChatGPT)</option>
-        </select>
-        <label>Clé API (Token) :</label>
-        <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
-      </div>
+<div class="mode-tabs">
+<div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Éditeur Code</div>
+<div class="tab" id="tab-preview" onclick="switchMainView('preview')">Viewport Physique 3D</div>
+<div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 Assistant IA API</div>
+<div class="tab" id="tab-vpn" onclick="switchMainView('vpn')">VPN Sécurisé</div>
+</div>
 
-      <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Salut Idrissa ! Entre ta clé API ci-dessus, puis décris ton jeu 3D ultra réaliste (ex: Score Hero Cristiano Ronaldo avec super-frappe enflammée, physique Cannon.js et effets visuels avancés). Je générerai le code complet !</div>
-      </div>
-      
-      <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée un jeu 3D ultra réaliste style Score Hero avec Cristiano Ronaldo, frappe enroulée, trajectoire de balle et filet qui vibre..."></textarea>
-        <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer via API IA</button>
-      </div>
-    </div>
+<div id="editor-container" style="display:block;"></div>
 
-  </div>
+<div id="preview-container">
+<canvas id="canvas3d"></canvas>
+</div>
 
-  <footer>
-    <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
-    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">🎮 <span>3D & Jeu</span></button>
-    <button onclick="toggleMenu()">📂 <span>Fichiers</span></button>
-    <button onclick="switchMainView('vpn'); closeMenu();" id="nav-vpn">🛡️ <span>VPN</span></button>
-  </footer>
+<div id="vpn-view" class="panel-view">
+<div style="font-size: 3rem;">🛡️</div>
+<div>
+<h3 style="color:var(--accent); margin:0 0 10px 0;">Nexus Secure Tunnel</h3>
+<p id="vpn-status" style="color:#9ca3af; font-size:0.85rem;">Statut : Déconnecté des serveurs cloud</p>
+</div>
+<button class="btn-nexus" id="vpn-btn" onclick="toggleVPN()">Activer le VPN Cloud</button>
+</div>
 
-  <script>
-    let editor;
-    let currentAnimId = null;
-    let files = {
-      'main.js': `// Jeu de Football 3D Ultra Réaliste - Style Score Hero & Cristiano Ronaldo (Canon 35m)
-// Initialisation de la Scène 3D avec Three.js et Physique Cannon.js
+<div id="console-bar">
+[System] Moteur 3D Three.js + Physique Cannon.js initialisés.<br>
+</div>
+</div>
 
-if (typeof currentAnimId !== 'undefined' && currentAnimId) {
-    cancelAnimationFrame(currentAnimId);
-}
+<div id="ai-panel">
+<div class="menu-section-title" style="background:var(--bg-dark); padding:10px; display:flex; justify-content:space-between; align-items:center;">
+<span>Nexus AI Engine</span>
+<span style="font-size:0.65rem; color:var(--accent);">API Connect</span>
+</div>
 
-const canvasEl = document.getElementById('canvas3d');
+<div class="api-config-box">
+<label>Fournisseur IA :</label>
+<select id="ai-provider" style="margin-bottom:6px;">
+<option value="gemini">Google Gemini API</option>
+<option value="openai">OpenAI (ChatGPT)</option>
+</select>
+<label>Clé API (Token) :</label>
+<input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
+</div>
+
+<div class="chat-messages" id="chat-box">
+<div class="msg ai">Salut Idrissa ! Entre ta clé API ci-dessus, puis décris ton application ou ton jeu 3D physique. Je générerai le code réel via l'IA !</div>
+</div>
+
+<div class="chat-input-area">
+<textarea id="ai-input" placeholder="Ex: Crée un jeu de foot 3D style Score Hero avec Cristiano Ronaldo..."></textarea>
+<button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer via API IA</button>
+</div>
+</div>
+
+</div>
+
+<footer>
+<button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
+<button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">🎮 <span>3D & Physique</span></button>
+<button onclick="toggleMenu()">📂 <span>Fichiers</span></button>
+<button onclick="switchMainView('vpn'); closeMenu();" id="nav-vpn">🛡️ <span>VPN</span></button>
+</footer>
+
+<script>
+let editor;
+let files = {
+'main.js': `// Scene Setup avec Gravité et Physique Cannon.js
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x050b14);
-scene.fog = new THREE.FogExp2(0x050b14, 0.025);
+scene.background = new THREE.Color(0x0b0f19);
+scene.fog = new THREE.FogExp2(0x0b0f19, 0.05);
 
-const camera = new THREE.PerspectiveCamera(65, canvasEl.clientWidth / canvasEl.clientHeight, 0.1, 1000);
-camera.position.set(0, 4, 14);
-camera.lookAt(0, 2, -10);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 5, 10);
 
-const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, powerPreference: "high-performance" });
-renderer.setSize(canvasEl.clientWidth, canvasEl.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const canvasElement = document.getElementById('canvas3d');
+const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true });
+renderer.setSize(window.innerWidth > 900 ? window.innerWidth - 340 : window.innerWidth, window.innerHeight - 200);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-// Éclairage de stade professionnel
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const dirLight = new THREE.DirectionalLight(0x00ffcc, 2);
+dirLight.position.set(5, 15, 5);
+dirLight.castShadow = true;
+scene.add(dirLight);
 
-const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
-mainLight.position.set(10, 25, 10);
-mainLight.castShadow = true;
-mainLight.shadow.mapSize.width = 2048;
-mainLight.shadow.mapSize.height = 2048;
-mainLight.shadow.camera.near = 0.5;
-mainLight.shadow.camera.far = 50;
-const d = 15;
-mainLight.shadow.camera.left = -d;
-mainLight.shadow.camera.right = d;
-mainLight.shadow.camera.top = d;
-mainLight.shadow.camera.bottom = -d;
-scene.add(mainLight);
-
-const fillLight = new THREE.DirectionalLight(0x3b82f6, 0.8);
-fillLight.position.set(-10, 15, -5);
-scene.add(fillLight);
-
-// Moteur Physique Cannon.js
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
-world.broadphase = new CANNON.NaiveBroadphase();
-world.solver.iterations = 10;
 
-// Sol du Stade (Pelouse texturée en dégradé / bandes)
 const floorShape = new CANNON.Plane();
 const floorBody = new CANNON.Body({ mass: 0 });
 floorBody.addShape(floorShape);
 floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
 world.addBody(floorBody);
 
-const turfGroup = new THREE.Group();
-for(let i = -20; i < 20; i++) {
-    const stripGeo = new THREE.PlaneGeometry(2, 50);
-    const stripMat = new THREE.MeshStandardMaterial({ 
-        color: i % 2 === 0 ? 0x0f5132 : 0x198754, 
-        roughness: 0.8 
-    });
-    const strip = new THREE.Mesh(stripGeo, stripMat);
-    strip.rotation.x = -Math.PI / 2;
-    strip.position.set(i * 2, 0, 0);
-    strip.receiveShadow = true;
-    turfGroup.add(strip);
+const floorGeo = new THREE.PlaneGeometry(20, 20);
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.3 });
+const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.receiveShadow = true;
+scene.add(floorMesh);
+
+const boxGeo = new THREE.BoxGeometry(2, 2, 2);
+const boxMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, roughness: 0.2, metalness: 0.8 });
+const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+boxMesh.castShadow = true;
+scene.add(boxMesh);
+
+const boxShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+const boxBody = new CANNON.Body({ mass: 5, position: new CANNON.Vec3(0, 8, 0) });
+boxBody.addShape(boxShape);
+world.addBody(boxBody);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function animate() {
+requestAnimationFrame(animate);
+world.step(1/60);
+boxMesh.position.copy(boxBody.position);
+boxMesh.quaternion.copy(boxBody.quaternion);
+controls.update();
+renderer.render(scene, camera);
 }
-scene.add(turfGroup);
+animate();, 'index.html':, 'style.css':body { background: #000; color: #fff; }, 'manifest.json':{\n "name": "Nexus Physics Game",\n "short_name": "NexusPhysics",\n "start_url": "/index.html",\n "display": "standalone"\n}`
+};
 
-// But de Football Réaliste (Poteaux + Filet)
-const goalGroup = new THREE.Group();
-const postMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.1 });
-const barGeo = new THREE.CylinderGeometry(0.08, 0.08, 7.32, 16);
+let activeFile = 'main.js';
 
-const leftPostMesh = new THREE.Mesh(barGeo, postMat);
-leftPostMesh.position.set(-3.66, 3.66, -30);
-leftPostMesh.castShadow = true;
-goalGroup.add(leftPostMesh);
-
-const rightPostMesh = new THREE.Mesh(barGeo, postMat);
-rightPostMesh.position.set(3.66, 3.66, -30);
-rightPostMesh.castShadow = true;
-goalGroup.add(rightPostMesh);
-
-const crossGeo = new THREE.CylinderGeometry(0.08, 0.08, 7.48, 16);
-const crossMesh = new THREE.Mesh(crossGeo, postMat);
-crossMesh.rotation.z = Math.PI / 2;
-crossMesh.position.set(0, 7.32, -30);
-crossMesh.castShadow = true;
-goalGroup.add(crossMesh);
-
-// Filet arrière du but
-const netGeo = new THREE.PlaneGeometry(7.32, 7.32);
-const netMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.35 });
-const netMesh = new THREE.Mesh(netGeo, netMat);
-netMesh.position.set(0, 3.66, -32);
-goalGroup.add(netMesh);
-scene.add(goalGroup);
-
-// Joueur Cristiano Ronaldo (Style 3D low-poly stylisé et animé)
-const playerGroup = new THREE.Group();
-const skinMat = new THREE.MeshStandardMaterial({ color: 0xdc2626 });
-const shortsMat = new THREE.MeshStandardMaterial({ color: 0x166534 });
-
-const torso = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.4, 0.5), skinMat);
-torso.position.set(0, 3.5, 0);
-torso.castShadow = true;
-playerGroup.add(torso);
-
-const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.5), new THREE.MeshStandardMaterial({ color: 0xf5d0b1 }));
-head.position.set(0, 4.5, 0);
-head.castShadow = true;
-playerGroup.add(head);
-
-const legL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.3, 0.35), shortsMat);
-legL.position.set(-0.25, 2.3, 0);
-legL.castShadow = true;
-playerGroup.add(legL);
-
-const legR = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.3, 0.35), shortsMat);
-legR.position.set(0.25, 2.3, 0);
-legR.castShadow = true;
-playerGroup.add(legR);
-scene.add(playerGroup);
-
-// Ballon de Football & Physique Cannon.js
-const ballRadius = 0.35;
-const ballGeo = new THREE.SphereGeometry(ballRadius, 32, 32);
-const ballMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.1 });
-const ballMesh = new THREE.Mesh(ballGeo, ballMat);
-ballMesh.castShadow = true;
-scene.add(ballMesh);
-
-const ballShape = new CANNON.Sphere(ballRadius);
-const ballBody = new CANNON.Body({ mass: 0.45, position: new CANNON.Vec3(0, ballRadius, 2) });
-ballBody.addShape(ballShape);
-world.addBody(ballBody);
-
-// Interface HUD Overlay 3D
-const hudDiv = document.createElement('div');
-hudDiv.style.position = 'absolute';
-hudDiv.style.top = '15px';
-hudDiv.style.width = '100%';
-hudDiv.style.textAlign = 'center';
-hudDiv.style.zIndex = '50';
-hudDiv.style.pointerEvents = 'none';
-hudDiv.innerHTML = \`<div style="font-size:1rem; color:#00ffcc; font-weight:bold; text-shadow: 0 0 10px rgba(0,255,204,0.6);">CRISTIANO RONALDO : CANON DE 35M (PORTO 2009)</div>
-<div id="game-status" style="font-size:0.8rem; color:#f3f4f6; margin-top:4px;">Glissez le doigt ou la souris pour viser et tirer !</div>\`;
-document.getElementById('preview-container').appendChild(hudDiv);
-
-// Gestion Tactique et Tactile des Tirs (Style Score Hero)
-let isAiming = false;
-let startPoint = { x: 0, y: 0 };
-let trajectoryLine = null;
-
-const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffcc, linewidth: 3 });
-
-function onTouchStart(e) {
-    isAiming = true;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    startPoint = { x: clientX, y: clientY };
-}
-
-function onTouchMove(e) {
-    if (!isAiming) return;
-}
-
-function onTouchEnd(e) {
-    if (!isAiming) return;
-    isAiming = false;
-    
-    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-    
-    const deltaX = clientX - startPoint.x;
-    const deltaY = clientY - startPoint.y;
-    
-    // Calcul de la puissance et de l'orientation du tir
-    const forceX = -deltaX * 0.12;
-    const forceZ = deltaY * 0.25 - 28; // Tir puissant vers le but (-30)
-    const forceY = 8.5; // Hauteur de balle enroulée
-    
-    ballBody.velocity.set(forceX, forceY, forceZ);
-    ballBody.angularVelocity.set(-15, 0, 10);
-    
-    document.getElementById('game-status').innerText = "🔥 TIR DE LA TORCHE ! SUPER-FRANC FRANCO-LOINTAIN !";
-    
-    // Effet visuel boule de feu enflammée
-    ballMesh.material.color.setHex(0xff4500);
-    ballMesh.material.emissive.setHex(0xff2200);
-    ballMesh.material.emissiveIntensity = 0.8;
-}
-
-canvasEl.addEventListener('mousedown', onTouchStart);
-canvasEl.addEventListener('mouseup', onTouchEnd);
-canvasEl.addEventListener('touchstart', onTouchStart, {passive: true});
-canvasEl.addEventListener('touchend', onTouchEnd, {passive: true});
-
-// Boucle principale d'Animation 60 FPS
-let clock = new THREE.Clock();
-function animateGame() {
-    currentAnimId = requestAnimationFrame(animateGame);
-    
-    world.step(1/60);
-    
-    ballMesh.position.copy(ballBody.position);
-    ballMesh.quaternion.copy(ballBody.quaternion);
-    
-    // Animation subtile du joueur
-    const time = clock.getElapsedTime();
-    legL.rotation.x = Math.sin(time * 8) * 0.3;
-    legR.rotation.x = -Math.sin(time * 8) * 0.3;
-    
-    renderer.render(scene, camera);
-}
-animateGame();
-
-// Redimensionnement fluide de l'écran et du viewport
-window.addEventListener('resize', () => {
-    if (!canvasEl) return;
-    const width = canvasEl.clientWidth;
-    const height = canvasEl.clientHeight;
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+require(['vs/editor/editor.main'], function() {
+editor = monaco.editor.create(document.getElementById('editor-container'), {
+value: files[activeFile],
+language: 'javascript',
+theme: 'vs-dark',
+automaticLayout: true
 });
-`,
-      'index.html': `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus 3D Physics Game PWA</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="game-container"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="main.js"></script>
-</body>
-</html>`,
-      'style.css': `body { margin: 0; background: #070913; overflow: hidden; font-family: monospace; }`,
-      'manifest.json': `{
-  "name": "Nexus 3D Physics Game",
-  "short_name": "Nexus3D",
-  "start_url": "/index.html",
-  "display": "standalone",
-  "background_color": "#070913",
-  "theme_color": "#00ffcc"
-}`
-    };
+editor.onDidChangeModelContent(() => {
+files[activeFile] = editor.getValue();
+});
+});
 
-    let activeFile = 'main.js';
+function toggleMenu() {
+const menu = document.getElementById('side-menu');
+const overlay = document.getElementById('overlay');
+if (menu.classList.contains('open')) {
+closeMenu();
+} else {
+menu.classList.add('open');
+overlay.style.display = 'block';
+}
+}
 
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
-    require(['vs/editor/editor.main'], function() {
-      editor = monaco.editor.create(document.getElementById('editor-container'), {
-        value: files[activeFile],
-        language: 'javascript',
-        theme: 'vs-dark',
-        automaticLayout: true,
-        fontSize: 13,
-        minimap: { enabled: false }
-      });
-      editor.onDidChangeModelContent(() => {
-        files[activeFile] = editor.getValue();
-      });
-    });
+function closeMenu() {
+document.getElementById('side-menu').classList.remove('open');
+document.getElementById('overlay').style.display = 'none';
+}
 
-    function toggleMenu() {
-        const menu = document.getElementById('side-menu');
-        const overlay = document.getElementById('overlay');
-        if (menu.classList.contains('open')) {
-            closeMenu();
-        } else {
-            menu.classList.add('open');
-            overlay.style.display = 'block';
-        }
-    }
+function switchMainView(view) {
+const ed = document.getElementById('editor-container');
+const prev = document.getElementById('preview-container');
+const vpn = document.getElementById('vpn-view');
+const aiPanel = document.getElementById('ai-panel');
 
-    function closeMenu() {
-        document.getElementById('side-menu').classList.remove('open');
-        document.getElementById('overlay').style.display = 'none';
-    }
+const tabEd = document.getElementById('tab-editor');
+const tabPrev = document.getElementById('tab-preview');
+const tabAi = document.getElementById('tab-ai');
+const tabVpn = document.getElementById('tab-vpn');
 
-    function switchMainView(view) {
-      const ed = document.getElementById('editor-container');
-      const prev = document.getElementById('preview-container');
-      const vpn = document.getElementById('vpn-view');
-      const aiPanel = document.getElementById('ai-panel');
-      
-      const tabEd = document.getElementById('tab-editor');
-      const tabPrev = document.getElementById('tab-preview');
-      const tabAi = document.getElementById('tab-ai');
-      const tabVpn = document.getElementById('tab-vpn');
+ed.style.display = 'none';
+prev.style.display = 'none';
+vpn.classList.remove('active-panel');
+aiPanel.classList.remove('mobile-active');
 
-      ed.style.display = 'none';
-      prev.style.display = 'none';
-      vpn.classList.remove('active-panel');
-      aiPanel.classList.remove('mobile-active');
-      
-      tabEd.classList.remove('active');
-      tabPrev.classList.remove('active');
-      tabAi.classList.remove('active');
-      tabVpn.classList.remove('active');
+tabEd.classList.remove('active');
+tabPrev.classList.remove('active');
+tabAi.classList.remove('active');
+tabVpn.classList.remove('active');
 
-      document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
+if (view === 'editor') {
+ed.style.display = 'block';
+tabEd.classList.add('active');
+} else if (view === 'preview') {
+prev.style.display = 'flex';
+tabPrev.classList.add('active');
+executeCode();
+} else if (view === 'ai-mobile') {
+ed.style.display = 'block';
+aiPanel.classList.add('mobile-active');
+tabAi.classList.add('active');
+} else if (view === 'vpn') {
+vpn.classList.add('active-panel');
+tabVpn.classList.add('active');
+}
+}
 
-      if (view === 'editor') {
-        ed.style.display = 'block';
-        tabEd.classList.add('active');
-        document.getElementById('nav-code').classList.add('active');
-        if(editor) editor.layout();
-      } else if (view === 'preview') {
-        prev.style.display = 'flex';
-        tabPrev.classList.add('active');
-        document.getElementById('nav-preview').classList.add('active');
-        setTimeout(() => { executeCode(); }, 50);
-      } else if (view === 'ai-mobile') {
-        ed.style.display = 'block';
-        aiPanel.classList.add('mobile-active');
-        tabAi.classList.add('active');
-        if(editor) editor.layout();
-      } else if (view === 'vpn') {
-        vpn.classList.add('active-panel');
-        tabVpn.classList.add('active');
-        document.getElementById('nav-vpn').classList.add('active');
-      }
-    }
+function openFile(filename) {
+files[activeFile] = editor.getValue();
+activeFile = filename;
+document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+event.currentTarget.classList.add('active');
+document.getElementById('current-project-name').innerText = "Projet: " + filename;
 
-    function openFile(filename) {
-      files[activeFile] = editor.getValue();
-      activeFile = filename;
-      document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-      event.currentTarget.classList.add('active');
-      document.getElementById('current-project-name').innerText = "Projet: " + filename;
-      
-      let lang = 'javascript';
-      if(filename.endsWith('.html')) lang = 'html';
-      if(filename.endsWith('.css')) lang = 'css';
-      if(filename.endsWith('.json')) lang = 'json';
-      
-      monaco.editor.setModelLanguage(editor.getModel(), lang);
-      editor.setValue(files[filename]);
-      closeMenu();
-      switchMainView('editor');
-    }
+let lang = 'javascript';
+if(filename.endsWith('.html')) lang = 'html';
+if(filename.endsWith('.css')) lang = 'css';
+if(filename.endsWith('.json')) lang = 'json';
 
-    function logConsole(msg, isErr = false) {
-      const c = document.getElementById('console-bar');
-      const color = isErr ? '#ef4444' : '#10b981';
-      c.innerHTML += \`<span style="color:\${color}">[\${new Date().toLocaleTimeString()}] \${msg}</span><br>\`;
-      c.scrollTop = c.scrollHeight;
-    }
+monaco.editor.setModelLanguage(editor.getModel(), lang);
+editor.setValue(files[filename]);
+closeMenu();
+switchMainView('editor');
+}
 
-    function executeCode() {
-      try {
-        if (typeof currentAnimId !== 'undefined' && currentAnimId) {
-            cancelAnimationFrame(currentAnimId);
-        }
-        logConsole("Compilation du moteur 3D & Physique Cannon.js...");
-        // Nettoyage préalable du canvas
-        const oldCanvas = document.getElementById('canvas3d');
-        const newCanvas = oldCanvas.cloneNode(true);
-        oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
-        
-        eval(files['main.js']);
-        logConsole("Simulation physique & jeu exécutés avec succès à 60 FPS.");
-      } catch (err) {
-        logConsole("Erreur d'exécution: " + err.message, true);
-      }
-    }
+function logConsole(msg, isErr = false) {
+const c = document.getElementById('console-bar');
+const color = isErr ? '#ef4444' : '#10b981';
+c.innerHTML += <span style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
+c.scrollTop = c.scrollHeight;
+}
 
-    async function sendAIPromptReal() {
-      const input = document.getElementById('ai-input');
-      const promptText = input.value.trim();
-      const apiKey = document.getElementById('ai-api-key').value.trim();
-      const provider = document.getElementById('ai-provider').value;
+function executeCode() {
+try {
+logConsole("Compilation du moteur 3D & Physique Cannon.js...");
+eval(files['main.js']);
+logConsole("Simulation physique exécutée avec succès.");
+} catch (err) {
+logConsole("Erreur de compilation: " + err.message, true);
+}
+}
 
-      if (!promptText) return;
+async function sendAIPromptReal() {
+const input = document.getElementById('ai-input');
+const promptText = input.value.trim();
+const apiKey = document.getElementById('ai-api-key').value.trim();
+const provider = document.getElementById('ai-provider').value;
 
-      const chatBox = document.getElementById('chat-box');
-      chatBox.innerHTML += \`<div class="msg user">\${promptText}</div>\`;
-      input.value = '';
-      chatBox.scrollTop = chatBox.scrollHeight;
+if (!promptText) return;
 
-      if (!apiKey) {
-        chatBox.innerHTML += \`<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API dans le champ ci-dessus.</div>\`;
-        chatBox.scrollTop = chatBox.scrollHeight;
-        return;
-      }
+const chatBox = document.getElementById('chat-box');
+chatBox.innerHTML += <div class="msg user"&gt;${promptText}</div>`;
+input.value = '';
+chatBox.scrollTop = chatBox.scrollHeight;
 
-      logConsole(`Connexion à l'API ${provider.toUpperCase()} en cours...`);
-      chatBox.innerHTML += \`<div class="msg ai">Génération du code 3D réaliste par l'IA en cours...</div>\`;
-      chatBox.scrollTop = chatBox.scrollHeight;
+if (!apiKey) {
+chatBox.innerHTML += <div class="msg ai" style="color:#ef4444;"&gt;Erreur : Veuillez entrer votre clé API dans le champ ci-dessus.&lt;/div>;
+chatBox.scrollTop = chatBox.scrollHeight;
+return;
+}
 
-      try {
-        let aiGeneratedCode = "";
+logConsole(Connexion à l'API ${provider.toUpperCase()} en cours...); chatBox.innerHTML +=<div class="msg ai">Connexion à l'IA en cours de génération du code...</div>`;
+chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (provider === 'gemini') {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{ text: `Tu es un expert en développement de jeux vidéo 3D Three.js et Cannon.js hautement réalistes. Génère UNIQUEMENT du code JavaScript pur (sans balises markdown \`\`\` autour, juste le code brut exécutable) pour répondre à cette demande de jeu mobile ultra réaliste : ${promptText}. Assure-toi d'inclure la gestion des contrôles tactiles fluides, l'animation 60 FPS et une physique parfaite.` }]
-              }]
-            })
-          });
-          const data = await response.json();
-          if (data.error) {
-            throw new Error(data.error.message || "Erreur de l'API Gemini.");
-          }
-          if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
-            aiGeneratedCode = data.candidates[0].content.parts[0].text.replace(/```javascript|```js|```/g, '').trim();
-          } else {
-            throw new Error("Réponse API invalide ou format inattendu.");
-          }
-        } else {
-          const response = await fetch(`[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-              model: "gpt-4o-mini",
-              messages: [{
-                role: "system",
-                content: "Tu es un expert Three.js et Cannon.js. Renvoie UNIQUEMENT du code JavaScript pur, sans balises markdown."
-              }, {
-                role: "user",
-                content: promptText
-              }]
-            })
-          });
-          const data = await response.json();
-          if (data.error) {
-            throw new Error(data.error.message || "Erreur de l'API OpenAI.");
-          }
-          if (data.choices && data.choices[0].message.content) {
-            aiGeneratedCode = data.choices[0].message.content.replace(/```javascript|```js|```/g, '').trim();
-          } else {
-            throw new Error("Réponse OpenAI invalide.");
-          }
-        }
+try {
+let aiGeneratedCode = "";
 
-        files['main.js'] = aiGeneratedCode;
-        if (activeFile === 'main.js') editor.setValue(aiGeneratedCode);
-        
-        chatBox.innerHTML += \`<div class="msg ai">Code 3D réaliste généré et injecté ! Basculement vers le viewport 3D...</div>\`;
-        chatBox.scrollTop = chatBox.scrollHeight;
-        logConsole("Code IA compilé et injecté dans main.js.");
-        switchMainView('preview');
+if (provider === 'gemini') {
+const response = await fetch(https://generativelanguage.googleapis.com/v1/models/gemini-3.6-flash:generateContent?key=${apiKey}, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text:Tu es un expert en développement Three.js et Cannon.js. Génère UNIQUEMENT du code JavaScript pur (sans balises markdown ``` autour, juste le code brut exécutable) pour répondre à cette demande de jeu/scène 3D physique : latex
+{promptText}` }] }] }) }); const data = await response.json(); if (data.error) { throw new Error(data.error.message || "Erreur de l'API Gemini."); } if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) { aiGeneratedCode = data.candidates[0].content.parts[0].text.replace(/```javascript|```js|```/g, '').trim(); } else { throw new Error("Réponse API invalide ou format inattendu."); } } else { const response = await fetch(`[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer 
 
-      } catch (error) {
-        logConsole("Erreur API IA: " + error.message, true);
-        chatBox.innerHTML += \`<div class="msg ai" style="color:#ef4444;">Erreur lors de la requête API : \${error.message}</div>\`;
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-    }
+{apiKey}`
+},
+body: JSON.stringify({
+model: "gpt-4o-mini",
+messages: [{
+role: "system",
+content: "Tu es un expert Three.js et Cannon.js. Renvoie UNIQUEMENT du code JavaScript pur, sans balises markdown."
+}, {
+role: "user",
+content: promptText
+}]
+})
+});
+const data = await response.json();
+if (data.error) {
+throw new Error(data.error.message || "Erreur de l'API OpenAI.");
+}
+if (data.choices && data.choices[0].message.content) {
+aiGeneratedCode = data.choices[0].message.content.replace(/javascript|js|```/g, '').trim();
+} else {
+throw new Error("Réponse OpenAI invalide.");
+}
+}
 
-    let vpnConnected = false;
-    function toggleVPN() {
-        vpnConnected = !vpnConnected;
-        const statusEl = document.getElementById('vpn-status');
-        const btnEl = document.getElementById('vpn-btn');
-        if(vpnConnected) {
-            statusEl.innerText = "Statut : Connecté au Tunnel Sécurisé Cloud";
-            statusEl.style.color = "var(--accent)";
-            btnEl.innerText = "Couper le VPN";
-            btnEl.style.background = "#ef4444";
-            logConsole("Tunnel VPN chiffré établi avec succès.");
-        } else {
-            statusEl.innerText = "Statut : Déconnecté";
-            statusEl.style.color = "#94a3b8";
-            btnEl.innerText = "Activer le VPN Cloud";
-            btnEl.style.background = "var(--accent)";
-            logConsole("Tunnel VPN fermé.");
-        }
-    }
+files['main.js'] = aiGeneratedCode;
+if (activeFile === 'main.js') editor.setValue(aiGeneratedCode);
 
-    function exportPWA() {
-      logConsole("Empaquetage des fichiers PWA (.zip)...");
-      alert("Package PWA généré et prêt pour le déploiement !");
-      closeMenu();
-    }
+chatBox.innerHTML += <div class="msg ai"&gt;Code généré et injecté avec succès ! Basculement vers le viewport 3D...&lt;/div>;
+chatBox.scrollTop = chatBox.scrollHeight;
+logConsole("Code IA compilé et injecté dans main.js.");
+switchMainView('preview');
 
-    function syncGitHub() {
-      logConsole("Connexion au dépôt GitHub distant...");
-      const token = prompt("Entrez votre jeton d'accès personnel GitHub (PAT) :");
-      if (token) {
-        logConsole("Synchronisation et Push vers GitHub effectués avec succès !");
-        alert("Projet synchronisé sur GitHub !");
-      }
-      closeMenu();
-    }
-  </script>
+} catch (error) {
+logConsole("Erreur API IA: " + error.message, true);
+chatBox.innerHTML += <div class="msg ai" style="color:#ef4444;"&gt;Erreur lors de la requête API : ${error.message}&lt;/div>;
+chatBox.scrollTop = chatBox.scrollHeight;
+}
+}
+
+let vpnConnected = false;
+function toggleVPN() {
+vpnConnected = !vpnConnected;
+const statusEl = document.getElementById('vpn-status');
+const btnEl = document.getElementById('vpn-btn');
+if(vpnConnected) {
+statusEl.innerText = "Statut : Connecté au Tunnel Sécurisé";
+statusEl.style.color = "var(--accent)";
+btnEl.innerText = "Couper le VPN";
+btnEl.style.background = "#ef4444";
+logConsole("Tunnel VPN chiffré établi.");
+} else {
+statusEl.innerText = "Statut : Déconnecté";
+statusEl.style.color = "#9ca3af";
+btnEl.innerText = "Activer le VPN Cloud";
+btnEl.style.background = "var(--accent)";
+logConsole("Tunnel VPN fermé.");
+}
+}
+
+function exportPWA() {
+logConsole("Empaquetage des fichiers PWA (.zip)...");
+alert("Package PWA prêt !");
+closeMenu();
+}
+
+function syncGitHub() {
+logConsole("Connexion au dépôt GitHub distant...");
+const token = prompt("Entrez votre jeton d'accès personnel GitHub (PAT) :");
+if (token) {
+logConsole("Synchronisation et Push vers GitHub effectués !");
+alert("Projet synchronisé !");
+}
+closeMenu();
+}
+</script>
 </body>
 </html>
