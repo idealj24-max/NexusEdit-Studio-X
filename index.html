@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>NexusEdit Studio 3.8 Pro - PWA Engine</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- GOOGLE ADSENSE VERIFICATION -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2550298003872767" crossorigin="anonymous"></script>
+
   <!-- Monaco Editor -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
   <style>
@@ -71,7 +75,6 @@
     .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); padding: 20px; }
     .panel-view.active-panel { display: flex; }
 
-    /* Style de la Bannière Publicitaire */
     .ad-banner {
         background: rgba(13, 19, 34, 0.95);
         border-top: 1px dashed var(--border);
@@ -145,7 +148,7 @@
       </div>
 
       <div id="console-bar">
-        [System] Studio Pro prêt avec support publicitaire et mode hors-ligne.<br>
+        [System] Studio Pro prêt avec support AdSense et mode hors-ligne.<br>
       </div>
     </div>
 
@@ -175,9 +178,8 @@
     </div>
   </div>
 
-  <!-- Espace Publicitaire Intégré (Prêt pour AdSense) -->
   <div class="ad-banner" id="ad-container">
-      Annonce publicitaire <span>• Soutenez le projet NexusEdit</span>
+      Annonce publicitaire <span>• AdSense Intégré</span>
   </div>
 
   <footer>
@@ -393,14 +395,14 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            message: 'Mise à jour via NexusEdit Studio Pro',
+            message: 'Mise à jour avec le code AdSense',
             content: contentBase64
           })
         });
 
         if(response.ok) {
           logConsole("🚀 Déploiement réussi sur GitHub !");
-          alert("Votre PWA a été mise à jour sur GitHub !");
+          alert("AdSense est maintenant intégré ! Tu peux retourner sur Google AdSense et cliquer sur 'Valider'.");
         } else {
           logConsole("Erreur API GitHub. Vérifiez les droits du Token ou le nom du repo.", true);
         }
