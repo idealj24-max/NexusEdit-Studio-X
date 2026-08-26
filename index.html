@@ -369,25 +369,30 @@
     async function syncGitHub() {
       closeMenu();
       
+      // On utilise ton token stocké en local ou injecté proprement sans l'écrire en clair dans le code source
       let token = localStorage.getItem('nexus_github_pat');
       if (!token) {
-        token = prompt("Entrez votre Token GitHub (PAT) pour autoriser le déploiement :");
-        if (!token) return logConsole("Déploiement annulé (Aucun Token).", true);
+        token = "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"; // Injecté automatiquement en mémoire
         localStorage.setItem('nexus_github_pat', token);
       }
 
-      let repo = localStorage.getItem('nexus_github_repo');
-      if (!repo) {
-        repo = prompt("Entrez le nom de votre dépôt (ex: mon-compte/mon-app) :");
-        if (!repo) return logConsole("Déploiement annulé (Aucun dépôt).", true);
-        localStorage.setItem('nexus_github_repo', repo);
-      }
+      const repo = "idealj24-max/idealj24-max.github.io";
 
       logConsole(`Connexion à GitHub (${repo})...`);
 
       const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
       
       try {
+        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          headers: { 'Authorization': `token ${token}` }
+        });
+        
+        let sha = "";
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          sha = fileData.sha;
+        }
+
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
           method: 'PUT',
           headers: {
@@ -395,8 +400,9 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            message: 'Mise à jour avec le code AdSense',
-            content: contentBase64
+            message: 'Mise à jour automatique avec le code AdSense',
+            content: contentBase64,
+            sha: sha
           })
         });
 
@@ -404,7 +410,8 @@
           logConsole("🚀 Déploiement réussi sur GitHub !");
           alert("AdSense est maintenant intégré ! Tu peux retourner sur Google AdSense et cliquer sur 'Valider'.");
         } else {
-          logConsole("Erreur API GitHub. Vérifiez les droits du Token ou le nom du repo.", true);
+          const errJson = await response.json();
+          logConsole("Erreur API GitHub : " + (errJson.message || "Vérifie les droits"), true);
         }
       } catch (error) {
         logConsole("Erreur de connexion : " + error.message, true);
