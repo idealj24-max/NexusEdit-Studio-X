@@ -6,7 +6,8 @@
   <title>NexusEdit Studio 3.10 Pro - Cloud PWA Engine</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Monaco Editor -->
+  <!-- Monaco Editor CSS & Loader -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
   
   <!-- JSZip pour les packages d'export -->
@@ -202,6 +203,15 @@
   </footer>
 
   <script>
+    // Enregistrement du Service Worker pour la PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('[PWA] Service Worker enregistré avec succès:', reg.scope))
+          .catch(err => console.error('[PWA] Échec d\'enregistrement du Service Worker:', err));
+      });
+    }
+
     const defaultFiles = {
       'index.html': `<!DOCTYPE html>
 <html lang="fr">
@@ -396,7 +406,7 @@
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
-      const apiKey = document.getElementById('ai-api-key'].value.trim();
+      const apiKey = document.getElementById('ai-api-key').value.trim(); // CORRIGÉ ICI
       const selectedModel = document.getElementById('ai-model').value;
 
       if (!promptText) return;
@@ -414,7 +424,6 @@
       chatBox.innerHTML += `<div class="msg ai">Génération de la boutique Néh-Forever par Gemini...</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      // Utilisation de l'endpoint v1beta compatible avec les modèles Gemini actuels
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
 
       try {
