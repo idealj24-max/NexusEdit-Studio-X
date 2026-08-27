@@ -1,1078 +1,656 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-50">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Néh-Forever | Boutique Virtuelle & Mode</title>
-    <meta name="description" content="Néh-Forever - Votre boutique en ligne de produits cosmétiques et vêtements.">
-    <meta name="theme-color" content="#e11d48">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Néh-Forever">
-    <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=192&h=192&fit=crop&crop=faces">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NexusEdit Studio 3.12 Ultimate - DB & UI Engine</title>
+  <link rel="manifest" href="manifest.json">
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#fff1f2',
-                            100: '#ffe4e6',
-                            500: '#f43f5e',
-                            600: '#e11d48',
-                            700: '#be123c',
-                            900: '#881337',
-                        },
-                        bankily: '#008444',
-                        masrvi: '#0055a5'
-                    },
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'Segoe UI', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Monaco Editor CSS & Loader -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+  
+  <!-- JSZip pour les packages d'export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-    <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
-        .glass-dark { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 1rem); }
-        .safe-top { padding-top: env(safe-area-inset-top, 1rem); }
-        @keyframes pulse-subtle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-        .pulse-btn { animation: pulse-subtle 3s infinite ease-in-out; }
-    </style>
+  <style>
+    :root {
+      --bg-dark: #070913;
+      --bg-panel: #0d1322;
+      --accent: #00ffcc;
+      --accent-hover: #059669;
+      --text: #e5e7eb;
+      --border: #1f2937;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+    
+    header { height: 48px; background: var(--bg-panel); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent); padding: 6px; }
+    .project-badge { font-size: 0.7rem; background: #1f2937; padding: 4px 8px; border-radius: 4px; color: #9ca3af; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    #side-menu { 
+        position: fixed; left: -300px; top: 0; width: 280px; 
+        height: 100%; height: 100dvh; background: var(--bg-panel); border-right: 1px solid var(--accent); 
+        transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 25px rgba(0,0,0,0.9);
+        display: flex; flex-direction: column; overflow-y: auto;
+    }
+    #side-menu.open { transform: translateX(300px); }
+    .menu-section-title { padding: 10px 15px; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
+    .file-item { padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+    .file-item:active { background: #1f2937; }
+    .file-item.active { background: rgba(0,255,204,0.1); color: var(--accent); border-left: 3px solid var(--accent); }
+
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; z-index: 110; backdrop-filter: blur(2px); }
+
+    #main-layout { display: flex; flex: 1; height: calc(100dvh - 108px); position: relative; overflow: hidden; }
+    #workspace { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; }
+    
+    .mode-tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+    .tab { padding: 10px 12px; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
+    .tab.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.03); font-weight: bold; }
+
+    #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
+    #preview-container { flex: 1; display: none; background: #030712; position: relative; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
+    
+    #app-preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
+
+    /* Panneau Design & UI Tools */
+    #design-panel { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
+    .design-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+    .design-card h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 8px; }
+    .ui-snippet-btn { background: #1f2937; color: var(--text); border: 1px solid var(--border); padding: 6px 10px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin: 3px; display: inline-block; }
+    .ui-snippet-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; -webkit-overflow-scrolling: touch; }
+    .msg { padding: 9px 12px; border-radius: 6px; font-size: 0.78rem; max-width: 95%; line-height: 1.4; word-break: break-word; }
+    .msg.user { align-self: flex-end; background: #1f2937; color: #f3f4f6; border-left: 3px solid var(--accent); }
+    .msg.ai { align-self: flex-start; background: #030712; color: #34d399; border-left: 3px solid #8b5cf6; }
+    .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
+    
+    textarea, input[type="text"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
+    textarea { height: 50px; }
+    
+    .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.72rem; }
+    .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; }
+    
+    .btn-nexus { background: var(--accent); color: #030712; border: none; padding: 9px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: 0.1s; width: 100%; text-align: center; }
+    .btn-nexus:active { transform: scale(0.97); background: var(--accent-hover); color: #fff; }
+    .btn-secondary { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); margin-top: 5px; }
+
+    #console-bar { height: 65px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.65rem; padding: 6px; overflow-y: auto; color: #10b981; flex-shrink: 0; }
+
+    .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); padding: 20px; }
+    .panel-view.active-panel { display: flex; }
+
+    .ad-banner {
+        background: rgba(13, 19, 34, 0.95);
+        border-top: 1px dashed var(--border);
+        border-bottom: 1px dashed var(--border);
+        padding: 5px;
+        text-align: center;
+        font-size: 0.63rem;
+        color: #6b7280;
+        flex-shrink: 0;
+    }
+    .ad-banner span { color: var(--accent); font-weight: bold; }
+
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
+    footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
+
+    @media (max-width: 900px) {
+      #ai-panel { display: none; }
+      #ai-panel.mobile-active { display: flex; position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 95; background: var(--bg-panel); }
+    }
+  </style>
 </head>
-<body class="h-full text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white flex flex-col">
+<body>
 
-    <!-- TOP HEADER -->
-    <header class="sticky top-0 z-40 w-full glass border-b border-slate-100 shadow-sm transition-all safe-top">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-            <!-- Brand Logo -->
-            <div class="flex items-center gap-2 cursor-pointer" onclick="app.navigate('shop')">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-rose-400 flex items-center justify-center text-white shadow-md shadow-brand-500/30">
-                    <i class="fa-solid font-bold text-xl">N</i>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-xl leading-tight bg-gradient-to-r from-brand-700 to-rose-500 bg-clip-text text-transparent">
-                        Néh-Forever
-                    </h1>
-                    <p class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Cosmétique & Mode</p>
-                </div>
-            </div>
+  <!-- CLOUD HOSTING INTERNE -->
+  <div id="nexus-cloud-host-container" style="display:none; position:fixed; top:0; left:0; width:100%; height:100vh; height:100dvh; z-index:9999; background:#fff;">
+    <iframe id="nexus-hosted-iframe" style="width:100%; height:100%; border:none;"></iframe>
+    <div onclick="quitNexusCloudHost()" style="position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.8); color:#00ffcc; padding:8px 12px; border-radius:20px; font-size:0.75rem; cursor:pointer; font-family:monospace; border:1px solid #00ffcc; z-index:10000;">✕ Quitter l'App Cloud</div>
+  </div>
 
-            <!-- Search Bar (Desktop/Tablet) -->
-            <div class="hidden md:flex flex-1 max-w-md mx-4 relative">
-                <input type="text" id="searchInputDesktop" oninput="app.handleSearch(this.value)" placeholder="Rechercher des vêtements, maquillages, soins..." class="w-full bg-slate-100/80 border-0 rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-brand-500 transition-all outline-none">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
-            </div>
+  <header>
+    <div id="menu-btn" onclick="toggleMenu()">≡ STUDIO</div>
+    <div class="project-badge" id="current-project-name">Projet: index.html</div>
+  </header>
 
-            <!-- Actions Header -->
-            <div class="flex items-center gap-2">
-                <button onclick="app.toggleAdminModal()" class="p-2.5 text-slate-600 hover:text-brand-600 hover:bg-rose-50 rounded-full transition relative" title="Espace Vendeur">
-                    <i class="fa-solid fa-store text-lg"></i>
-                    <span id="adminBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
-                </button>
-                
-                <button onclick="app.openCart()" class="p-2.5 text-slate-700 hover:bg-rose-50 rounded-full transition relative" title="Mon Panier">
-                    <i class="fa-solid fa-bag-shopping text-xl"></i>
-                    <span id="cartBadge" class="hidden absolute top-1 right-1 bg-brand-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
-                </button>
-            </div>
+  <div id="overlay" onclick="closeMenu()"></div>
+
+  <div id="side-menu">
+    <div class="menu-section-title">Gestionnaire IndexedDB</div>
+    <div class="file-item" onclick="createNewProjectPrompt()" style="color:var(--accent);">➕ Créer un nouveau projet</div>
+    <div class="file-item" onclick="exportProjectsBackup()">💾 Sauvegarde DB (JSON)</div>
+    
+    <div class="menu-section-title">Fichiers du Projet</div>
+    <div class="file-item active" onclick="openFile('index.html')">📄 index.html</div>
+    <div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
+    <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
+    
+    <div class="menu-section-title">Compilation & Native</div>
+    <div class="file-item" onclick="buildAndDownloadAPK()" style="color:#38bdf8; font-weight:bold;">🤖 Générer l'APK Android (Cloud)</div>
+
+    <div class="menu-section-title">Nexus Cloud & Export</div>
+    <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent);">🌐 Héberger sur Nexus Cloud</div>
+    <div class="file-item" onclick="launchHostedApp()">🚀 Lancer l'App Hébergée</div>
+    <div class="file-item" onclick="exportPWAZip()">📦 Télécharger ZIP</div>
+    
+    <div class="menu-section-title">GitHub & Paramètres</div>
+    <div class="file-item" onclick="syncGitHub()">🐙 Push GitHub</div>
+    <div class="file-item" onclick="resetGitHubCreds()" style="color:#ef4444;">🔄 Reset GitHub ID</div>
+  </div>
+
+  <div id="main-layout">
+    <div id="workspace">
+      <div class="mode-tabs">
+        <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code</div>
+        <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI Design</div>
+        <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu</div>
+        <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
+        <div class="tab" id="tab-vpn" onclick="switchMainView('vpn')">VPN</div>
+      </div>
+      
+      <div id="editor-container"></div>
+      
+      <!-- BOÎTE À OUTILS DE DESIGN UI -->
+      <div id="design-panel">
+        <div class="design-card">
+          <h4>Boîte à Composants UI (Insertion Rapide)</h4>
+          <p style="font-size:0.7rem; color:#9ca3af; margin-bottom:8px;">Cliquez pour injecter le composant directement dans votre code actif :</p>
+          <button class="ui-snippet-btn" onclick="insertSnippet('card')">+ Carte UI</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('button')">+ Bouton Néon</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('input')">+ Champ Formulaire</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('grid')">+ Grille CSS</button>
         </div>
-
-        <!-- Search Bar (Mobile) -->
-        <div class="px-4 pb-3 md:hidden">
-            <div class="relative">
-                <input type="text" id="searchInputMobile" oninput="app.handleSearch(this.value)" placeholder="Rechercher cosmétiques, vêtements..." class="w-full bg-slate-100 border-0 rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-brand-500 transition-all outline-none">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-sm"></i>
-            </div>
+        <div class="design-card">
+          <h4>Générateur de Thème de Couleur</h4>
+          <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-top:5px;">Couleur d'accentuation :</label>
+          <input type="color" id="theme-color-picker" value="#00ffcc" onchange="applyThemeColor(this.value)" style="height:35px; cursor:pointer;">
         </div>
-    </header>
+      </div>
 
-    <!-- CATEGORIES SCROLL BAR -->
-    <nav class="bg-white border-b border-slate-100 sticky top-[105px] md:top-[65px] z-30 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar" id="categoryContainer">
-            <!-- Rendered JS Categories -->
+      <div id="preview-container">
+        <iframe id="app-preview-frame"></iframe>
+      </div>
+
+      <div id="vpn-view" class="panel-view">
+        <div style="font-size: 2.5rem;">🛡️</div>
+        <div>
+            <h3 style="color:var(--accent); margin:0 0 5px 0;">Nexus Secure Tunnel</h3>
+            <p id="vpn-status" style="color:#9ca3af; font-size:0.8rem;">Statut : Déconnecté</p>
         </div>
-    </nav>
+        <button class="btn-nexus" onclick="toggleVPN()" style="width: auto; padding: 8px 16px;">Activer le VPN</button>
+      </div>
 
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 mb-20">
-        <!-- Banner Carousel / Hero -->
-        <section class="mb-8 rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 via-rose-950 to-brand-900 text-white relative shadow-xl">
-            <div class="p-6 md:p-10 relative z-10 max-w-xl">
-                <span class="inline-block bg-brand-500/30 text-rose-300 border border-rose-500/30 text-xs px-3 py-1 rounded-full font-semibold mb-3">
-                    ✨ Nouvelle Collection 2025
-                </span>
-                <h2 class="text-2xl md:text-4xl font-extrabold mb-2 leading-tight">Sublimez Votre Beauté & Élégance</h2>
-                <p class="text-slate-300 text-sm md:text-base mb-5">Découvrez nos gammes de cosmétiques raffinés et les dernières tendances vestimentaires livrés chez vous.</p>
-                <div class="flex gap-3">
-                    <button onclick="app.setCategory('cosmetiques')" class="bg-brand-600 hover:bg-brand-700 text-white text-xs md:text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-brand-600/40 transition">Cosmétiques</button>
-                    <button onclick="app.setCategory('vetements')" class="bg-white/10 hover:bg-white/20 backdrop-blur text-white border border-white/20 text-xs md:text-sm font-bold px-5 py-2.5 rounded-full transition">Vêtements</button>
-                </div>
-            </div>
-            <div class="absolute right-0 bottom-0 top-0 w-1/2 opacity-30 md:opacity-40 pointer-events-none bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800');"></div>
-        </section>
-
-        <!-- Product Grid Header -->
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 id="currentCategoryTitle" class="text-lg md:text-xl font-bold text-slate-800">Tous les produits</h3>
-                <p id="productCount" class="text-xs text-slate-500">Chargement des articles...</p>
-            </div>
-        </div>
-
-        <!-- Products Grid -->
-        <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-            <!-- Skeleton items while loading -->
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
-            <div class="w-20 h-20 bg-rose-50 text-brand-500 rounded-full flex items-center justify-center text-3xl mb-4">
-                <i class="fa-solid fa-box-open"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-700 mb-1">Aucun produit trouvé</h3>
-            <p class="text-slate-500 text-sm max-w-sm mb-4">Essayez de changer de catégorie ou ajoutez de nouveaux articles dans l'espace propriétaire.</p>
-            <button onclick="app.setCategory('all')" class="bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-xl">Réinitialiser les filtres</button>
-        </div>
-    </main>
-
-    <!-- MOBILE BOTTOM NAVIGATION BAR -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 glass border-t border-slate-200/80 md:hidden safe-bottom">
-        <div class="grid grid-cols-4 h-14">
-            <button onclick="app.navigate('shop')" id="navShop" class="flex flex-col items-center justify-center text-brand-600 font-semibold">
-                <i class="fa-solid fa-store text-lg mb-0.5"></i>
-                <span class="text-[10px]">Boutique</span>
-            </button>
-            <button onclick="app.setCategory('cosmetiques')" id="navCosmo" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-600">
-                <i class="fa-solid fa-pump-soap text-lg mb-0.5"></i>
-                <span class="text-[10px]">Beauté</span>
-            </button>
-            <button onclick="app.setCategory('vetements')" id="navCloth" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-600">
-                <i class="fa-solid fa-shirt text-lg mb-0.5"></i>
-                <span class="text-[10px]">Mode</span>
-            </button>
-            <button onclick="app.openCart()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-600 relative">
-                <i class="fa-solid fa-bag-shopping text-lg mb-0.5"></i>
-                <span class="text-[10px]">Panier</span>
-                <span id="navCartBadge" class="hidden absolute top-1 right-5 bg-brand-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- PRODUCT DETAIL MODAL -->
-    <div id="productDetailModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
-        <div class="bg-white w-full sm:max-w-2xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-200">
-            <!-- Modal Header / Images -->
-            <div class="relative bg-slate-100 h-64 sm:h-80 overflow-hidden">
-                <img id="modalProductImage" src="" alt="Produit" class="w-full h-full object-cover">
-                <button onclick="app.closeProductModal()" class="absolute top-4 right-4 bg-black/40 hover:bg-black/60 text-white w-9 h-9 rounded-full flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-                <div id="modalImageBadges" class="absolute bottom-3 left-4 flex gap-2">
-                    <!-- Badges -->
-                </div>
-            </div>
-
-            <!-- Content -->
-            <div class="p-5 flex-1 overflow-y-auto">
-                <div class="flex items-start justify-between gap-4 mb-2">
-                    <div>
-                        <span id="modalCategoryTag" class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md">Catégorie</span>
-                        <h2 id="modalTitle" class="text-xl font-bold text-slate-900 mt-2">Nom du produit</h2>
-                    </div>
-                    <div id="modalPrice" class="text-xl font-extrabold text-brand-600 whitespace-nowrap">0 MRU</div>
-                </div>
-
-                <p id="modalDescription" class="text-slate-600 text-sm mt-3 leading-relaxed whitespace-pre-line">Description du produit...</p>
-
-                <!-- Seller Info Card -->
-                <div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <h4 class="text-xs font-bold uppercase text-slate-400 mb-2 tracking-wider">Contact & Payement du Commerçant</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                        <div class="flex items-center gap-2 text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/60">
-                            <i class="fa-solid fa-phone text-brand-600"></i>
-                            <div>
-                                <p class="text-[10px] text-slate-400 font-semibold">Téléphone</p>
-                                <p id="modalSellerPhone" class="font-bold">--</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/60">
-                            <i class="fa-solid fa-wallet text-bankily"></i>
-                            <div>
-                                <p class="text-[10px] text-slate-400 font-semibold">Bankily</p>
-                                <p id="modalBankily" class="font-bold">--</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/60">
-                            <i class="fa-solid fa-credit-card text-masrvi"></i>
-                            <div>
-                                <p class="text-[10px] text-slate-400 font-semibold">Masrvi</p>
-                                <p id="modalMasrvi" class="font-bold">--</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer Action -->
-            <div class="p-4 bg-white border-t border-slate-100 flex gap-3 safe-bottom">
-                <button id="modalAddToCartBtn" onclick="" class="flex-1 bg-gradient-to-r from-brand-600 to-rose-500 hover:from-brand-700 hover:to-rose-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 transition active:scale-98">
-                    <i class="fa-solid fa-cart-plus"></i>
-                    <span>Ajouter au panier</span>
-                </button>
-            </div>
-        </div>
+      <div id="console-bar">
+        [System] IndexedDB & UI Design Engine initialisés.<br>
+      </div>
     </div>
 
-    <!-- CART & CHECKOUT DRAWER -->
-    <div id="cartDrawer" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm transition-opacity">
-        <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-200">
-            <!-- Header -->
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-bag-shopping text-brand-600 text-xl"></i>
-                    <h3 class="font-bold text-lg text-slate-800">Votre Panier</h3>
-                </div>
-                <button onclick="app.closeCart()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+    <!-- PANNEAU IA MIS À JOUR (GEMINI 3.6 FLASH) -->
+    <div id="ai-panel">
+      <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>NEXUS AI ENGINE</span>
+        <span style="font-size:0.6rem; color:var(--accent);">GEMINI 3.6 FLASH</span>
+      </div>
+      
+      <div class="api-config-box">
+        <label>Fournisseur IA :</label>
+        <select id="ai-provider" style="margin-bottom:6px;">
+          <option value="google">Google Gemini API</option>
+        </select>
+        <label>Clé API (Token) :</label>
+        <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
+      </div>
 
-            <!-- Items List -->
-            <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
-                <!-- Cart items rendered JS -->
-            </div>
-
-            <!-- Checkout Form & Summary -->
-            <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-4 safe-bottom">
-                <div class="space-y-2">
-                    <div class="flex justify-between text-slate-600 text-sm">
-                        <span>Sous-total</span>
-                        <span id="cartSubtotal" class="font-semibold">0 MRU</span>
-                    </div>
-                    <div class="flex justify-between text-slate-900 font-extrabold text-base pt-1 border-t border-slate-200">
-                        <span>Total à payer</span>
-                        <span id="cartTotal" class="text-brand-600">0 MRU</span>
-                    </div>
-                </div>
-
-                <!-- Customer Form Inputs -->
-                <div id="checkoutForm" class="space-y-2 pt-2">
-                    <div>
-                        <input type="text" id="custName" placeholder="Votre nom complet *" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
-                    <div>
-                        <input type="tel" id="custPhone" placeholder="Numéro de Téléphone (WhatsApp) *" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
-                    <div>
-                        <input type="text" id="custAddress" placeholder="Adresse / Ville de livraison *" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
-
-                    <!-- Payment Mode Selector -->
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 mb-1 block">Mode de Règlement Préféré :</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="paymentMethod" value="Bankily" checked class="peer hidden">
-                                <div class="p-2 border border-slate-300 rounded-xl text-center peer-checked:border-bankily peer-checked:bg-emerald-50 peer-checked:text-bankily font-bold text-xs transition">
-                                    Bankily
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="paymentMethod" value="Masrvi" class="peer hidden">
-                                <div class="p-2 border border-slate-300 rounded-xl text-center peer-checked:border-masrvi peer-checked:bg-blue-50 peer-checked:text-masrvi font-bold text-xs transition">
-                                    Masrvi
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="paymentMethod" value="Cash" class="peer hidden">
-                                <div class="p-2 border border-slate-300 rounded-xl text-center peer-checked:border-slate-800 peer-checked:bg-slate-100 peer-checked:text-slate-900 font-bold text-xs transition">
-                                    Espèces
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="app.submitOrder()" class="w-full bg-gradient-to-r from-brand-600 to-rose-600 hover:from-brand-700 hover:to-rose-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i>
-                    <span>Commander via WhatsApp</span>
-                </button>
-            </div>
-        </div>
+      <div class="chat-messages" id="chat-box">
+        <div class="msg ai">Salut ! Décris l'application PWA de ton choix. Je code tout dans un fichier HTML unique ultra-propre !</div>
+      </div>
+      
+      <div class="chat-input-area">
+        <textarea id="ai-input" placeholder="Ex: Crée une application PWA de gestion de tâches..."></textarea>
+        <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
+        <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
+      </div>
     </div>
+  </div>
 
-    <!-- ADMIN / VENDOR MODAL -->
-    <div id="adminModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh]">
-            <!-- Header -->
-            <div class="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
-                        <i class="fa-solid fa-store-slash text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base sm:text-lg">Espace Gestion Vendeur</h3>
-                        <p class="text-xs text-slate-400">Gérez vos articles, prix & comptes de paiement</p>
-                    </div>
-                </div>
-                <button onclick="app.toggleAdminModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+  <div class="ad-banner">
+      NexusEdit Studio Ultimate <span>• IndexedDB & UI Builder Actifs</span>
+  </div>
 
-            <!-- Tabs Navigation -->
-            <div class="flex border-b border-slate-200 bg-slate-50 text-xs sm:text-sm font-semibold text-slate-600">
-                <button onclick="app.setAdminTab('add')" id="tabBtnAdd" class="flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition">Ajouter Produit</button>
-                <button onclick="app.setAdminTab('list')" id="tabBtnList" class="flex-1 py-3 px-4 border-b-2 border-transparent hover:text-slate-900 transition">Mes Produits</button>
-                <button onclick="app.setAdminTab('settings')" id="tabBtnSettings" class="flex-1 py-3 px-4 border-b-2 border-transparent hover:text-slate-900 transition">Paramètres Vendeur</button>
-            </div>
+  <footer>
+    <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
+    <button onclick="switchMainView('design'); closeMenu();" id="nav-des">🎨 <span>Design</span></button>
+    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Aperçu</span></button>
+    <button onclick="switchMainView('ai-mobile'); closeMenu();" id="nav-ai">🤖 <span>IA</span></button>
+    <button onclick="toggleMenu()">📂 <span>Menu</span></button>
+  </footer>
 
-            <!-- Tab Contents Container -->
-            <div class="p-5 flex-1 overflow-y-auto">
+  <script>
+    // --- GESTION INDEXEDDB MULTI-PROJETS ---
+    let db;
+    let currentProjectName = "MonProjetPWA";
+    let files = {
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App IndexedDB</title>\n</head>\n<body>\n  <h2>Ma PWA Hors-Ligne</h2>\n</body>\n</html>`,
+      'style.css': `body { background: #070913; color: #fff; font-family: sans-serif; }`,
+      'manifest.json': `{\n  "name": "App",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
+    };
+    let activeFile = 'index.html';
+    let editor;
 
-                <!-- TAB 1: ADD / EDIT PRODUCT FORM -->
-                <form id="productForm" onsubmit="app.saveProduct(event)" class="space-y-4">
-                    <input type="hidden" id="prodId">
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Nom de l'article *</label>
-                            <input type="text" id="prodName" required placeholder="Ex: Rouge à Lèvres Mat / Robe Soirée" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("NexusStudioDB", 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          loadProjectFromDB(currentProjectName).then(resolve).catch(resolve);
+        };
+        request.onupgradeneeded = (event) => {
+          const database = event.target.result;
+          if (!database.objectStoreNames.contains("projects")) {
+            database.createObjectStore("projects", { keyPath: "name" });
+          }
+        };
+      });
+    }
 
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Catégorie *</label>
-                            <select id="prodCategory" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                                <option value="cosmetiques">Cosmétiques & Beauté</option>
-                                <option value="vetements">Vêtements & Mode</option>
-                            </select>
-                        </div>
-                    </div>
+    function saveProjectToDB() {
+      if (!db) return;
+      if(editor) files[activeFile] = editor.getValue();
+      const transaction = db.transaction(["projects"], "readwrite");
+      const store = transaction.objectStore("projects");
+      store.put({ name: currentProjectName, files: files });
+      logConsole(`Projet "${currentProjectName}" sauvegardé dans IndexedDB.`);
+    }
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Prix (MRU) *</label>
-                            <input type="number" id="prodPrice" required placeholder="Ex: 1500" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
+    function loadProjectFromDB(projName) {
+      return new Promise((resolve) => {
+        if (!db) return resolve();
+        const transaction = db.transaction(["projects"], "readonly");
+        const store = transaction.objectStore("projects");
+        const request = store.get(projName);
+        request.onsuccess = () => {
+          if (request.result) {
+            files = request.result.files;
+            currentProjectName = request.result.name;
+            document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
+            if(editor) editor.setValue(files[activeFile] || files['index.html']);
+            logConsole(`Projet "${currentProjectName}" chargé depuis IndexedDB.`);
+          } else {
+            saveProjectToDB(); 
+          }
+          resolve();
+        };
+      });
+    }
 
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Image du Produit *</label>
-                            <input type="file" id="prodImageInput" accept="image/*" onchange="app.handleImageUpload(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
-                        </div>
-                    </div>
+    function createNewProjectPrompt() {
+      closeMenu();
+      const newName = prompt("Nom du nouveau projet PWA :");
+      if (newName) {
+        currentProjectName = newName.trim();
+        files = {
+          'index.html': `<!DOCTYPE html>\n<html>\n<head><title>${currentProjectName}</title></head>\n<body><h1>${currentProjectName}</h1></body>\n</html>`,
+          'style.css': `body { background: #111; color: #00ffcc; }`,
+          'manifest.json': `{\n  "name": "${currentProjectName}",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
+        };
+        saveProjectToDB();
+        document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
+        if(editor) editor.setValue(files['index.html']);
+        logConsole(`Nouveau projet "${currentProjectName}" créé.`);
+      }
+    }
 
-                    <!-- Image Preview -->
-                    <div id="imagePreviewContainer" class="hidden relative w-32 h-32 rounded-2xl overflow-hidden border border-slate-200">
-                        <img id="imagePreview" src="" class="w-full h-full object-cover">
-                        <button type="button" onclick="app.clearImagePreview()" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">✕</button>
-                    </div>
+    function exportProjectsBackup() {
+      closeMenu();
+      const transaction = db.transaction(["projects"], "readonly");
+      const store = transaction.objectStore("projects");
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const blob = new Blob([JSON.stringify(request.result, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "NexusStudio-Backup.json";
+        a.click();
+        logConsole("Sauvegarde IndexedDB exportée.");
+      };
+    }
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Description détaillée</label>
-                        <textarea id="prodDesc" rows="3" placeholder="Description, taillant, ingrédients, conseils d'utilisation..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none"></textarea>
-                    </div>
+    // --- CONFIGURATION MONACO ET UI ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initIndexedDB();
+      const savedKey = localStorage.getItem('nexus_user_ai_key');
+      if (savedKey) document.getElementById('ai-api-key').value = savedKey;
+      
+      document.getElementById('ai-api-key').addEventListener('input', (e) => {
+        localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
+      });
+    });
 
-                    <div class="pt-2 flex justify-end gap-3">
-                        <button type="button" onclick="app.resetProductForm()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 font-semibold text-xs hover:bg-slate-100 transition">Effacer</button>
-                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition">Enregistrer le produit</button>
-                    </div>
-                </form>
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: files[activeFile],
+        language: 'html',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 13,
+        minimap: { enabled: false }
+      });
+      
+      editor.onDidChangeModelContent(() => {
+        files[activeFile] = editor.getValue();
+        saveProjectToDB();
+      });
+    });
 
-                <!-- TAB 2: MY PRODUCTS LIST -->
-                <div id="adminProductList" class="hidden space-y-3">
-                    <!-- Dynamic Product List for Admin -->
-                </div>
+    function toggleMenu() {
+        const menu = document.getElementById('side-menu');
+        const overlay = document.getElementById('overlay');
+        if (menu.classList.contains('open')) { closeMenu(); } 
+        else { menu.classList.add('open'); overlay.style.display = 'block'; }
+    }
 
-                <!-- TAB 3: SELLER SETTINGS -->
-                <form id="settingsForm" onsubmit="app.saveSettings(event)" class="hidden space-y-4">
-                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-                        <i class="fa-solid fa-circle-info mr-1"></i> Ces coordonnées seront automatiquement affichées aux clients lors de leurs commandes pour effectuer le règlement via Bankily ou Masrvi.
-                    </div>
+    function closeMenu() {
+        document.getElementById('side-menu').classList.remove('open');
+        document.getElementById('overlay').style.display = 'none';
+    }
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Téléphone Vendeur (WhatsApp) *</label>
-                        <input type="tel" id="sellerPhone" placeholder="Ex: 222XXXXXXXX" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
+    function switchMainView(view) {
+      const ed = document.getElementById('editor-container');
+      const des = document.getElementById('design-panel');
+      const prev = document.getElementById('preview-container');
+      const vpn = document.getElementById('vpn-view');
+      const aiPanel = document.getElementById('ai-panel');
+      
+      ed.style.display = 'none'; 
+      des.style.display = 'none';
+      prev.style.display = 'none';
+      vpn.classList.remove('active-panel'); 
+      aiPanel.classList.remove('mobile-active');
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Bankily</label>
-                        <input type="text" id="sellerBankily" placeholder="Ex: 222XXXXX / 36XXXXX" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
+      document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Masrvi</label>
-                        <input type="text" id="sellerMasrvi" placeholder="Ex: 222XXXXX / 46XXXXX" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
+      if (view === 'editor') { 
+        ed.style.display = 'block'; 
+        if(editor) editor.layout(); 
+        document.getElementById('nav-code').classList.add('active');
+      } 
+      else if (view === 'design') {
+        des.style.display = 'flex';
+        document.getElementById('nav-des').classList.add('active');
+      }
+      else if (view === 'preview') { 
+        prev.style.display = 'flex'; 
+        executeCode(); 
+        document.getElementById('nav-prev').classList.add('active');
+      } 
+      else if (view === 'ai-mobile') { 
+        ed.style.display = 'block';
+        aiPanel.classList.add('mobile-active'); 
+        if(editor) editor.layout(); 
+        document.getElementById('nav-ai').classList.add('active');
+      } 
+      else if (view === 'vpn') { 
+        vpn.classList.add('active-panel'); 
+      }
+    }
 
-                    <div class="pt-2">
-                        <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-xs shadow-md transition">Sauvegarder mes coordonnées</button>
-                    </div>
-                </form>
+    function openFile(filename) {
+      if(editor) files[activeFile] = editor.getValue();
+      activeFile = filename;
+      document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      
+      let lang = 'html';
+      if(filename.endsWith('.css')) lang = 'css';
+      if(filename.endsWith('.json')) lang = 'json';
+      
+      if(editor) {
+        monaco.editor.setModelLanguage(editor.getModel(), lang);
+        editor.setValue(files[filename] || '');
+      }
+      closeMenu(); 
+      switchMainView('editor');
+    }
 
-            </div>
-        </div>
-    </div>
+    // --- OUTILS DE DESIGN & UI ---
+    function insertSnippet(type) {
+      let snippet = "";
+      if (type === 'card') {
+        snippet = `\n<div style="background:#0d1322; border:1px solid #00ffcc; padding:20px; border-radius:10px; margin:10px;">\n  <h3 style="color:#00ffcc;">Titre Carte</h3>\n  <p>Contenu de la carte UI...</p>\n</div>\n`;
+      } else if (type === 'button') {
+        snippet = `\n<button style="background:#00ffcc; color:#030712; border:none; padding:12px 20px; font-weight:bold; border-radius:6px; cursor:pointer; text-transform:uppercase;">Bouton Néon</button>\n`;
+      } else if (type === 'input') {
+        snippet = `\n<input type="text" placeholder="Entrez une valeur..." style="width:100%; padding:10px; background:#030712; border:1px solid #1f2937; color:#00ffcc; border-radius:5px; margin:5px 0;">\n`;
+      } else if (type === 'grid') {
+        snippet = `\n<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:10px 0;">\n  <div style="background:#111; padding:15px;">Col 1</div>\n  <div style="background:#111; padding:15px;">Col 2</div>\n</div>\n`;
+      }
 
-    <!-- TOAST NOTIFICATIONS CONTAINER -->
-    <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+      if (editor) {
+        editor.trigger('keyboard', 'type', { text: snippet });
+        switchMainView('editor');
+        logConsole("Composant UI inséré dans le code.");
+      }
+    }
 
-    <!-- MAIN APP JAVASCRIPT & INDEXEDDB ENGINE -->
-    <script>
-        /**
-         * INDEXEDDB WRAPPER
-         */
-        class NehDB {
-            constructor() {
-                this.dbName = 'NehForeverDB';
-                this.version = 1;
-                this.db = null;
-            }
+    function applyThemeColor(color) {
+      document.documentElement.style.setProperty('--accent', color);
+      logConsole(`Couleur du thème modifiée : ${color}`);
+    }
 
-            async init() {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(this.dbName, this.version);
+    function logConsole(msg, isErr = false) {
+      const c = document.getElementById('console-bar');
+      const color = isErr ? '#ef4444' : '#10b981';
+      c.innerHTML += `<span style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
+      c.scrollTop = c.scrollHeight;
+    }
 
-                    request.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('products')) {
-                            db.createObjectStore('products', { keyPath: 'id' });
-                        }
-                        if (!db.objectStoreNames.contains('settings')) {
-                            db.createObjectStore('settings', { keyPath: 'id' });
-                        }
-                    };
+    function executeCode() {
+      try {
+        if(editor) files[activeFile] = editor.getValue();
+        const iframe = document.getElementById('app-preview-frame');
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open();
+        doc.write(files['index.html']);
+        doc.close();
+        logConsole("Aperçu rafraîchi.");
+      } catch (err) {
+        logConsole("Erreur d'affichage : " + err.message, true);
+      }
+    }
 
-                    request.onsuccess = (e) => {
-                        this.db = e.target.result;
-                        resolve(this.db);
-                    };
+    function deployToNexusCloud() {
+      closeMenu();
+      if(editor) files[activeFile] = editor.getValue();
+      localStorage.setItem('nexus_hosted_pwa_app', files['index.html']);
+      logConsole("🌐 App déployée sur Nexus Cloud !");
+      launchHostedApp();
+    }
 
-                    request.onerror = (e) => reject(e.target.error);
-                });
-            }
+    function launchHostedApp() {
+      closeMenu();
+      const hostedCode = localStorage.getItem('nexus_hosted_pwa_app');
+      if(!hostedCode) { alert("Aucune application hébergée."); return; }
+      const hostContainer = document.getElementById('nexus-cloud-host-container');
+      const iframe = document.getElementById('nexus-hosted-iframe');
+      hostContainer.style.display = 'block';
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(hostedCode);
+      doc.close();
+    }
 
-            async getAll(storeName) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(storeName, 'readonly');
-                    const store = tx.objectStore(storeName);
-                    const req = store.getAll();
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
-            }
+    function quitNexusCloudHost() {
+      document.getElementById('nexus-cloud-host-container').style.display = 'none';
+      document.getElementById('nexus-hosted-iframe').src = "about:blank";
+    }
 
-            async put(storeName, item) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(storeName, 'readwrite');
-                    const store = tx.objectStore(storeName);
-                    const req = store.put(item);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
-            }
+    async function exportPWAZip() {
+      closeMenu();
+      if(editor) files[activeFile] = editor.getValue();
+      const zip = new JSZip();
+      zip.file("index.html", files['index.html']);
+      zip.file("style.css", files['style.css']);
+      zip.file("manifest.json", files['manifest.json']);
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentProjectName}-PWA.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      logConsole("ZIP exporté.");
+    }
 
-            async delete(storeName, id) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(storeName, 'readwrite');
-                    const store = tx.objectStore(storeName);
-                    const req = store.delete(id);
-                    req.onsuccess = () => resolve();
-                    req.onerror = () => reject(req.error);
-                });
-            }
+    async function buildAndDownloadAPK() {
+      closeMenu();
+      logConsole("🤖 Préparation du build APK...");
+      await syncGitHubQuiet();
+      if(confirm("Votre code est synchronisé. Ouvrir le générateur APK (PWABuilder) pour compiler l'application en .apk ?")) {
+        window.open("https://www.pwabuilder.com/", '_blank');
+      }
+    }
 
-            async get(storeName, id) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(storeName, 'readonly');
-                    const store = tx.objectStore(storeName);
-                    const req = store.get(id);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
-            }
+    async function syncGitHubQuiet() {
+      let token = localStorage.getItem('nexus_github_pat');
+      if (!token) {
+        token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
+        if (!token) return;
+        localStorage.setItem('nexus_github_pat', token);
+      }
+      const repo = "idealj24-max/NexusEdit-Studio-X";
+      if(editor) files[activeFile] = editor.getValue();
+      const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
+      try {
+        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          headers: { 'Authorization': `token ${token}` }
+        });
+        let sha = getRes.ok ? (await getRes.json()).sha : "";
+        await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          method: 'PUT',
+          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Sync APK NexusEdit', content: contentBase64, sha: sha || undefined })
+        });
+      } catch (e) {}
+    }
+
+    async function syncGitHub() {
+      closeMenu();
+      let token = localStorage.getItem('nexus_github_pat');
+      if (!token) {
+        token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
+        if (!token) return;
+        localStorage.setItem('nexus_github_pat', token);
+      }
+      const repo = "idealj24-max/NexusEdit-Studio-X";
+      if(editor) files[activeFile] = editor.getValue();
+      const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
+      try {
+        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          headers: { 'Authorization': `token ${token}` }
+        });
+        let sha = getRes.ok ? (await getRes.json()).sha : "";
+        const response = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          method: 'PUT',
+          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Mise à jour NexusEdit Studio', content: contentBase64, sha: sha || undefined })
+        });
+        if(response.ok) alert("Succès ! Code en ligne sur GitHub.");
+        else { alert("Token invalide."); localStorage.removeItem('nexus_github_pat'); }
+      } catch (error) { logConsole("Erreur GitHub", true); }
+    }
+
+    function resetGitHubCreds() {
+        localStorage.removeItem('nexus_github_pat');
+        alert("ID GitHub réinitialisés.");
+        closeMenu();
+    }
+
+    function copyGeneratedCode() {
+      if(editor) {
+        navigator.clipboard.writeText(editor.getValue());
+        alert("Code copié dans le presse-papier !");
+      }
+    }
+
+    // --- FONCTION IA CORRIGÉE (GEMINI 3.6 FLASH) ---
+    async function sendAIPromptReal() {
+      const input = document.getElementById('ai-input');
+      const promptText = input.value.trim();
+      const apiKey = document.getElementById('ai-api-key').value.trim();
+      
+      if (!promptText) return;
+
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += `<div class="msg user">${promptText}</div>`;
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      if (!apiKey) {
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API Google AI Studio.</div>`;
+        return;
+      }
+
+      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini 3.6 Flash...</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `Crée une application PWA complète avec IndexedDB et un design moderne pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome, sans balises markdown superflues ni blocs de code encadrés.`
+              }]
+            }]
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error?.message || `Erreur HTTP ${response.status}`);
         }
 
-        /**
-         * CORE APP LOGIC
-         */
-        class App {
-            constructor() {
-                this.db = new NehDB();
-                this.products = [];
-                this.cart = [];
-                this.activeCategory = 'all';
-                this.searchQuery = '';
-                this.currentBase64Image = '';
-                this.selectedProduct = null;
-                this.settings = {
-                    id: 'seller_info',
-                    phone: '22240000000',
-                    bankily: '22240000000',
-                    masrvi: '22240000000'
-                };
-
-                this.categories = [
-                    { id: 'all', name: 'Tout', icon: 'fa-border-all' },
-                    { id: 'cosmetiques', name: 'Cosmétiques', icon: 'fa-pump-soap' },
-                    { id: 'vetements', name: 'Vêtements', icon: 'fa-shirt' }
-                ];
-            }
-
-            async init() {
-                try {
-                    await this.db.init();
-                    await this.loadSettings();
-                    await this.loadProducts();
-                    this.renderCategories();
-                    this.renderProducts();
-                    this.updateCartUI();
-                    this.registerPWA();
-                } catch (err) {
-                    console.error('Init Error:', err);
-                    this.showToast('Erreur d\'initialisation du stockage', 'error');
-                }
-            }
-
-            // LOAD & SEED SETTINGS
-            async loadSettings() {
-                const saved = await this.db.get('settings', 'seller_info');
-                if (saved) {
-                    this.settings = saved;
-                } else {
-                    await this.db.put('settings', this.settings);
-                }
-
-                // Populate form
-                document.getElementById('sellerPhone').value = this.settings.phone || '';
-                document.getElementById('sellerBankily').value = this.settings.bankily || '';
-                document.getElementById('sellerMasrvi').value = this.settings.masrvi || '';
-            }
-
-            async saveSettings(e) {
-                e.preventDefault();
-                this.settings.phone = document.getElementById('sellerPhone').value.trim();
-                this.settings.bankily = document.getElementById('sellerBankily').value.trim();
-                this.settings.masrvi = document.getElementById('sellerMasrvi').value.trim();
-
-                await this.db.put('settings', this.settings);
-                this.showToast('Paramètres vendeurs enregistrés');
-            }
-
-            // PRODUCTS MANAGMENT
-            async loadProducts() {
-                this.products = await this.db.getAll('products');
-                
-                // Seed initial data if store is empty
-                if (this.products.length === 0) {
-                    const seedData = [
-                        {
-                            id: 'p1',
-                            name: 'Sérum Éclat Visage Rose',
-                            category: 'cosmetiques',
-                            price: 1200,
-                            description: 'Sérum hydratant bio enrichi en vitamines C et E pour un teint radieux.',
-                            image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
-                            createdAt: Date.now()
-                        },
-                        {
-                            id: 'p2',
-                            name: 'Robe de Soirée Élégante',
-                            category: 'vetements',
-                            price: 3500,
-                            description: 'Robe longue en tissu satiné haut de gamme, parfaite pour vos grands événements.',
-                            image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600',
-                            createdAt: Date.now()
-                        },
-                        {
-                            id: 'p3',
-                            name: 'Palette Maquillage Nude',
-                            category: 'cosmetiques',
-                            price: 1800,
-                            description: '12 teintes pigmentées mats et irisées longue tenue.',
-                            image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600',
-                            createdAt: Date.now()
-                        },
-                        {
-                            id: 'p4',
-                            name: 'Ensemble Traditionnel Chic',
-                            category: 'vetements',
-                            price: 4500,
-                            description: 'Ensemble 2 pièces brodé avec des finitions délicates et confortables.',
-                            image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=600',
-                            createdAt: Date.now()
-                        }
-                    ];
-                    for (const item of seedData) {
-                        await this.db.put('products', item);
-                    }
-                    this.products = seedData;
-                }
-            }
-
-            renderCategories() {
-                const container = document.getElementById('categoryContainer');
-                container.innerHTML = this.categories.map(cat => `
-                    <button onclick="app.setCategory('${cat.id}')" 
-                        class="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition flex items-center gap-2 ${this.activeCategory === cat.id ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-                        <i class="fa-solid ${cat.icon}"></i>
-                        <span>${cat.name}</span>
-                    </button>
-                `).join('');
-            }
-
-            setCategory(catId) {
-                this.activeCategory = catId;
-                this.renderCategories();
-                this.renderProducts();
-                
-                // Update navigation highlights
-                document.getElementById('navShop').className = catId === 'all' ? 'flex flex-col items-center justify-center text-brand-600 font-semibold' : 'flex flex-col items-center justify-center text-slate-500 hover:text-brand-600';
-                document.getElementById('navCosmo').className = catId === 'cosmetiques' ? 'flex flex-col items-center justify-center text-brand-600 font-semibold' : 'flex flex-col items-center justify-center text-slate-500 hover:text-brand-600';
-                document.getElementById('navCloth').className = catId === 'vetements' ? 'flex flex-col items-center justify-center text-brand-600 font-semibold' : 'flex flex-col items-center justify-center text-slate-500 hover:text-brand-600';
-            }
-
-            handleSearch(val) {
-                this.searchQuery = val.toLowerCase().trim();
-                this.renderProducts();
-            }
-
-            renderProducts() {
-                const grid = document.getElementById('productGrid');
-                const emptyState = document.getElementById('emptyState');
-                const title = document.getElementById('currentCategoryTitle');
-
-                const filtered = this.products.filter(p => {
-                    const matchCategory = this.activeCategory === 'all' || p.category === this.activeCategory;
-                    const matchSearch = p.name.toLowerCase().includes(this.searchQuery) || (p.description && p.description.toLowerCase().includes(this.searchQuery));
-                    return matchCategory && matchSearch;
-                });
-
-                // Update Category Title
-                if (this.activeCategory === 'cosmetiques') title.textContent = "Cosmétiques & Soins";
-                else if (this.activeCategory === 'vetements') title.textContent = "Vêtements & Mode";
-                else title.textContent = "Tous les produits";
-
-                document.getElementById('productCount').textContent = `${filtered.length} article(s) disponible(s)`;
-
-                if (filtered.length === 0) {
-                    grid.innerHTML = '';
-                    emptyState.classList.remove('hidden');
-                    emptyState.classList.add('flex');
-                    return;
-                }
-
-                emptyState.classList.add('hidden');
-                emptyState.classList.remove('flex');
-
-                grid.innerHTML = filtered.map(p => `
-                    <div class="bg-white rounded-2xl border border-slate-100 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
-                        <div class="relative aspect-square overflow-hidden bg-slate-100 cursor-pointer" onclick="app.openProductModal('${p.id}')">
-                            <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                            <span class="absolute top-2 left-2 bg-slate-900/70 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded-full capitalize">
-                                ${p.category === 'cosmetiques' ? 'Beauté' : 'Mode'}
-                            </span>
-                        </div>
-                        <div class="p-3.5 flex-1 flex flex-col justify-between">
-                            <div>
-                                <h4 onclick="app.openProductModal('${p.id}')" class="font-bold text-slate-800 text-xs sm:text-sm line-clamp-1 hover:text-brand-600 cursor-pointer">${p.name}</h4>
-                                <p class="text-slate-400 text-[11px] line-clamp-1 mt-0.5">${p.description || 'Produit de qualité supérieure'}</p>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between gap-1">
-                                <span class="text-sm sm:text-base font-extrabold text-brand-600">${p.price} <span class="text-[10px] font-normal text-slate-400">MRU</span></span>
-                                <button onclick="app.addToCart('${p.id}')" class="bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white p-2 rounded-xl transition-all active:scale-95 flex items-center justify-center">
-                                    <i class="fa-solid fa-cart-plus text-xs sm:text-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            // PRODUCT MODAL
-            openProductModal(id) {
-                const prod = this.products.find(p => p.id === id);
-                if (!prod) return;
-
-                this.selectedProduct = prod;
-                document.getElementById('modalTitle').textContent = prod.name;
-                document.getElementById('modalPrice').textContent = `${prod.price} MRU`;
-                document.getElementById('modalCategoryTag').textContent = prod.category;
-                document.getElementById('modalDescription').textContent = prod.description || 'Aucune description fournie.';
-                document.getElementById('modalProductImage').src = prod.image;
-                
-                document.getElementById('modalSellerPhone').textContent = this.settings.phone || 'Non renseigné';
-                document.getElementById('modalBankily').textContent = this.settings.bankily || 'Non renseigné';
-                document.getElementById('modalMasrvi').textContent = this.settings.masrvi || 'Non renseigné';
-
-                document.getElementById('modalAddToCartBtn').onclick = () => {
-                    this.addToCart(prod.id);
-                    this.closeProductModal();
-                };
-
-                document.getElementById('productDetailModal').classList.remove('hidden');
-            }
-
-            closeProductModal() {
-                document.getElementById('productDetailModal').classList.add('hidden');
-            }
-
-            // CART MANAGEMENT
-            addToCart(prodId) {
-                const existing = this.cart.find(item => item.id === prodId);
-                if (existing) {
-                    existing.qty += 1;
-                } else {
-                    const prod = this.products.find(p => p.id === prodId);
-                    if (prod) {
-                        this.cart.push({ ...prod, qty: 1 });
-                    }
-                }
-                this.updateCartUI();
-                this.showToast('Produit ajouté au panier !');
-            }
-
-            updateCartUI() {
-                const totalItems = this.cart.reduce((sum, item) => sum + item.qty, 0);
-                
-                // Badges
-                const cartBadge = document.getElementById('cartBadge');
-                const navCartBadge = document.getElementById('navCartBadge');
-                
-                if (totalItems > 0) {
-                    cartBadge.textContent = totalItems;
-                    cartBadge.classList.remove('hidden');
-                    navCartBadge.textContent = totalItems;
-                    navCartBadge.classList.remove('hidden');
-                } else {
-                    cartBadge.classList.add('hidden');
-                    navCartBadge.classList.add('hidden');
-                }
-
-                // Render cart items
-                const container = document.getElementById('cartItemsContainer');
-                if (this.cart.length === 0) {
-                    container.innerHTML = `
-                        <div class="py-12 text-center text-slate-400">
-                            <i class="fa-solid fa-basket-shopping text-4xl mb-2"></i>
-                            <p class="text-sm">Votre panier est vide</p>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = this.cart.map(item => `
-                        <div class="py-3 flex items-center gap-3">
-                            <img src="${item.image}" class="w-14 h-14 rounded-xl object-cover bg-slate-100">
-                            <div class="flex-1 min-w-0">
-                                <h5 class="font-bold text-xs text-slate-800 truncate">${item.name}</h5>
-                                <p class="text-xs font-semibold text-brand-600 mt-0.5">${item.price} MRU</p>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <button onclick="app.updateQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">-</button>
-                                    <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
-                                    <button onclick="app.updateQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">+</button>
-                                </div>
-                            </div>
-                            <button onclick="app.removeFromCart('${item.id}')" class="text-slate-400 hover:text-red-500 p-2">
-                                <i class="fa-solid fa-trash-can text-sm"></i>
-                            </button>
-                        </div>
-                    `).join('');
-                }
-
-                // Totals
-                const total = this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-                document.getElementById('cartSubtotal').textContent = `${total} MRU`;
-                document.getElementById('cartTotal').textContent = `${total} MRU`;
-            }
-
-            updateQty(id, delta) {
-                const item = this.cart.find(i => i.id === id);
-                if (item) {
-                    item.qty += delta;
-                    if (item.qty <= 0) {
-                        this.removeFromCart(id);
-                    } else {
-                        this.updateCartUI();
-                    }
-                }
-            }
-
-            removeFromCart(id) {
-                this.cart = this.cart.filter(i => i.id !== id);
-                this.updateCartUI();
-            }
-
-            openCart() {
-                document.getElementById('cartDrawer').classList.remove('hidden');
-            }
-
-            closeCart() {
-                document.getElementById('cartDrawer').classList.add('hidden');
-            }
-
-            // ORDER SUBMISSION VIA WHATSAPP
-            submitOrder() {
-                if (this.cart.length === 0) {
-                    this.showToast('Votre panier est vide', 'error');
-                    return;
-                }
-
-                const name = document.getElementById('custName').value.trim();
-                const phone = document.getElementById('custPhone').value.trim();
-                const address = document.getElementById('custAddress').value.trim();
-                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-
-                if (!name || !phone || !address) {
-                    this.showToast('Veuillez remplir vos coordonnées', 'error');
-                    return;
-                }
-
-                const sellerPhone = this.settings.phone || '22240000000';
-                const total = this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-
-                let message = `🛒 *NOUVELLE COMMANDE NÉH-FOREVER*\n\n`;
-                message += `👤 *Client:* ${name}\n`;
-                message += `📞 *Tél:* ${phone}\n`;
-                message += `📍 *Adresse:* ${address}\n`;
-                message += `💳 *Mode de paiement:* ${paymentMethod}\n\n`;
-                message += `*Détails des articles :*\n`;
-
-                this.cart.forEach((item, index) => {
-                    message += `${index + 1}. ${item.name} (x${item.qty}) - ${item.price * item.qty} MRU\n`;
-                });
-
-                message += `\n💰 *Total à régler:* ${total} MRU\n\n`;
-
-                if (paymentMethod === 'Bankily') {
-                    message += `ℹ️ *Paiement Bankily:* Veuillez transférer ${total} MRU au numéro *${this.settings.bankily}*`;
-                } else if (paymentMethod === 'Masrvi') {
-                    message += `ℹ️ *Paiement Masrvi:* Veuillez transférer ${total} MRU au numéro *${this.settings.masrvi}*`;
-                } else {
-                    message += `ℹ️ Paiement en espèces à la livraison.`;
-                }
-
-                const encodedMessage = encodeURIComponent(message);
-                const whatsappUrl = `https://wa.me/${sellerPhone.replace(/\D/g, '')}?text=${encodedMessage}`;
-
-                // Clear cart & close drawer
-                this.cart = [];
-                this.updateCartUI();
-                this.closeCart();
-
-                // Redirect to WhatsApp
-                window.open(whatsappUrl, '_blank');
-            }
-
-            // ADMIN MANAGEMENT
-            toggleAdminModal() {
-                const modal = document.getElementById('adminModal');
-                modal.classList.toggle('hidden');
-                if (!modal.classList.contains('hidden')) {
-                    this.setAdminTab('add');
-                }
-            }
-
-            setAdminTab(tab) {
-                const form = document.getElementById('productForm');
-                const list = document.getElementById('adminProductList');
-                const settings = document.getElementById('settingsForm');
-
-                const btnAdd = document.getElementById('tabBtnAdd');
-                const btnList = document.getElementById('tabBtnList');
-                const btnSettings = document.getElementById('tabBtnSettings');
-
-                // Reset styles
-                [btnAdd, btnList, btnSettings].forEach(b => {
-                    b.className = "flex-1 py-3 px-4 border-b-2 border-transparent hover:text-slate-900 transition";
-                });
-
-                if (tab === 'add') {
-                    form.classList.remove('hidden');
-                    list.classList.add('hidden');
-                    settings.classList.add('hidden');
-                    btnAdd.className = "flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition";
-                } else if (tab === 'list') {
-                    form.classList.add('hidden');
-                    list.classList.remove('hidden');
-                    settings.classList.add('hidden');
-                    btnList.className = "flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition";
-                    this.renderAdminProductList();
-                } else if (tab === 'settings') {
-                    form.classList.add('hidden');
-                    list.classList.add('hidden');
-                    settings.classList.remove('hidden');
-                    btnSettings.className = "flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition";
-                }
-            }
-
-            handleImageUpload(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.currentBase64Image = event.target.result;
-                    document.getElementById('imagePreview').src = this.currentBase64Image;
-                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-
-            clearImagePreview() {
-                this.currentBase64Image = '';
-                document.getElementById('imagePreview').src = '';
-                document.getElementById('imagePreviewContainer').classList.add('hidden');
-                document.getElementById('prodImageInput').value = '';
-            }
-
-            async saveProduct(e) {
-                e.preventDefault();
-
-                const id = document.getElementById('prodId').value || 'prod_' + Date.now();
-                const name = document.getElementById('prodName').value.trim();
-                const category = document.getElementById('prodCategory').value;
-                const price = parseFloat(document.getElementById('prodPrice').value);
-                const description = document.getElementById('prodDesc').value.trim();
-                const image = this.currentBase64Image || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600';
-
-                const newProd = {
-                    id,
-                    name,
-                    category,
-                    price,
-                    description,
-                    image,
-                    createdAt: Date.now()
-                };
-
-                await this.db.put('products', newProd);
-                await this.loadProducts();
-                this.renderProducts();
-                this.resetProductForm();
-                this.showToast('Produit enregistré avec succès !');
-                this.setAdminTab('list');
-            }
-
-            resetProductForm() {
-                document.getElementById('productForm').reset();
-                document.getElementById('prodId').value = '';
-                this.clearImagePreview();
-            }
-
-            renderAdminProductList() {
-                const container = document.getElementById('adminProductList');
-                if (this.products.length === 0) {
-                    container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Aucun produit en stock.</p>`;
-                    return;
-                }
-
-                container.innerHTML = this.products.map(p => `
-                    <div class="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white transition">
-                        <img src="${p.image}" class="w-12 h-12 rounded-xl object-cover">
-                        <div class="flex-1 min-w-0">
-                            <h5 class="font-bold text-xs text-slate-800 truncate">${p.name}</h5>
-                            <p class="text-xs text-brand-600 font-semibold">${p.price} MRU • <span class="capitalize text-slate-400 font-normal">${p.category}</span></p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="app.editProduct('${p.id}')" class="p-2 text-slate-600 hover:text-brand-600">
-                                <i class="fa-solid fa-pen-to-square text-sm"></i>
-                            </button>
-                            <button onclick="app.deleteProduct('${p.id}')" class="p-2 text-slate-400 hover:text-red-600">
-                                <i class="fa-solid fa-trash-can text-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            editProduct(id) {
-                const prod = this.products.find(p => p.id === id);
-                if (!prod) return;
-
-                document.getElementById('prodId').value = prod.id;
-                document.getElementById('prodName').value = prod.name;
-                document.getElementById('prodCategory').value = prod.category;
-                document.getElementById('prodPrice').value = prod.price;
-                document.getElementById('prodDesc').value = prod.description || '';
-
-                if (prod.image) {
-                    this.currentBase64Image = prod.image;
-                    document.getElementById('imagePreview').src = prod.image;
-                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                }
-
-                this.setAdminTab('add');
-            }
-
-            async deleteProduct(id) {
-                if (confirm('Voulez-vous vraiment supprimer cet article ?')) {
-                    await this.db.delete('products', id);
-                    await this.loadProducts();
-                    this.renderProducts();
-                    this.renderAdminProductList();
-                    this.showToast('Produit supprimé', 'error');
-                }
-            }
-
-            // NAVIGATION & TOAST UTILS
-            navigate(view) {
-                if (view === 'shop') {
-                    this.setCategory('all');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            }
-
-            showToast(msg, type = 'success') {
-                const container = document.getElementById('toastContainer');
-                const toast = document.createElement('div');
-                toast.className = `px-4 py-3 rounded-2xl text-xs font-bold text-white shadow-xl flex items-center gap-2 transform transition-all duration-300 pointer-events-auto ${type === 'error' ? 'bg-red-600' : 'bg-slate-900'}`;
-                toast.innerHTML = `
-                    <i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'} text-brand-500"></i>
-                    <span>${msg}</span>
-                `;
-                container.appendChild(toast);
-                setTimeout(() => {
-                    toast.classList.add('opacity-0', 'translate-y-[-10px]');
-                    setTimeout(() => toast.remove(), 300);
-                }, 2500);
-            }
-
-            // INLINE PWA SERVICE WORKER REGISTRATION
-            registerPWA() {
-                if ('serviceWorker' in navigator) {
-                    const swCode = `
-                        const CACHE_NAME = 'neh-forever-v1';
-                        self.addEventListener('install', (e) => {
-                            self.skipWaiting();
-                        });
-                        self.addEventListener('activate', (e) => {
-                            e.waitUntil(clients.claim());
-                        });
-                        self.addEventListener('fetch', (e) => {
-                            e.respondWith(
-                                fetch(e.request).catch(() => caches.match(e.request))
-                            );
-                        });
-                    `;
-                    const blob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(blob);
-                    navigator.serviceWorker.register(swUrl).catch(console.error);
-                }
-            }
+        const data = await response.json();
+        if (!data.candidates || !data.candidates[0].content) {
+          throw new Error("Réponse vide reçue de l'API Gemini.");
         }
 
-        // INITIALIZE APP
-        const app = new App();
-        document.addEventListener('DOMContentLoaded', () => app.init());
-    </script>
+        let generatedHtml = data.candidates[0].content.parts[0].text;
+        generatedHtml = generatedHtml.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+
+        files['index.html'] = generatedHtml;
+        if (activeFile === 'index.html' && editor) {
+          editor.setValue(generatedHtml);
+        }
+        saveProjectToDB();
+        
+        chatBox.innerHTML += `<div class="msg ai">PWA générée, enregistrée dans IndexedDB et prête !</div>`;
+        logConsole("PWA générée et enregistrée avec succès.");
+        switchMainView('preview');
+      } catch (error) {
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur API : ${error.message}</div>`;
+        logConsole("Erreur API : " + error.message, true);
+      }
+    }
+
+    let vpnConnected = false;
+    function toggleVPN() {
+        vpnConnected = !vpnConnected;
+        document.getElementById('vpn-status').innerText = vpnConnected ? "Statut : Connecté" : "Statut : Déconnecté";
+    }
+  </script>
 </body>
 </html>
