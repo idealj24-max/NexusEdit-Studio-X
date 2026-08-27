@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 3.10 Pro - Cloud PWA Engine</title>
+  <title>NexusEdit Studio 3.10 Pro - Cloud PWA & APK Engine</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Monaco Editor CSS & Loader -->
@@ -97,7 +97,6 @@
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 10px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
 
-    /* Correction responsive pour forcer l'affichage sur mobile selon l'onglet actif */
     @media (max-width: 900px) {
       #ai-panel { display: none; }
       #ai-panel.mobile-active { display: flex; position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 95; background: var(--bg-panel); }
@@ -125,6 +124,9 @@
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css (Design)</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
+    <div class="menu-section-title">Compilation & Native</div>
+    <div class="file-item" onclick="buildAndDownloadAPK()" style="color:#38bdf8; font-weight:bold;">🤖 Générer l'APK Android (Cloud)</div>
+
     <div class="menu-section-title">Hébergement Nexus Cloud</div>
     <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent); font-weight:bold;">🌐 Héberger sur Nexus Cloud (Interne)</div>
     <div class="file-item" onclick="launchHostedApp()">🚀 Lancer l'App Hébergée</div>
@@ -162,11 +164,10 @@
       </div>
 
       <div id="console-bar">
-        [System] NexusEdit Studio Cloud Hosting Engine actif. Clé API sécurisée.<br>
+        [System] NexusEdit Studio Cloud Hosting & APK Engine actif.<br>
       </div>
     </div>
 
-    <!-- PANNEAU IA SÉCURISÉ (VIDE PAR DÉFAUT) -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:10px; display:flex; justify-content:space-between; align-items:center;">
         <span>Nexus AI Engine</span>
@@ -184,11 +185,11 @@
       </div>
 
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Salut ! Entrez votre clé API ci-dessus, puis décrivez l'application PWA de votre choix (ex: Boutique Néh-Forever).</div>
+        <div class="msg ai">Salut ! Entrez votre clé API ci-dessus, puis décrivez l'application PWA à transformer en APK.</div>
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une boutique en ligne comme Alibaba (Néh-Forever)..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une appli de gestion pour ma grue..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
         <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier tout le code généré</button>
       </div>
@@ -196,24 +197,21 @@
   </div>
 
   <div class="ad-banner" id="ad-container">
-      Annonce publicitaire <span>• Nexus Cloud Host Active</span>
+      Annonce publicitaire <span>• Nexus Cloud & APK Builder Active</span>
   </div>
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">📱 <span>Aperçu</span></button>
     <button onclick="switchMainView('ai-mobile'); closeMenu();" id="nav-ai">🤖 <span>IA</span></button>
-    <button onclick="deployToNexusCloud(); closeMenu();" style="color:var(--accent);">🌐 <span>Héberger</span></button>
+    <button onclick="buildAndDownloadAPK(); closeMenu();" style="color:#38bdf8;">🤖 <span>APK</span></button>
     <button onclick="toggleMenu()">📂 <span>Menu</span></button>
   </footer>
 
   <script>
-    // Enregistrement du Service Worker pour la PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('[PWA] Service Worker enregistré:', reg.scope))
-          .catch(err => console.error('[PWA] Erreur Service Worker:', err));
+        navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
       });
     }
 
@@ -235,7 +233,7 @@
 <body>
   <div class="card">
     <h2>Néh-Forever 💄</h2>
-    <p>Boutique de mode et cosmétiques hébergée par Nexus Studio !</p>
+    <p>Prête à être packagée en APK Android !</p>
     <input type="text" id="clientName" placeholder="Votre nom...">
     <button onclick="commander()">Commander</button>
     <p id="msgConfirm" style="margin-top:15px; font-weight:bold; color:#059669;"></p>
@@ -243,7 +241,7 @@
   <script>
     function commander() {
       const name = document.getElementById('clientName').value;
-      if(name) document.getElementById('msgConfirm').innerText = "Merci " + name + " ! Paiement initié.";
+      if(name) document.getElementById('msgConfirm').innerText = "Merci " + name + " ! Commande enregistrée.";
     }
   <\/script>
 </body>
@@ -256,12 +254,9 @@
     let activeFile = 'index.html';
     let editor;
 
-    // Gestion de la clé API locale (sécurisée contre les fuites GitHub)
     window.addEventListener('DOMContentLoaded', () => {
       const savedKey = localStorage.getItem('nexus_user_ai_key');
-      if (savedKey) {
-        document.getElementById('ai-api-key').value = savedKey;
-      }
+      if (savedKey) document.getElementById('ai-api-key').value = savedKey;
       
       document.getElementById('ai-api-key').addEventListener('input', (e) => {
         localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
@@ -308,7 +303,6 @@
       vpn.classList.remove('active-panel'); 
       aiPanel.classList.remove('mobile-active');
 
-      // Gestion des onglets actifs dans la barre du bas
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
 
       if (view === 'editor') { 
@@ -361,7 +355,6 @@
     function executeCode() {
       try {
         if(editor) files[activeFile] = editor.getValue();
-        logConsole("Rendu de la PWA dans l'iframe de prévisualisation...");
         const iframe = document.getElementById('app-preview-frame');
         const doc = iframe.contentDocument || iframe.contentWindow.document;
         doc.open();
@@ -376,10 +369,8 @@
     function deployToNexusCloud() {
       closeMenu();
       if(editor) files[activeFile] = editor.getValue();
-      const hostedAppCode = files['index.html'];
-      localStorage.setItem('nexus_hosted_pwa_app', hostedAppCode);
-      logConsole("🌐 Application déployée avec succès sur Nexus Cloud Interne !");
-      alert("🚀 Déploiement réussi sur Nexus Cloud !\n\nVotre application est hébergée en interne.");
+      localStorage.setItem('nexus_hosted_pwa_app', files['index.html']);
+      logConsole("🌐 App déployée sur Nexus Cloud Interne !");
       launchHostedApp();
     }
 
@@ -387,10 +378,9 @@
       closeMenu();
       const hostedCode = localStorage.getItem('nexus_hosted_pwa_app');
       if(!hostedCode) {
-        alert("Aucune application hébergée. Cliquez d'abord sur 'Héberger sur Nexus Cloud'.");
+        alert("Aucune application hébergée.");
         return;
       }
-      logConsole("Lancement de l'application depuis Nexus Cloud Host...");
       const hostContainer = document.getElementById('nexus-cloud-host-container');
       const iframe = document.getElementById('nexus-hosted-iframe');
       hostContainer.style.display = 'block';
@@ -401,11 +391,8 @@
     }
 
     function quitNexusCloudHost() {
-      const hostContainer = document.getElementById('nexus-cloud-host-container');
-      hostContainer.style.display = 'none';
-      const iframe = document.getElementById('nexus-hosted-iframe');
-      iframe.src = "about:blank";
-      logConsole("Retour à NexusEdit Studio.");
+      document.getElementById('nexus-cloud-host-container').style.display = 'none';
+      document.getElementById('nexus-hosted-iframe').src = "about:blank";
     }
 
     async function exportPWAZip() {
@@ -423,73 +410,51 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      logConsole("Package ZIP téléchargé sur le téléphone.");
+      logConsole("Package ZIP téléchargé.");
     }
 
-    function copyGeneratedCode() {
-      if(editor) files[activeFile] = editor.getValue();
-      const codeToCopy = files['index.html'];
-      navigator.clipboard.writeText(codeToCopy).then(() => {
-        alert("📋 Code intégral copié dans le presse-papiers !");
-        logConsole("Code source copié avec succès.");
-      }).catch(err => {
-        const textareaTemp = document.createElement('textarea');
-        textareaTemp.value = codeToCopy;
-        document.body.appendChild(textareaTemp);
-        textareaTemp.select();
-        document.execCommand('copy');
-        document.body.removeChild(textareaTemp);
-        alert("📋 Code copié via la méthode de secours !");
-      });
+    async function buildAndDownloadAPK() {
+      closeMenu();
+      logConsole("🤖 Initialisation de la compilation APK Android...");
+      
+      // Synchronisation préalable sur GitHub pour que l'outil de build accède aux sources
+      await syncGitHubQuiet();
+
+      // Redirection intelligente vers PWABuilder (générateur officiel d'APK gratuit basé sur le web de Microsoft)
+      const targetURL = "https://www.pwabuilder.com/";
+      logConsole("Ouverture du compilateur APK Cloud...");
+      
+      if(confirm("Votre code est prêt.\n\nCliquez sur OK pour ouvrir le générateur APK officiel. Entrez l'URL de votre site ou téléchargez le ZIP de votre PWA pour obtenir votre fichier .apk immédiatement.")) {
+        window.open(targetURL, '_blank');
+      }
     }
 
-    async function sendAIPromptReal() {
-      const input = document.getElementById('ai-input');
-      const promptText = input.value.trim();
-      const apiKey = document.getElementById('ai-api-key').value.trim();
-      const selectedModel = document.getElementById('ai-model').value;
-
-      if (!promptText) return;
-
-      const chatBox = document.getElementById('chat-box');
-      chatBox.innerHTML += `<div class="msg user">${promptText}</div>`;
-      input.value = '';
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      if (!apiKey) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API Google AI Studio dans le champ prévu.</div>`;
-        return;
+    async function syncGitHubQuiet() {
+      let token = localStorage.getItem('nexus_github_pat');
+      if (!token) {
+        token = prompt("Entrez votre GitHub Personal Access Token (PAT) pour lier le projet :");
+        if (!token) return;
+        localStorage.setItem('nexus_github_pat', token);
       }
 
-      chatBox.innerHTML += `<div class="msg ai">Génération de la boutique Néh-Forever par Gemini (${selectedModel})...</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
-
+      const repo = "idealj24-max/NexusEdit-Studio-X";
+      if(editor) files[activeFile] = editor.getValue();
+      const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
+      
       try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ text: `Tu es un développeur full-stack expert en PWA e-commerce ultra-moderne. Crée une application web complète, magnifique, interactive (boutique en ligne complète style Alibaba avec gestion de produits cosmétiques, vêtements, ajout d'images URL, gestion de prix, intégration du numéro de téléphone du vendeur et paiements via Bankily ou Masrivi) pour la demande suivante : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome (avec CSS et JavaScript intégrés) sans blocs markdown \`\`\` autour pour qu'il soit directement exécutable.` }]
-            }]
-          })
+        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          headers: { 'Authorization': `token ${token}` }
         });
+        let sha = getRes.ok ? (await getRes.json()).sha : "";
 
-        const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
-        
-        let generatedHtml = data.candidates[0].content.parts[0].text.replace(/```html|```/g, '').trim();
-
-        files['index.html'] = generatedHtml;
-        if (activeFile === 'index.html' && editor) editor.setValue(generatedHtml);
-        
-        chatBox.innerHTML += `<div class="msg ai">Boutique Néh-Forever générée avec succès ! Prête pour l'aperçu et Nexus Cloud.</div>`;
-        switchMainView('preview');
-      } catch (error) {
-        logConsole("Erreur API : " + error.message, true);
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${error.message}</div>`;
+        await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          method: 'PUT',
+          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Sync APK Build NexusEdit', content: contentBase64, sha: sha || undefined })
+        });
+        logConsole("Code synchronisé avec GitHub pour l'APK.");
+      } catch (e) {
+        logConsole("Erreur de sync GitHub silencieuse.", true);
       }
     }
 
@@ -498,10 +463,7 @@
       let token = localStorage.getItem('nexus_github_pat');
       if (!token) {
         token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
-        if (!token) {
-          logConsole("Synchronisation annulée : aucun token fourni.", true);
-          return;
-        }
+        if (!token) return;
         localStorage.setItem('nexus_github_pat', token);
       }
 
@@ -519,27 +481,16 @@
 
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
           method: 'PUT',
-          headers: { 
-            'Authorization': `token ${token}`, 
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify({ 
-            message: 'Mise à jour automatique sécurisée via NexusEdit Studio', 
-            content: contentBase64, 
-            sha: sha || undefined 
-          })
+          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Mise à jour via NexusEdit Studio', content: contentBase64, sha: sha || undefined })
         });
 
         if(response.ok) {
-          logConsole("🚀 Déploiement réussi sur GitHub (sans fuite de clé) !");
-          alert("Succès ! Votre code est mis en ligne sur GitHub.");
+          logConsole("🚀 Déploiement réussi sur GitHub !");
+          alert("Succès ! Code en ligne sur GitHub.");
         } else {
-          const errData = await response.json();
-          logConsole("Erreur GitHub : " + errData.message, true);
-          if(response.status === 401) {
-            alert("Token invalide ou expiré. Réinitialisez-le via le menu.");
-            localStorage.removeItem('nexus_github_pat');
-          }
+          alert("Erreur d'authentification GitHub.");
+          localStorage.removeItem('nexus_github_pat');
         }
       } catch (error) {
         logConsole("Erreur de connexion : " + error.message, true);
@@ -548,8 +499,56 @@
 
     function resetGitHubCreds() {
         localStorage.removeItem('nexus_github_pat');
-        alert("Identifiants GitHub réinitialisés de la mémoire.");
+        alert("Identifiants réinitialisés.");
         closeMenu();
+    }
+
+    async function sendAIPromptReal() {
+      const input = document.getElementById('ai-input');
+      const promptText = input.value.trim();
+      const apiKey = document.getElementById('ai-api-key').value.trim();
+      const selectedModel = document.getElementById('ai-model').value;
+
+      if (!promptText) return;
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += `<div class="msg user">${promptText}</div>`;
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      if (!apiKey) {
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Entrez votre clé API Google AI Studio.</div>`;
+        return;
+      }
+
+      chatBox.innerHTML += `<div class="msg ai">Génération de l'application PWA par Gemini...</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: `Crée une application web PWA complète, magnifique, interactive et moderne pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome (avec CSS et JS) sans blocs markdown.` }]
+            }]
+          })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        
+        let generatedHtml = data.candidates[0].content.parts[0].text.replace(/```html|```/g, '').trim();
+
+        files['index.html'] = generatedHtml;
+        if (activeFile === 'index.html' && editor) editor.setValue(generatedHtml);
+        
+        chatBox.innerHTML += `<div class="msg ai">PWA générée avec succès ! Prête pour l'APK et Nexus Cloud.</div>`;
+        switchMainView('preview');
+      } catch (error) {
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${error.message}</div>`;
+      }
     }
 
     let vpnConnected = false;
