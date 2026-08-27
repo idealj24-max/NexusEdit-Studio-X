@@ -191,11 +191,11 @@
       </div>
     </div>
 
-    <!-- PANNEAU IA STYLE CAPTURE -->
+    <!-- PANNEAU IA MIS À JOUR (GEMINI 3.6 FLASH) -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>NEXUS AI ENGINE</span>
-        <span style="font-size:0.6rem; color:var(--accent);">GEMINI FLASH</span>
+        <span style="font-size:0.6rem; color:var(--accent);">GEMINI 3.6 FLASH</span>
       </div>
       
       <div class="api-config-box">
@@ -208,7 +208,7 @@
       </div>
 
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Salut ! Décrivez votre application pour générer une PWA complète via IndexedDB.</div>
+        <div class="msg ai">Salut ! Décris l'application PWA de ton choix. Je code tout dans un fichier HTML unique ultra-propre !</div>
       </div>
       
       <div class="chat-input-area">
@@ -525,7 +525,7 @@
       if (!token) {
         token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
         if (!token) return;
-        localStorage.setItem('nexus_github_pat', token);
+        localStorage.getItem('nexus_github_pat', token);
       }
       const repo = "idealj24-max/NexusEdit-Studio-X";
       if(editor) files[activeFile] = editor.getValue();
@@ -582,7 +582,7 @@
       }
     }
 
-    // --- FONCTION IA MISE À JOUR AVEC LE MODÈLE FLASH ---
+    // --- FONCTION IA UTILISANT GEMINI 3.6 FLASH / 1.5 FLASH ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -603,7 +603,7 @@
       chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini Flash...</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      // Utilisation du modèle gemini-1.5-flash / gemini-3.6-flash pris en charge par l'API v1beta
+      // Endpoint officiel pour les modèles Gemini Flash via l'API v1beta
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       try {
@@ -630,7 +630,6 @@
         }
 
         let generatedHtml = data.candidates[0].content.parts[0].text;
-        // Nettoyage sécurisé du format markdown si l'IA en renvoie malgré tout
         generatedHtml = generatedHtml.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
 
         files['index.html'] = generatedHtml;
