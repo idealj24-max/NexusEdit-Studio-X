@@ -191,11 +191,11 @@
       </div>
     </div>
 
-    <!-- PANNEAU IA MIS À JOUR (GEMINI 3.6 FLASH) -->
+    <!-- PANNEAU IA STYLE CAPTURE -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>NEXUS AI ENGINE</span>
-        <span style="font-size:0.6rem; color:var(--accent);">GEMINI 3.6 FLASH</span>
+        <span style="font-size:0.6rem; color:var(--accent);">GEMINI FLASH</span>
       </div>
       
       <div class="api-config-box">
@@ -212,7 +212,7 @@
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une boutique de vêtements et cosmétiques..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une application PWA de gestion de tâches..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
         <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
       </div>
@@ -582,7 +582,7 @@
       }
     }
 
-    // --- CORRECTION DE L'API GEMINI 3.6 FLASH ---
+    // --- FONCTION IA MISE À JOUR AVEC LE MODÈLE FLASH ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -600,10 +600,10 @@
         return;
       }
 
-      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini 3.6 Flash...</div>`;
+      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini Flash...</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      // Utilisation du modèle stable mis à jour compatible v1beta
+      // Utilisation du modèle gemini-1.5-flash / gemini-3.6-flash pris en charge par l'API v1beta
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       try {
@@ -630,7 +630,7 @@
         }
 
         let generatedHtml = data.candidates[0].content.parts[0].text;
-        // Nettoyage sécurisé du format markdown
+        // Nettoyage sécurisé du format markdown si l'IA en renvoie malgré tout
         generatedHtml = generatedHtml.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
 
         files['index.html'] = generatedHtml;
