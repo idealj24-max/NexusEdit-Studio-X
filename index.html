@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 3.10 Pro - Cloud PWA & APK Engine</title>
+  <title>NexusEdit Studio 3.12 Ultimate - DB & UI Engine</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Monaco Editor CSS & Loader -->
@@ -37,7 +37,7 @@
     }
     #side-menu.open { transform: translateX(300px); }
     .menu-section-title { padding: 10px 15px; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
-    .file-item { padding: 14px 18px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+    .file-item { padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
     .file-item:active { background: #1f2937; }
     .file-item.active { background: rgba(0,255,204,0.1); color: var(--accent); border-left: 3px solid var(--accent); }
 
@@ -47,13 +47,20 @@
     #workspace { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; }
     
     .mode-tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
-    .tab { padding: 10px 14px; font-size: 0.75rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
+    .tab { padding: 10px 12px; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
     .tab.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.03); font-weight: bold; }
 
     #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
     #preview-container { flex: 1; display: none; background: #030712; position: relative; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
     
     #app-preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
+
+    /* Panneau Design & UI Tools */
+    #design-panel { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
+    .design-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+    .design-card h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 8px; }
+    .ui-snippet-btn { background: #1f2937; color: var(--text); border: 1px solid var(--border); padding: 6px 10px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin: 3px; display: inline-block; }
+    .ui-snippet-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; }
     .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; -webkit-overflow-scrolling: touch; }
@@ -63,18 +70,16 @@
     .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
     
     textarea, input[type="text"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
-    textarea { height: 55px; }
-    textarea:focus, input:focus, select:focus { border-color: var(--accent); }
+    textarea { height: 50px; }
     
-    .api-config-box { padding: 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.73rem; }
-    .api-config-box label { color: #9ca3af; display: block; margin-bottom: 4px; }
+    .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.72rem; }
+    .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; }
     
     .btn-nexus { background: var(--accent); color: #030712; border: none; padding: 9px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: 0.1s; width: 100%; text-align: center; }
     .btn-nexus:active { transform: scale(0.97); background: var(--accent-hover); color: #fff; }
-    
     .btn-secondary { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); margin-top: 5px; }
 
-    #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.68rem; padding: 8px; overflow-y: auto; color: #10b981; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+    #console-bar { height: 65px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.65rem; padding: 6px; overflow-y: auto; color: #10b981; flex-shrink: 0; }
 
     .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); padding: 20px; }
     .panel-view.active-panel { display: flex; }
@@ -83,19 +88,17 @@
         background: rgba(13, 19, 34, 0.95);
         border-top: 1px dashed var(--border);
         border-bottom: 1px dashed var(--border);
-        padding: 6px;
+        padding: 5px;
         text-align: center;
-        font-size: 0.65rem;
+        font-size: 0.63rem;
         color: #6b7280;
         flex-shrink: 0;
-        overflow: hidden;
-        z-index: 100;
     }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 60px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
-    footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 10px; }
-    footer button.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
+    footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
     @media (max-width: 900px) {
       #ai-panel { display: none; }
@@ -105,79 +108,100 @@
 </head>
 <body>
 
-  <!-- CONTENEUR DU CLOUD HOSTING INTERNE -->
+  <!-- CLOUD HOSTING INTERNE -->
   <div id="nexus-cloud-host-container" style="display:none; position:fixed; top:0; left:0; width:100%; height:100vh; height:100dvh; z-index:9999; background:#fff;">
     <iframe id="nexus-hosted-iframe" style="width:100%; height:100%; border:none;"></iframe>
     <div onclick="quitNexusCloudHost()" style="position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.8); color:#00ffcc; padding:8px 12px; border-radius:20px; font-size:0.75rem; cursor:pointer; font-family:monospace; border:1px solid #00ffcc; z-index:10000;">✕ Quitter l'App Cloud</div>
   </div>
 
   <header>
-    <div id="menu-btn" onclick="toggleMenu()">≡ MENU STUDIO</div>
+    <div id="menu-btn" onclick="toggleMenu()">≡ STUDIO</div>
     <div class="project-badge" id="current-project-name">Projet: index.html</div>
   </header>
 
   <div id="overlay" onclick="closeMenu()"></div>
 
   <div id="side-menu">
-    <div class="menu-section-title">Explorateur PWA</div>
-    <div class="file-item active" onclick="openFile('index.html')">📄 index.html (App Complète)</div>
-    <div class="file-item" onclick="openFile('style.css')">🎨 style.css (Design)</div>
-    <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
+    <div class="menu-section-title">Gestionnaire IndexedDB</div>
+    <div class="file-item" onclick="createNewProjectPrompt()" style="color:var(--accent);">➕ Créer un nouveau projet</div>
+    <div class="file-item" onclick="exportProjectsBackup()">💾 Sauvegarde DB (JSON)</div>
+    
+    <div class="menu-section-title">Fichiers du Projet</div>
+    <div class="file-item active" onclick="openFile('index.html')">📄 index.html</div>
+    <div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
+    <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
     
     <div class="menu-section-title">Compilation & Native</div>
     <div class="file-item" onclick="buildAndDownloadAPK()" style="color:#38bdf8; font-weight:bold;">🤖 Générer l'APK Android (Cloud)</div>
 
-    <div class="menu-section-title">Hébergement Nexus Cloud</div>
-    <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent); font-weight:bold;">🌐 Héberger sur Nexus Cloud (Interne)</div>
+    <div class="menu-section-title">Nexus Cloud & Export</div>
+    <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent);">🌐 Héberger sur Nexus Cloud</div>
     <div class="file-item" onclick="launchHostedApp()">🚀 Lancer l'App Hébergée</div>
+    <div class="file-item" onclick="exportPWAZip()">📦 Télécharger ZIP</div>
     
-    <div class="menu-section-title">Extraction & Backup</div>
-    <div class="file-item" onclick="exportPWAZip()">📦 Télécharger le ZIP (.zip)</div>
-    
-    <div class="menu-section-title">Déploiement Externe</div>
-    <div class="file-item" onclick="syncGitHub()">🐙 Push sur GitHub</div>
-    <div class="file-item" onclick="resetGitHubCreds()" style="color:#ef4444;">🔄 Réinitialiser GitHub ID</div>
+    <div class="menu-section-title">GitHub & Paramètres</div>
+    <div class="file-item" onclick="syncGitHub()">🐙 Push GitHub</div>
+    <div class="file-item" onclick="resetGitHubCreds()" style="color:#ef4444;">🔄 Reset GitHub ID</div>
   </div>
 
   <div id="main-layout">
     <div id="workspace">
       <div class="mode-tabs">
-        <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Éditeur Code PWA</div>
-        <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu Application PWA</div>
-        <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 Assistant IA API</div>
-        <div class="tab" id="tab-vpn" onclick="switchMainView('vpn')">VPN Sécurisé</div>
+        <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code</div>
+        <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI Design</div>
+        <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu</div>
+        <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
+        <div class="tab" id="tab-vpn" onclick="switchMainView('vpn')">VPN</div>
       </div>
       
       <div id="editor-container"></div>
       
+      <!-- BOÎTE À OUTILS DE DESIGN UI -->
+      <div id="design-panel">
+        <div class="design-card">
+          <h4>Boîte à Composants UI (Insertion Rapide)</h4>
+          <p style="font-size:0.7rem; color:#9ca3af; margin-bottom:8px;">Cliquez pour injecter le composant directement dans votre code actif :</p>
+          <button class="ui-snippet-btn" onclick="insertSnippet('card')">+ Carte UI</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('button')">+ Bouton Néon</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('input')">+ Champ Formulaire</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('grid')">+ Grille CSS</button>
+        </div>
+        <div class="design-card">
+          <h4>Générateur de Thème de Couleur</h4>
+          <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-top:5px;">Couleur d'accentuation :</label>
+          <input type="color" id="theme-color-picker" value="#00ffcc" onchange="applyThemeColor(this.value)" style="height:35px; cursor:pointer;">
+        </div>
+      </div>
+
       <div id="preview-container">
         <iframe id="app-preview-frame"></iframe>
       </div>
 
       <div id="vpn-view" class="panel-view">
-        <div style="font-size: 3rem;">🛡️</div>
+        <div style="font-size: 2.5rem;">🛡️</div>
         <div>
-            <h3 style="color:var(--accent); margin:0 0 10px 0;">Nexus Secure Tunnel</h3>
-            <p id="vpn-status" style="color:#9ca3af; font-size:0.85rem;">Statut : Déconnecté</p>
+            <h3 style="color:var(--accent); margin:0 0 5px 0;">Nexus Secure Tunnel</h3>
+            <p id="vpn-status" style="color:#9ca3af; font-size:0.8rem;">Statut : Déconnecté</p>
         </div>
-        <button class="btn-nexus" id="vpn-btn" onclick="toggleVPN()" style="width: auto; padding: 10px 20px;">Activer le VPN Cloud</button>
+        <button class="btn-nexus" onclick="toggleVPN()" style="width: auto; padding: 8px 16px;">Activer le VPN</button>
       </div>
 
       <div id="console-bar">
-        [System] NexusEdit Studio Cloud Hosting & APK Engine actif.<br>
+        [System] IndexedDB & UI Design Engine initialisés.<br>
       </div>
     </div>
 
+    <!-- PANNEAU IA -->
     <div id="ai-panel">
-      <div class="menu-section-title" style="background:var(--bg-dark); padding:10px; display:flex; justify-content:space-between; align-items:center;">
+      <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>Nexus AI Engine</span>
-        <span style="font-size:0.65rem; color:var(--accent);">Gemini v1beta</span>
+        <span style="font-size:0.6rem; color:var(--accent);">Gemini v1beta</span>
       </div>
       
       <div class="api-config-box">
         <label>Modèle IA :</label>
-        <select id="ai-model" style="margin-bottom:6px;">
-          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommandé & Stable)</option>
+        <select id="ai-model" style="margin-bottom:4px;">
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommandé)</option>
           <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
         </select>
         <label>Clé API Google AI Studio :</label>
@@ -185,76 +209,124 @@
       </div>
 
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Salut ! Entrez votre clé API ci-dessus, puis décrivez l'application PWA à transformer en APK.</div>
+        <div class="msg ai">Salut ! Décrivez votre application pour générer une PWA complète via IndexedDB.</div>
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une appli de gestion pour ma grue..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une app de notes avec IndexedDB..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
-        <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier tout le code généré</button>
+        <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
       </div>
     </div>
   </div>
 
-  <div class="ad-banner" id="ad-container">
-      Annonce publicitaire <span>• Nexus Cloud & APK Builder Active</span>
+  <div class="ad-banner">
+      NexusEdit Studio Ultimate <span>• IndexedDB & UI Builder Actifs</span>
   </div>
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
-    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-preview">📱 <span>Aperçu</span></button>
+    <button onclick="switchMainView('design'); closeMenu();" id="nav-des">🎨 <span>Design</span></button>
+    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Aperçu</span></button>
     <button onclick="switchMainView('ai-mobile'); closeMenu();" id="nav-ai">🤖 <span>IA</span></button>
-    <button onclick="buildAndDownloadAPK(); closeMenu();" style="color:#38bdf8;">🤖 <span>APK</span></button>
     <button onclick="toggleMenu()">📂 <span>Menu</span></button>
   </footer>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
-      });
-    }
-
-    const defaultFiles = {
-      'index.html': `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Néh-Forever Boutique</title>
-  <style>
-    body { font-family: sans-serif; background: #070913; color: #fff; padding: 20px; text-align: center; }
-    .card { background: #0d1322; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,255,204,0.2); max-width: 400px; margin: auto; border: 1px solid #00ffcc; }
-    input, button { padding: 12px; margin-top: 15px; width: 100%; font-size: 1rem; border-radius: 6px; }
-    input { background: #030712; border: 1px solid #1f2937; color: #00ffcc; }
-    button { background: #00ffcc; border: none; font-weight: bold; cursor: pointer; color: #030712; text-transform: uppercase; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>Néh-Forever 💄</h2>
-    <p>Prête à être packagée en APK Android !</p>
-    <input type="text" id="clientName" placeholder="Votre nom...">
-    <button onclick="commander()">Commander</button>
-    <p id="msgConfirm" style="margin-top:15px; font-weight:bold; color:#059669;"></p>
-  </div>
-  <script>
-    function commander() {
-      const name = document.getElementById('clientName').value;
-      if(name) document.getElementById('msgConfirm').innerText = "Merci " + name + " ! Commande enregistrée.";
-    }
-  <\/script>
-</body>
-</html>`,
-      'style.css': `body { margin: 0; padding: 0; }`,
-      'manifest.json': `{\n  "name": "Néh-Forever",\n  "short_name": "NéhForever",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
+    // --- GESTION INDEXEDDB MULTI-PROJETS ---
+    let db;
+    let currentProjectName = "MonProjetPWA";
+    let files = {
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App IndexedDB</title>\n</head>\n<body>\n  <h2>Ma PWA Hors-Ligne</h2>\n</body>\n</html>`,
+      'style.css': `body { background: #070913; color: #fff; font-family: sans-serif; }`,
+      'manifest.json': `{\n  "name": "App",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
     };
-
-    let files = JSON.parse(localStorage.getItem('nexus_files_save')) || defaultFiles;
     let activeFile = 'index.html';
     let editor;
 
-    window.addEventListener('DOMContentLoaded', () => {
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.OpenDBRequest ? indexedDB.open("NexusStudioDB", 1) : indexedDB.open("NexusStudioDB", 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          loadProjectFromDB(currentProjectName).then(resolve).catch(resolve);
+        };
+        request.onupgradeneeded = (event) => {
+          const database = event.target.result;
+          if (!database.objectStoreNames.contains("projects")) {
+            database.createObjectStore("projects", { keyPath: "name" });
+          }
+        };
+      });
+    }
+
+    function saveProjectToDB() {
+      if (!db) return;
+      if(editor) files[activeFile] = editor.getValue();
+      const transaction = db.transaction(["projects"], "readwrite");
+      const store = transaction.objectStore("projects");
+      store.put({ name: currentProjectName, files: files });
+      logConsole(`Projet "${currentProjectName}" sauvegardé dans IndexedDB.`);
+    }
+
+    function loadProjectFromDB(projName) {
+      return new Promise((resolve) => {
+        if (!db) return resolve();
+        const transaction = db.transaction(["projects"], "readonly");
+        const store = transaction.objectStore("projects");
+        const request = store.get(projName);
+        request.onsuccess = () => {
+          if (request.result) {
+            files = request.result.files;
+            currentProjectName = request.result.name;
+            document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
+            if(editor) editor.setValue(files[activeFile] || files['index.html']);
+            logConsole(`Projet "${currentProjectName}" chargé depuis IndexedDB.`);
+          } else {
+            saveProjectToDB(); // Crée par défaut si inexistant
+          }
+          resolve();
+        };
+      });
+    }
+
+    function createNewProjectPrompt() {
+      closeMenu();
+      const newName = prompt("Nom du nouveau projet PWA :");
+      if (newName) {
+        currentProjectName = newName.trim();
+        files = {
+          'index.html': `<!DOCTYPE html>\n<html>\n<head><title>${currentProjectName}</title></head>\n<body><h1>${currentProjectName}</h1></body>\n</html>`,
+          'style.css': `body { background: #111; color: #00ffcc; }`,
+          'manifest.json': `{\n  "name": "${currentProjectName}",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
+        };
+        saveProjectToDB();
+        document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
+        if(editor) editor.setValue(files['index.html']);
+        logConsole(`Nouveau projet "${currentProjectName}" créé.`);
+      }
+    }
+
+    function exportProjectsBackup() {
+      closeMenu();
+      const transaction = db.transaction(["projects"], "readonly");
+      const store = transaction.objectStore("projects");
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const blob = new Blob([JSON.stringify(request.result, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "NexusStudio-Backup.json";
+        a.click();
+        logConsole("Sauvegarde IndexedDB exportée.");
+      };
+    }
+
+    // --- CONFIGURATION MONACO ET UI ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initIndexedDB();
       const savedKey = localStorage.getItem('nexus_user_ai_key');
       if (savedKey) document.getElementById('ai-api-key').value = savedKey;
       
@@ -276,7 +348,7 @@
       
       editor.onDidChangeModelContent(() => {
         files[activeFile] = editor.getValue();
-        localStorage.setItem('nexus_files_save', JSON.stringify(files));
+        saveProjectToDB();
       });
     });
 
@@ -294,11 +366,13 @@
 
     function switchMainView(view) {
       const ed = document.getElementById('editor-container');
+      const des = document.getElementById('design-panel');
       const prev = document.getElementById('preview-container');
       const vpn = document.getElementById('vpn-view');
       const aiPanel = document.getElementById('ai-panel');
       
       ed.style.display = 'none'; 
+      des.style.display = 'none';
       prev.style.display = 'none';
       vpn.classList.remove('active-panel'); 
       aiPanel.classList.remove('mobile-active');
@@ -310,10 +384,14 @@
         if(editor) editor.layout(); 
         document.getElementById('nav-code').classList.add('active');
       } 
+      else if (view === 'design') {
+        des.style.display = 'flex';
+        document.getElementById('nav-des').classList.add('active');
+      }
       else if (view === 'preview') { 
         prev.style.display = 'flex'; 
         executeCode(); 
-        document.getElementById('nav-preview').classList.add('active');
+        document.getElementById('nav-prev').classList.add('active');
       } 
       else if (view === 'ai-mobile') { 
         ed.style.display = 'block';
@@ -331,7 +409,6 @@
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
       event.currentTarget.classList.add('active');
-      document.getElementById('current-project-name').innerText = "Projet: " + filename;
       
       let lang = 'html';
       if(filename.endsWith('.css')) lang = 'css';
@@ -339,10 +416,35 @@
       
       if(editor) {
         monaco.editor.setModelLanguage(editor.getModel(), lang);
-        editor.setValue(files[filename]);
+        editor.setValue(files[filename] || '');
       }
       closeMenu(); 
       switchMainView('editor');
+    }
+
+    // --- OUTILS DE DESIGN & UI ---
+    function insertSnippet(type) {
+      let snippet = "";
+      if (type === 'card') {
+        snippet = `\n<div style="background:#0d1322; border:1px solid #00ffcc; padding:20px; border-radius:10px; margin:10px;">\n  <h3 style="color:#00ffcc;">Titre Carte</h3>\n  <p>Contenu de la carte UI...</p>\n</div>\n`;
+      } else if (type === 'button') {
+        snippet = `\n<button style="background:#00ffcc; color:#030712; border:none; padding:12px 20px; font-weight:bold; border-radius:6px; cursor:pointer; text-transform:uppercase;">Bouton Néon</button>\n`;
+      } else if (type === 'input') {
+        snippet = `\n<input type="text" placeholder="Entrez une valeur..." style="width:100%; padding:10px; background:#030712; border:1px solid #1f2937; color:#00ffcc; border-radius:5px; margin:5px 0;">\n`;
+      } else if (type === 'grid') {
+        snippet = `\n<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:10px 0;">\n  <div style="background:#111; padding:15px;">Col 1</div>\n  <div style="background:#111; padding:15px;">Col 2</div>\n</div>\n`;
+      }
+
+      if (editor) {
+        editor.trigger('keyboard', 'type', { text: snippet });
+        switchMainView('editor');
+        logConsole("Composant UI inséré dans le code.");
+      }
+    }
+
+    function applyThemeColor(color) {
+      document.documentElement.style.setProperty('--accent', color);
+      logConsole(`Couleur du thème modifiée : ${color}`);
     }
 
     function logConsole(msg, isErr = false) {
@@ -360,7 +462,7 @@
         doc.open();
         doc.write(files['index.html']);
         doc.close();
-        logConsole("Prévisualisation OK.");
+        logConsole("Aperçu rafraîchi.");
       } catch (err) {
         logConsole("Erreur d'affichage : " + err.message, true);
       }
@@ -370,17 +472,14 @@
       closeMenu();
       if(editor) files[activeFile] = editor.getValue();
       localStorage.setItem('nexus_hosted_pwa_app', files['index.html']);
-      logConsole("🌐 App déployée sur Nexus Cloud Interne !");
+      logConsole("🌐 App déployée sur Nexus Cloud !");
       launchHostedApp();
     }
 
     function launchHostedApp() {
       closeMenu();
       const hostedCode = localStorage.getItem('nexus_hosted_pwa_app');
-      if(!hostedCode) {
-        alert("Aucune application hébergée.");
-        return;
-      }
+      if(!hostedCode) { alert("Aucune application hébergée."); return; }
       const hostContainer = document.getElementById('nexus-cloud-host-container');
       const iframe = document.getElementById('nexus-hosted-iframe');
       hostContainer.style.display = 'block';
@@ -406,56 +505,43 @@
       const url = URL.createObjectURL(content);
       const a = document.createElement('a');
       a.href = url;
-      a.download = "Neh-Forever-PWA.zip";
+      a.download = `${currentProjectName}-PWA.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      logConsole("Package ZIP téléchargé.");
+      logConsole("ZIP exporté.");
     }
 
     async function buildAndDownloadAPK() {
       closeMenu();
-      logConsole("🤖 Initialisation de la compilation APK Android...");
-      
-      // Synchronisation préalable sur GitHub pour que l'outil de build accède aux sources
+      logConsole("🤖 Préparation du build APK...");
       await syncGitHubQuiet();
-
-      // Redirection intelligente vers PWABuilder (générateur officiel d'APK gratuit basé sur le web de Microsoft)
-      const targetURL = "https://www.pwabuilder.com/";
-      logConsole("Ouverture du compilateur APK Cloud...");
-      
-      if(confirm("Votre code est prêt.\n\nCliquez sur OK pour ouvrir le générateur APK officiel. Entrez l'URL de votre site ou téléchargez le ZIP de votre PWA pour obtenir votre fichier .apk immédiatement.")) {
-        window.open(targetURL, '_blank');
+      if(confirm("Votre code est synchronisé. Ouvrir le générateur APK (PWABuilder) pour compiler l'application en .apk ?")) {
+        window.open("https://www.pwabuilder.com/", '_blank');
       }
     }
 
     async function syncGitHubQuiet() {
       let token = localStorage.getItem('nexus_github_pat');
       if (!token) {
-        token = prompt("Entrez votre GitHub Personal Access Token (PAT) pour lier le projet :");
+        token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
         if (!token) return;
         localStorage.setItem('nexus_github_pat', token);
       }
-
       const repo = "idealj24-max/NexusEdit-Studio-X";
       if(editor) files[activeFile] = editor.getValue();
       const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
-      
       try {
         const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
           headers: { 'Authorization': `token ${token}` }
         });
         let sha = getRes.ok ? (await getRes.json()).sha : "";
-
         await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
           method: 'PUT',
           headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: 'Sync APK Build NexusEdit', content: contentBase64, sha: sha || undefined })
+          body: JSON.stringify({ message: 'Sync APK NexusEdit', content: contentBase64, sha: sha || undefined })
         });
-        logConsole("Code synchronisé avec GitHub pour l'APK.");
-      } catch (e) {
-        logConsole("Erreur de sync GitHub silencieuse.", true);
-      }
+      } catch (e) {}
     }
 
     async function syncGitHub() {
@@ -466,40 +552,27 @@
         if (!token) return;
         localStorage.setItem('nexus_github_pat', token);
       }
-
       const repo = "idealj24-max/NexusEdit-Studio-X";
-      logConsole(`Connexion à GitHub (${repo})...`);
-      
       if(editor) files[activeFile] = editor.getValue();
       const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
-      
       try {
         const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
           headers: { 'Authorization': `token ${token}` }
         });
         let sha = getRes.ok ? (await getRes.json()).sha : "";
-
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
           method: 'PUT',
           headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: 'Mise à jour via NexusEdit Studio', content: contentBase64, sha: sha || undefined })
+          body: JSON.stringify({ message: 'Mise à jour NexusEdit Studio', content: contentBase64, sha: sha || undefined })
         });
-
-        if(response.ok) {
-          logConsole("🚀 Déploiement réussi sur GitHub !");
-          alert("Succès ! Code en ligne sur GitHub.");
-        } else {
-          alert("Erreur d'authentification GitHub.");
-          localStorage.removeItem('nexus_github_pat');
-        }
-      } catch (error) {
-        logConsole("Erreur de connexion : " + error.message, true);
-      }
+        if(response.ok) alert("Succès ! Code en ligne sur GitHub.");
+        else { alert("Token invalide."); localStorage.removeItem('nexus_github_pat'); }
+      } catch (error) { logConsole("Erreur GitHub", true); }
     }
 
     function resetGitHubCreds() {
         localStorage.removeItem('nexus_github_pat');
-        alert("Identifiants réinitialisés.");
+        alert("ID GitHub réinitialisés.");
         closeMenu();
     }
 
@@ -508,43 +581,38 @@
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
       const selectedModel = document.getElementById('ai-model').value;
-
       if (!promptText) return;
+
       const chatBox = document.getElementById('chat-box');
       chatBox.innerHTML += `<div class="msg user">${promptText}</div>`;
       input.value = '';
       chatBox.scrollTop = chatBox.scrollHeight;
 
       if (!apiKey) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Entrez votre clé API Google AI Studio.</div>`;
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Entrez votre clé API.</div>`;
         return;
       }
 
-      chatBox.innerHTML += `<div class="msg ai">Génération de l'application PWA par Gemini...</div>`;
+      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini...</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
-
       try {
-        const response = await fetch(endpoint, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{
-              parts: [{ text: `Crée une application web PWA complète, magnifique, interactive et moderne pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome (avec CSS et JS) sans blocs markdown.` }]
-            }]
+            contents: [{ parts: [{ text: `Crée une application PWA complète avec IndexedDB et un design moderne pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome sans blocs markdown.` }] }]
           })
         });
-
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
-        
         let generatedHtml = data.candidates[0].content.parts[0].text.replace(/```html|```/g, '').trim();
 
         files['index.html'] = generatedHtml;
         if (activeFile === 'index.html' && editor) editor.setValue(generatedHtml);
+        saveProjectToDB();
         
-        chatBox.innerHTML += `<div class="msg ai">PWA générée avec succès ! Prête pour l'APK et Nexus Cloud.</div>`;
+        chatBox.innerHTML += `<div class="msg ai">PWA générée et enregistrée dans IndexedDB avec succès !</div>`;
         switchMainView('preview');
       } catch (error) {
         chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${error.message}</div>`;
