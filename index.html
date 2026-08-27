@@ -195,7 +195,7 @@
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>Nexus AI Engine</span>
-        <span style="font-size:0.6rem; color:var(--accent);">Gemini v1beta</span>
+        <span style="font-size:0.6rem; color:var(--accent);">Gemini v1</span>
       </div>
       
       <div class="api-config-box">
@@ -213,7 +213,7 @@
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une app de notes avec IndexedDB..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une boutique en ligne Néh-Forever..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
         <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
       </div>
@@ -284,7 +284,7 @@
             if(editor) editor.setValue(files[activeFile] || files['index.html']);
             logConsole(`Projet "${currentProjectName}" chargé depuis IndexedDB.`);
           } else {
-            saveProjectToDB(); // Crée par défaut si inexistant
+            saveProjectToDB(); 
           }
           resolve();
         };
@@ -576,6 +576,14 @@
         closeMenu();
     }
 
+    function copyGeneratedCode() {
+      if(editor) {
+        navigator.clipboard.writeText(editor.getValue());
+        alert("Code copié dans le presse-papier !");
+      }
+    }
+
+    // --- CORRECTION DE L'API GEMINI (VERSION STABLE V1) ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -596,8 +604,12 @@
       chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini...</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
+      // Utilisation de l'endpoint stable v1 avec le modèle séléctionné
+      const modelRoute = selectedModel.includes('pro') ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
+      const endpoint = `https://generativelanguage.googleapis.com/v1/models/${modelRoute}:generateContent?key=${apiKey}`;
+
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
