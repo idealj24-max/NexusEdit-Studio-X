@@ -1,657 +1,1022 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full bg-slate-50">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 3.12 Ultimate - DB & UI Engine</title>
-  <link rel="manifest" href="manifest.json">
-
-  <!-- Monaco Editor CSS & Loader -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
-  
-  <!-- JSZip pour les packages d'export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-  <style>
-    :root {
-      --bg-dark: #070913;
-      --bg-panel: #0d1322;
-      --accent: #00ffcc;
-      --accent-hover: #059669;
-      --text: #e5e7eb;
-      --border: #1f2937;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Néh-Forever | Cosmétiques & Vêtements</title>
     
-    header { height: 48px; background: var(--bg-panel); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
-    #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent); padding: 6px; }
-    .project-badge { font-size: 0.7rem; background: #1f2937; padding: 4px 8px; border-radius: 4px; color: #9ca3af; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#e11d48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Néh-Forever">
+    <meta name="description" content="Veuillez découvrir notre boutique de mode et cosmétiques Néh-Forever. Commandez en ligne via Bankily ou Masrvi.">
 
-    #side-menu { 
-        position: fixed; left: -300px; top: 0; width: 280px; 
-        height: 100%; height: 100dvh; background: var(--bg-panel); border-right: 1px solid var(--accent); 
-        transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 25px rgba(0,0,0,0.9);
-        display: flex; flex-direction: column; overflow-y: auto;
-    }
-    #side-menu.open { transform: translateX(300px); }
-    .menu-section-title { padding: 10px 15px; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
-    .file-item { padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
-    .file-item:active { background: #1f2937; }
-    .file-item.active { background: rgba(0,255,204,0.1); color: var(--accent); border-left: 3px solid var(--accent); }
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; z-index: 110; backdrop-filter: blur(2px); }
-
-    #main-layout { display: flex; flex: 1; height: calc(100dvh - 108px); position: relative; overflow: hidden; }
-    #workspace { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; }
-    
-    .mode-tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
-    .tab { padding: 10px 12px; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
-    .tab.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.03); font-weight: bold; }
-
-    #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
-    #preview-container { flex: 1; display: none; background: #030712; position: relative; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
-    
-    #app-preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
-
-    /* Panneau Design & UI Tools */
-    #design-panel { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
-    .design-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
-    .design-card h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 8px; }
-    .ui-snippet-btn { background: #1f2937; color: var(--text); border: 1px solid var(--border); padding: 6px 10px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin: 3px; display: inline-block; }
-    .ui-snippet-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; -webkit-overflow-scrolling: touch; }
-    .msg { padding: 9px 12px; border-radius: 6px; font-size: 0.78rem; max-width: 95%; line-height: 1.4; word-break: break-word; }
-    .msg.user { align-self: flex-end; background: #1f2937; color: #f3f4f6; border-left: 3px solid var(--accent); }
-    .msg.ai { align-self: flex-start; background: #030712; color: #34d399; border-left: 3px solid #8b5cf6; }
-    .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
-    
-    textarea, input[type="text"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
-    textarea { height: 50px; }
-    
-    .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.72rem; }
-    .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; }
-    
-    .btn-nexus { background: var(--accent); color: #030712; border: none; padding: 9px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: 0.1s; width: 100%; text-align: center; }
-    .btn-nexus:active { transform: scale(0.97); background: var(--accent-hover); color: #fff; }
-    .btn-secondary { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); margin-top: 5px; }
-
-    #console-bar { height: 65px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.65rem; padding: 6px; overflow-y: auto; color: #10b981; flex-shrink: 0; }
-
-    .panel-view { display: none; flex: 1; flex-direction: column; height: 100%; justify-content: center; align-items: center; text-align: center; gap: 15px; background: var(--bg-dark); padding: 20px; }
-    .panel-view.active-panel { display: flex; }
-
-    .ad-banner {
-        background: rgba(13, 19, 34, 0.95);
-        border-top: 1px dashed var(--border);
-        border-bottom: 1px dashed var(--border);
-        padding: 5px;
-        text-align: center;
-        font-size: 0.63rem;
-        color: #6b7280;
-        flex-shrink: 0;
-    }
-    .ad-banner span { color: var(--accent); font-weight: bold; }
-
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
-    footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
-    footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
-
-    @media (max-width: 900px) {
-      #ai-panel { display: none; }
-      #ai-panel.mobile-active { display: flex; position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 95; background: var(--bg-panel); }
-    }
-  </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            900: '#881337',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        bankily: '#008444',
+                        masrvi: '#00529b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
+        @keyframes pulse-subtle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        .animate-pulse-subtle { animation: pulse-subtle 3s infinite ease-in-out; }
+    </style>
 </head>
-<body>
+<body class="h-full font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white pb-20 md:pb-6">
 
-  <!-- CLOUD HOSTING INTERNE -->
-  <div id="nexus-cloud-host-container" style="display:none; position:fixed; top:0; left:0; width:100%; height:100vh; height:100dvh; z-index:9999; background:#fff;">
-    <iframe id="nexus-hosted-iframe" style="width:100%; height:100%; border:none;"></iframe>
-    <div onclick="quitNexusCloudHost()" style="position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.8); color:#00ffcc; padding:8px 12px; border-radius:20px; font-size:0.75rem; cursor:pointer; font-family:monospace; border:1px solid #00ffcc; z-index:10000;">✕ Quitter l'App Cloud</div>
-  </div>
+    <!-- APP HEADER -->
+    <header class="sticky top-0 z-40 glass border-b border-slate-100 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('shop')">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-gold-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand-500/30">
+                        N
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-600 via-brand-700 to-gold-600 bg-clip-text text-transparent">
+                            Néh-Forever
+                        </span>
+                        <span class="block text-[10px] uppercase tracking-widest font-bold text-slate-400 -mt-1">Boutique Virtuelle</span>
+                    </div>
+                </div>
 
-  <header>
-    <div id="menu-btn" onclick="toggleMenu()">≡ STUDIO</div>
-    <div class="project-badge" id="current-project-name">Projet: index.html</div>
-  </header>
+                <!-- Search Bar (Desktop) -->
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <input type="text" id="searchInputDesktop" oninput="filterProducts()" placeholder="Rechercher des robes, parfums, crèmes..." class="w-full bg-slate-100/80 border-0 pl-10 pr-4 py-2 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-sm"></i>
+                    </div>
+                </div>
 
-  <div id="overlay" onclick="closeMenu()"></div>
-
-  <div id="side-menu">
-    <div class="menu-section-title">Gestionnaire IndexedDB</div>
-    <div class="file-item" onclick="createNewProjectPrompt()" style="color:var(--accent);">➕ Créer un nouveau projet</div>
-    <div class="file-item" onclick="exportProjectsBackup()">💾 Sauvegarde DB (JSON)</div>
-    
-    <div class="menu-section-title">Fichiers du Projet</div>
-    <div class="file-item active" onclick="openFile('index.html')">📄 index.html</div>
-    <div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
-    <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
-    
-    <div class="menu-section-title">Compilation & Native</div>
-    <div class="file-item" onclick="buildAndDownloadAPK()" style="color:#38bdf8; font-weight:bold;">🤖 Générer l'APK Android (Cloud)</div>
-
-    <div class="menu-section-title">Nexus Cloud & Export</div>
-    <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent);">🌐 Héberger sur Nexus Cloud</div>
-    <div class="file-item" onclick="launchHostedApp()">🚀 Lancer l'App Hébergée</div>
-    <div class="file-item" onclick="exportPWAZip()">📦 Télécharger ZIP</div>
-    
-    <div class="menu-section-title">GitHub & Paramètres</div>
-    <div class="file-item" onclick="syncGitHub()">🐙 Push GitHub</div>
-    <div class="file-item" onclick="resetGitHubCreds()" style="color:#ef4444;">🔄 Reset GitHub ID</div>
-  </div>
-
-  <div id="main-layout">
-    <div id="workspace">
-      <div class="mode-tabs">
-        <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code</div>
-        <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI Design</div>
-        <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu</div>
-        <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
-        <div class="tab" id="tab-vpn" onclick="switchMainView('vpn')">VPN</div>
-      </div>
-      
-      <div id="editor-container"></div>
-      
-      <!-- BOÎTE À OUTILS DE DESIGN UI -->
-      <div id="design-panel">
-        <div class="design-card">
-          <h4>Boîte à Composants UI (Insertion Rapide)</h4>
-          <p style="font-size:0.7rem; color:#9ca3af; margin-bottom:8px;">Cliquez pour injecter le composant directement dans votre code actif :</p>
-          <button class="ui-snippet-btn" onclick="insertSnippet('card')">+ Carte UI</button>
-          <button class="ui-snippet-btn" onclick="insertSnippet('button')">+ Bouton Néon</button>
-          <button class="ui-snippet-btn" onclick="insertSnippet('input')">+ Champ Formulaire</button>
-          <button class="ui-snippet-btn" onclick="insertSnippet('grid')">+ Grille CSS</button>
+                <!-- Actions -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleAdminModal()" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition" title="Espace Vendeur">
+                        <i class="fa-solid fa-store text-brand-600"></i>
+                        <span class="hidden sm:inline">Vendre</span>
+                    </button>
+                    
+                    <button onclick="toggleCartModal()" class="relative p-2.5 text-slate-700 hover:text-brand-600 rounded-full hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                        <span id="cartCountBadge" class="hidden absolute top-1 right-1 w-5 h-5 bg-brand-600 text-white font-bold text-[10px] rounded-full flex items-center justify-center border-2 border-white">0</span>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="design-card">
-          <h4>Générateur de Thème de Couleur</h4>
-          <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-top:5px;">Couleur d'accentuation :</label>
-          <input type="color" id="theme-color-picker" value="#00ffcc" onchange="applyThemeColor(this.value)" style="height:35px; cursor:pointer;">
+
+        <!-- Mobile Search Bar -->
+        <div class="px-4 pb-3 md:hidden">
+            <div class="relative w-full">
+                <input type="text" id="searchInputMobile" oninput="filterProducts()" placeholder="Rechercher sur Néh-Forever..." class="w-full bg-slate-100 border-0 pl-10 pr-4 py-2 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-sm"></i>
+            </div>
         </div>
-      </div>
+    </header>
 
-      <div id="preview-container">
-        <iframe id="app-preview-frame"></iframe>
-      </div>
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
 
-      <div id="vpn-view" class="panel-view">
-        <div style="font-size: 2.5rem;">🛡️</div>
-        <div>
-            <h3 style="color:var(--accent); margin:0 0 5px 0;">Nexus Secure Tunnel</h3>
-            <p id="vpn-status" style="color:#9ca3af; font-size:0.8rem;">Statut : Déconnecté</p>
+        <!-- Hero Carousel Banner -->
+        <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 text-white shadow-xl mb-6">
+            <div class="absolute inset-0 opacity-40 mix-blend-overlay">
+                <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=80" class="w-full h-full object-cover" alt="Banner background">
+            </div>
+            <div class="relative z-10 p-6 sm:p-10 flex flex-col items-start justify-center min-h-[180px]">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gold-500/20 text-gold-400 border border-gold-500/30 mb-2">
+                    <i class="fa-solid fa-sparkles mr-1.5"></i> Nouvelle Collection
+                </span>
+                <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight max-w-xl">
+                    Élégance, Beauté & Style Unique
+                </h1>
+                <p class="mt-2 text-xs sm:text-sm text-slate-300 max-w-md">
+                    Découvrez les meilleurs vêtements et cosmétiques. Payez facilement via <strong class="text-emerald-400">Bankily</strong> ou <strong class="text-sky-400">Masrvi</strong>.
+                </p>
+            </div>
         </div>
-        <button class="btn-nexus" onclick="toggleVPN()" style="width: auto; padding: 8px 16px;">Activer le VPN</button>
-      </div>
 
-      <div id="console-bar">
-        [System] IndexedDB & UI Design Engine initialisés.<br>
-      </div>
+        <!-- Category Filters -->
+        <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-3 mb-4">
+            <button onclick="selectCategory('all')" id="cat-all" class="cat-btn active flex items-center space-x-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap bg-brand-600 text-white shadow-md shadow-brand-500/20 transition">
+                <i class="fa-solid fa-border-all text-xs"></i>
+                <span>Tous les articles</span>
+            </button>
+            <button onclick="selectCategory('cosmetics')" id="cat-cosmetics" class="cat-btn flex items-center space-x-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 transition">
+                <i class="fa-solid fa-wand-magic-sparkles text-xs text-brand-500"></i>
+                <span>Cosmétiques & Beauté</span>
+            </button>
+            <button onclick="selectCategory('clothing')" id="cat-clothing" class="cat-btn flex items-center space-x-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 transition">
+                <i class="fa-solid fa-shirt text-xs text-gold-500"></i>
+                <span>Vêtements & Mode</span>
+            </button>
+        </div>
+
+        <!-- Product Grid Feed -->
+        <section id="productFeed" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            <!-- Dynamic Inject -->
+        </section>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <div class="w-20 h-20 rounded-full bg-rose-50 flex items-center justify-center text-brand-500 text-3xl mb-4">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">Aucun produit disponible</h3>
+            <p class="text-sm text-slate-500 max-w-sm mt-1">Aucun produit ne correspond à vos critères ou le propriétaire n'a pas encore ajouté d'articles.</p>
+            <button onclick="toggleAdminModal()" class="mt-4 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-semibold shadow-md">
+                + Ajouter le premier produit
+            </button>
+        </div>
+
+    </main>
+
+    <!-- PRODUCT DETAIL MODAL -->
+    <div id="productDetailModal" class="fixed inset-0 z-50 hidden overflow-y-auto glass-dark flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in slide-in-from-bottom duration-300">
+            <!-- Header bar -->
+            <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                <span id="detailCategoryBadge" class="px-3 py-1 bg-brand-50 text-brand-600 text-xs font-bold rounded-full uppercase tracking-wider">Catégorie</span>
+                <button onclick="closeProductModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto p-4 sm:p-6 space-y-5">
+                <!-- Gallery Carousel -->
+                <div class="relative rounded-2xl overflow-hidden bg-slate-100 aspect-square sm:aspect-video flex items-center justify-center">
+                    <img id="detailMainImage" src="" alt="Produit" class="w-full h-full object-cover">
+                    
+                    <button id="prevImgBtn" onclick="prevProductImage()" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full glass flex items-center justify-center text-slate-800 shadow">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button id="nextImgBtn" onclick="nextProductImage()" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full glass flex items-center justify-center text-slate-800 shadow">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div id="imageCounter" class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full glass text-xs font-bold text-slate-700">1/1</div>
+                </div>
+
+                <!-- Thumbnails -->
+                <div id="detailThumbnails" class="flex space-x-2 overflow-x-auto no-scrollbar py-1"></div>
+
+                <!-- Product Info -->
+                <div>
+                    <h2 id="detailTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900">Titre du produit</h2>
+                    <div class="mt-2 flex items-baseline space-x-2">
+                        <span id="detailPrice" class="text-2xl sm:text-3xl font-black text-brand-600">0</span>
+                        <span class="text-base font-bold text-brand-600">MRU / UM</span>
+                    </div>
+                </div>
+
+                <!-- Payment Methods Info -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                    <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Moyens de paiement du vendeur</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center">BK</div>
+                            <div>
+                                <div class="text-[11px] text-slate-400 font-semibold">Bankily</div>
+                                <div id="detailBankily" class="text-xs font-bold text-slate-800">Non renseigné</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-sky-700 text-white font-black text-xs flex items-center justify-center">MS</div>
+                            <div>
+                                <div class="text-[11px] text-slate-400 font-semibold">Masrvi</div>
+                                <div id="detailMasrvi" class="text-xs font-bold text-slate-800">Non renseigné</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 mb-1">Description</h3>
+                    <p id="detailDescription" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line">Pas de description disponible.</p>
+                </div>
+            </div>
+
+            <!-- Footer Action Buttons -->
+            <div class="p-4 border-t border-slate-100 bg-white grid grid-cols-2 gap-3">
+                <button id="addToCartBtn" onclick="addToCartFromModal()" class="w-full py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl flex items-center justify-center space-x-2 transition">
+                    <i class="fa-solid fa-cart-plus"></i>
+                    <span>Ajouter au panier</span>
+                </button>
+                <button id="directOrderBtn" onclick="openDirectOrderModal()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-rose-500 hover:from-brand-700 hover:to-rose-600 text-white font-bold rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-brand-500/25 transition">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Commander</span>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- PANNEAU IA MIS À JOUR (GEMINI 3.6 FLASH) -->
-    <div id="ai-panel">
-      <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
-        <span>NEXUS AI ENGINE</span>
-        <span style="font-size:0.6rem; color:var(--accent);">GEMINI 3.6 FLASH</span>
-      </div>
-      
-      <div class="api-config-box">
-        <label>Fournisseur IA :</label>
-        <select id="ai-provider" style="margin-bottom:6px;">
-          <option value="google">Google Gemini API</option>
-        </select>
-        <label>Clé API (Token) :</label>
-        <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
-      </div>
+    <!-- CART MODAL -->
+    <div id="cartModal" class="fixed inset-0 z-50 hidden overflow-y-auto glass-dark flex items-end sm:items-center justify-end">
+        <div class="bg-white w-full sm:max-w-md h-full sm:h-[95vh] sm:rounded-l-3xl shadow-2xl flex flex-col">
+            <!-- Header -->
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-bag-shopping text-brand-600 text-lg"></i>
+                    <h2 class="text-lg font-bold text-slate-900">Mon Panier</h2>
+                </div>
+                <button onclick="toggleCartModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
-      <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Salut ! Décris l'application PWA de ton choix. Je code tout dans un fichier HTML unique ultra-propre !</div>
-      </div>
-      
-      <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une application PWA de gestion de tâches..."></textarea>
-        <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
-        <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
-      </div>
+            <!-- Cart Items -->
+            <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Dynamic cart content -->
+            </div>
+
+            <!-- Order Form & Checkout -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
+                <div class="flex justify-between items-center text-slate-900">
+                    <span class="font-bold text-sm">Total à payer:</span>
+                    <span id="cartTotalPrice" class="text-xl font-black text-brand-600">0 MRU</span>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <input type="text" id="orderClientName" placeholder="Votre Nom complet *" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500">
+                    <input type="tel" id="orderClientPhone" placeholder="Votre Numéro WhatsApp / Tél *" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500">
+                    <input type="text" id="orderClientAddress" placeholder="Adresse de livraison (Ville, Quartier) *" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500">
+                    
+                    <select id="orderPaymentMethod" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 font-semibold">
+                        <option value="Bankily">Mode de paiement: Bankily</option>
+                        <option value="Masrvi">Mode de paiement: Masrvi</option>
+                        <option value="Cash">Paiement à la livraison (Espèces)</option>
+                    </select>
+                </div>
+
+                <button onclick="submitCartOrderWhatsApp()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 transition">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    <span>Envoyer la commande sur WhatsApp</span>
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="ad-banner">
-      NexusEdit Studio Ultimate <span>• IndexedDB & UI Builder Actifs</span>
-  </div>
+    <!-- ADMIN / ADD PRODUCT MODAL -->
+    <div id="adminModal" class="fixed inset-0 z-50 hidden overflow-y-auto glass-dark flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-user-shield text-gold-400"></i>
+                    <h2 class="text-lg font-bold">Espace Vendeur / Admin</h2>
+                </div>
+                <button onclick="toggleAdminModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
-  <footer>
-    <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
-    <button onclick="switchMainView('design'); closeMenu();" id="nav-des">🎨 <span>Design</span></button>
-    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Aperçu</span></button>
-    <button onclick="switchMainView('ai-mobile'); closeMenu();" id="nav-ai">🤖 <span>IA</span></button>
-    <button onclick="toggleMenu()">📂 <span>Menu</span></button>
-  </footer>
+            <!-- Tabs: Add Product / Manage Products -->
+            <div class="flex border-b border-slate-200 bg-slate-50">
+                <button onclick="switchAdminTab('add')" id="adminTabAdd" class="flex-1 py-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600">
+                    + Ajouter un Article
+                </button>
+                <button onclick="switchAdminTab('list')" id="adminTabList" class="flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500">
+                    Gérer Mes Articles (<span id="adminProductCount">0</span>)
+                </button>
+            </div>
 
-  <script>
-    // --- GESTION INDEXEDDB MULTI-PROJETS ---
-    let db;
-    let currentProjectName = "MonProjetPWA";
-    let files = {
-      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App IndexedDB</title>\n</head>\n<body>\n  <h2>Ma PWA Hors-Ligne</h2>\n</body>\n</html>`,
-      'style.css': `body { background: #070913; color: #fff; font-family: sans-serif; }`,
-      'manifest.json': `{\n  "name": "App",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
-    };
-    let activeFile = 'index.html';
-    let editor;
+            <div class="p-5 overflow-y-auto flex-1">
+                <!-- ADD FORM -->
+                <form id="addProductForm" onsubmit="handleSaveProduct(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Titre de l'article *</label>
+                            <input type="text" id="prodTitle" required placeholder="Ex: Robe de Soirée Silk, Parfum Rose..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Catégorie *</label>
+                            <select id="prodCategory" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500 font-semibold">
+                                <option value="cosmetics">Cosmétiques & Beauté</option>
+                                <option value="clothing">Vêtements & Mode</option>
+                            </select>
+                        </div>
+                    </div>
 
-    function initIndexedDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open("NexusStudioDB", 1);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          db = request.result;
-          loadProjectFromDB(currentProjectName).then(resolve).catch(resolve);
-        };
-        request.onupgradeneeded = (event) => {
-          const database = event.target.result;
-          if (!database.objectStoreNames.contains("projects")) {
-            database.createObjectStore("projects", { keyPath: "name" });
-          }
-        };
-      });
-    }
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Prix (MRU / UM) *</label>
+                            <input type="number" id="prodPrice" required placeholder="Ex: 1500" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tél Vendeur (WhatsApp) *</label>
+                            <input type="tel" id="prodPhone" required placeholder="Ex: 22245678900" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Bankily</label>
+                            <input type="tel" id="prodBankily" placeholder="Ex: 45678900" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                        </div>
+                    </div>
 
-    function saveProjectToDB() {
-      if (!db) return;
-      if(editor) files[activeFile] = editor.getValue();
-      const transaction = db.transaction(["projects"], "readwrite");
-      const store = transaction.objectStore("projects");
-      store.put({ name: currentProjectName, files: files });
-      logConsole(`Projet "${currentProjectName}" sauvegardé dans IndexedDB.`);
-    }
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Masrvi</label>
+                        <input type="tel" id="prodMasrvi" placeholder="Ex: 36678900" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                    </div>
 
-    function loadProjectFromDB(projName) {
-      return new Promise((resolve) => {
-        if (!db) return resolve();
-        const transaction = db.transaction(["projects"], "readonly");
-        const store = transaction.objectStore("projects");
-        const request = store.get(projName);
-        request.onsuccess = () => {
-          if (request.result) {
-            files = request.result.files;
-            currentProjectName = request.result.name;
-            document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
-            if(editor) editor.setValue(files[activeFile] || files['index.html']);
-            logConsole(`Projet "${currentProjectName}" chargé depuis IndexedDB.`);
-          } else {
-            saveProjectToDB(); 
-          }
-          resolve();
-        };
-      });
-    }
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Photos de l'article (1 ou plusieurs) *</label>
+                        <div class="relative border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:bg-slate-50 transition cursor-pointer">
+                            <input type="file" id="prodPhotos" multiple accept="image/*" onchange="previewImages(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-brand-500 mb-1"></i>
+                            <p class="text-xs font-bold text-slate-700">Cliquez pour ajouter des photos</p>
+                            <p class="text-[10px] text-slate-400">Formats acceptés: JPG, PNG, WEBP</p>
+                        </div>
+                        <!-- Photo Preview List -->
+                        <div id="photoPreviewContainer" class="flex space-x-2 overflow-x-auto mt-3 pb-1"></div>
+                    </div>
 
-    function createNewProjectPrompt() {
-      closeMenu();
-      const newName = prompt("Nom du nouveau projet PWA :");
-      if (newName) {
-        currentProjectName = newName.trim();
-        files = {
-          'index.html': `<!DOCTYPE html>\n<html>\n<head><title>${currentProjectName}</title></head>\n<body><h1>${currentProjectName}</h1></body>\n</html>`,
-          'style.css': `body { background: #111; color: #00ffcc; }`,
-          'manifest.json': `{\n  "name": "${currentProjectName}",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
-        };
-        saveProjectToDB();
-        document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
-        if(editor) editor.setValue(files['index.html']);
-        logConsole(`Nouveau projet "${currentProjectName}" créé.`);
-      }
-    }
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Description détaillée</label>
+                        <textarea id="prodDescription" rows="3" placeholder="Caractéristiques, tailles disponibles, conseils d'utilisation..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
 
-    function exportProjectsBackup() {
-      closeMenu();
-      const transaction = db.transaction(["projects"], "readonly");
-      const store = transaction.objectStore("projects");
-      const request = store.getAll();
-      request.onsuccess = () => {
-        const blob = new Blob([JSON.stringify(request.result, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "NexusStudio-Backup.json";
-        a.click();
-        logConsole("Sauvegarde IndexedDB exportée.");
-      };
-    }
+                    <button type="submit" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/25 transition">
+                        Publier l'article sur Néh-Forever
+                    </button>
+                </form>
 
-    // --- CONFIGURATION MONACO ET UI ---
-    window.addEventListener('DOMContentLoaded', async () => {
-      await initIndexedDB();
-      const savedKey = localStorage.getItem('nexus_user_ai_key');
-      if (savedKey) document.getElementById('ai-api-key').value = savedKey;
-      
-      document.getElementById('ai-api-key').addEventListener('input', (e) => {
-        localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
-      });
-    });
+                <!-- LIST / MANAGEMENT -->
+                <div id="adminProductList" class="hidden space-y-3">
+                    <!-- Dynamic List -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
-    require(['vs/editor/editor.main'], function() {
-      editor = monaco.editor.create(document.getElementById('editor-container'), {
-        value: files[activeFile],
-        language: 'html',
-        theme: 'vs-dark',
-        automaticLayout: true,
-        fontSize: 13,
-        minimap: { enabled: false }
-      });
-      
-      editor.onDidChangeModelContent(() => {
-        files[activeFile] = editor.getValue();
-        saveProjectToDB();
-      });
-    });
+    <!-- BOTTOM MOBILE NAVIGATION BAR -->
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur-md border-t border-slate-200 md:hidden flex justify-around items-center py-2 px-3 shadow-lg">
+        <button onclick="switchTab('shop')" class="flex flex-col items-center text-brand-600">
+            <i class="fa-solid fa-store text-lg"></i>
+            <span class="text-[10px] font-bold mt-0.5">Boutique</span>
+        </button>
+        <button onclick="selectCategory('cosmetics')" class="flex flex-col items-center text-slate-500 hover:text-brand-600">
+            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+            <span class="text-[10px] font-semibold mt-0.5">Cosmétique</span>
+        </button>
+        <button onclick="selectCategory('clothing')" class="flex flex-col items-center text-slate-500 hover:text-brand-600">
+            <i class="fa-solid fa-shirt text-lg"></i>
+            <span class="text-[10px] font-semibold mt-0.5">Mode</span>
+        </button>
+        <button onclick="toggleCartModal()" class="flex flex-col items-center text-slate-500 hover:text-brand-600 relative">
+            <i class="fa-solid fa-bag-shopping text-lg"></i>
+            <span class="text-[10px] font-semibold mt-0.5">Panier</span>
+            <span id="mobileNavCartBadge" class="hidden absolute -top-1 right-2 w-4 h-4 bg-brand-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center">0</span>
+        </button>
+    </nav>
 
-    function toggleMenu() {
-        const menu = document.getElementById('side-menu');
-        const overlay = document.getElementById('overlay');
-        if (menu.classList.contains('open')) { closeMenu(); } 
-        else { menu.classList.add('open'); overlay.style.display = 'block'; }
-    }
+    <!-- SCRIPT SECTION -->
+    <script>
+        /* --- IndexedDB Setup --- */
+        const DB_NAME = 'NehForeverDB';
+        const DB_VERSION = 1;
+        let db = null;
 
-    function closeMenu() {
-        document.getElementById('side-menu').classList.remove('open');
-        document.getElementById('overlay').style.display = 'none';
-    }
-
-    function switchMainView(view) {
-      const ed = document.getElementById('editor-container');
-      const des = document.getElementById('design-panel');
-      const prev = document.getElementById('preview-container');
-      const vpn = document.getElementById('vpn-view');
-      const aiPanel = document.getElementById('ai-panel');
-      
-      ed.style.display = 'none'; 
-      des.style.display = 'none';
-      prev.style.display = 'none';
-      vpn.classList.remove('active-panel'); 
-      aiPanel.classList.remove('mobile-active');
-
-      document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
-
-      if (view === 'editor') { 
-        ed.style.display = 'block'; 
-        if(editor) editor.layout(); 
-        document.getElementById('nav-code').classList.add('active');
-      } 
-      else if (view === 'design') {
-        des.style.display = 'flex';
-        document.getElementById('nav-des').classList.add('active');
-      }
-      else if (view === 'preview') { 
-        prev.style.display = 'flex'; 
-        executeCode(); 
-        document.getElementById('nav-prev').classList.add('active');
-      } 
-      else if (view === 'ai-mobile') { 
-        ed.style.display = 'block';
-        aiPanel.classList.add('mobile-active'); 
-        if(editor) editor.layout(); 
-        document.getElementById('nav-ai').classList.add('active');
-      } 
-      else if (view === 'vpn') { 
-        vpn.classList.add('active-panel'); 
-      }
-    }
-
-    function openFile(filename) {
-      if(editor) files[activeFile] = editor.getValue();
-      activeFile = filename;
-      document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-      event.currentTarget.classList.add('active');
-      
-      let lang = 'html';
-      if(filename.endsWith('.css')) lang = 'css';
-      if(filename.endsWith('.json')) lang = 'json';
-      
-      if(editor) {
-        monaco.editor.setModelLanguage(editor.getModel(), lang);
-        editor.setValue(files[filename] || '');
-      }
-      closeMenu(); 
-      switchMainView('editor');
-    }
-
-    // --- OUTILS DE DESIGN & UI ---
-    function insertSnippet(type) {
-      let snippet = "";
-      if (type === 'card') {
-        snippet = `\n<div style="background:#0d1322; border:1px solid #00ffcc; padding:20px; border-radius:10px; margin:10px;">\n  <h3 style="color:#00ffcc;">Titre Carte</h3>\n  <p>Contenu de la carte UI...</p>\n</div>\n`;
-      } else if (type === 'button') {
-        snippet = `\n<button style="background:#00ffcc; color:#030712; border:none; padding:12px 20px; font-weight:bold; border-radius:6px; cursor:pointer; text-transform:uppercase;">Bouton Néon</button>\n`;
-      } else if (type === 'input') {
-        snippet = `\n<input type="text" placeholder="Entrez une valeur..." style="width:100%; padding:10px; background:#030712; border:1px solid #1f2937; color:#00ffcc; border-radius:5px; margin:5px 0;">\n`;
-      } else if (type === 'grid') {
-        snippet = `\n<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:10px 0;">\n  <div style="background:#111; padding:15px;">Col 1</div>\n  <div style="background:#111; padding:15px;">Col 2</div>\n</div>\n`;
-      }
-
-      if (editor) {
-        editor.trigger('keyboard', 'type', { text: snippet });
-        switchMainView('editor');
-        logConsole("Composant UI inséré dans le code.");
-      }
-    }
-
-    function applyThemeColor(color) {
-      document.documentElement.style.setProperty('--accent', color);
-      logConsole(`Couleur du thème modifiée : ${color}`);
-    }
-
-    function logConsole(msg, isErr = false) {
-      const c = document.getElementById('console-bar');
-      const color = isErr ? '#ef4444' : '#10b981';
-      c.innerHTML += `<span style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
-      c.scrollTop = c.scrollHeight;
-    }
-
-    function executeCode() {
-      try {
-        if(editor) files[activeFile] = editor.getValue();
-        const iframe = document.getElementById('app-preview-frame');
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open();
-        doc.write(files['index.html']);
-        doc.close();
-        logConsole("Aperçu rafraîchi.");
-      } catch (err) {
-        logConsole("Erreur d'affichage : " + err.message, true);
-      }
-    }
-
-    function deployToNexusCloud() {
-      closeMenu();
-      if(editor) files[activeFile] = editor.getValue();
-      localStorage.setItem('nexus_hosted_pwa_app', files['index.html']);
-      logConsole("🌐 App déployée sur Nexus Cloud !");
-      launchHostedApp();
-    }
-
-    function launchHostedApp() {
-      closeMenu();
-      const hostedCode = localStorage.getItem('nexus_hosted_pwa_app');
-      if(!hostedCode) { alert("Aucune application hébergée."); return; }
-      const hostContainer = document.getElementById('nexus-cloud-host-container');
-      const iframe = document.getElementById('nexus-hosted-iframe');
-      hostContainer.style.display = 'block';
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      doc.open();
-      doc.write(hostedCode);
-      doc.close();
-    }
-
-    function quitNexusCloudHost() {
-      document.getElementById('nexus-cloud-host-container').style.display = 'none';
-      document.getElementById('nexus-hosted-iframe').src = "about:blank";
-    }
-
-    async function exportPWAZip() {
-      closeMenu();
-      if(editor) files[activeFile] = editor.getValue();
-      const zip = new JSZip();
-      zip.file("index.html", files['index.html']);
-      zip.file("style.css", files['style.css']);
-      zip.file("manifest.json", files['manifest.json']);
-      const content = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(content);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentProjectName}-PWA.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      logConsole("ZIP exporté.");
-    }
-
-    async function buildAndDownloadAPK() {
-      closeMenu();
-      logConsole("🤖 Préparation du build APK...");
-      await syncGitHubQuiet();
-      if(confirm("Votre code est synchronisé. Ouvrir le générateur APK (PWABuilder) pour compiler l'application en .apk ?")) {
-        window.open("https://www.pwabuilder.com/", '_blank');
-      }
-    }
-
-    async function syncGitHubQuiet() {
-      let token = localStorage.getItem('nexus_github_pat');
-      if (!token) {
-        token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
-        if (!token) return;
-        localStorage.setItem('nexus_github_pat', token);
-      }
-      const repo = "idealj24-max/NexusEdit-Studio-X";
-      if(editor) files[activeFile] = editor.getValue();
-      const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
-      try {
-        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
-          headers: { 'Authorization': `token ${token}` }
-        });
-        let sha = getRes.ok ? (await getRes.json()).sha : "";
-        await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
-          method: 'PUT',
-          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: 'Sync APK NexusEdit', content: contentBase64, sha: sha || undefined })
-        });
-      } catch (e) {}
-    }
-
-    async function syncGitHub() {
-      closeMenu();
-      let token = localStorage.getItem('nexus_github_pat');
-      if (!token) {
-        token = prompt("Entrez votre GitHub Personal Access Token (PAT) :");
-        if (!token) return;
-        localStorage.setItem('nexus_github_pat', token);
-      }
-      const repo = "idealj24-max/NexusEdit-Studio-X";
-      if(editor) files[activeFile] = editor.getValue();
-      const contentBase64 = btoa(unescape(encodeURIComponent(files['index.html'])));
-      try {
-        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
-          headers: { 'Authorization': `token ${token}` }
-        });
-        let sha = getRes.ok ? (await getRes.json()).sha : "";
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
-          method: 'PUT',
-          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: 'Mise à jour NexusEdit Studio', content: contentBase64, sha: sha || undefined })
-        });
-        if(response.ok) alert("Succès ! Code en ligne sur GitHub.");
-        else { alert("Token invalide."); localStorage.removeItem('nexus_github_pat'); }
-      } catch (error) { logConsole("Erreur GitHub", true); }
-    }
-
-    function resetGitHubCreds() {
-        localStorage.removeItem('nexus_github_pat');
-        alert("ID GitHub réinitialisés.");
-        closeMenu();
-    }
-
-    function copyGeneratedCode() {
-      if(editor) {
-        navigator.clipboard.writeText(editor.getValue());
-        alert("Code copié dans le presse-papier !");
-      }
-    }
-
-    // --- FONCTION IA CORRIGÉE (GEMINI 3.6 FLASH) ---
-    async function sendAIPromptReal() {
-      const input = document.getElementById('ai-input');
-      const promptText = input.value.trim();
-      const apiKey = document.getElementById('ai-api-key').value.trim();
-      
-      if (!promptText) return;
-
-      const chatBox = document.getElementById('chat-box');
-      chatBox.innerHTML += `<div class="msg user">${promptText}</div>`;
-      input.value = '';
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      if (!apiKey) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API Google AI Studio.</div>`;
-        return;
-      }
-
-      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini 3.6 Flash...</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      // Endpoint mis à jour avec le modèle requis par l'API v1beta
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: `Crée une application PWA complète avec IndexedDB et un design moderne pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome, sans balises markdown superflues ni blocs de code encadrés.`
-              }]
-            }]
-          })
-        });
-
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error?.message || `Erreur HTTP ${response.status}`);
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('products')) {
+                        database.createObjectStore('products', { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e);
+            });
         }
 
-        const data = await response.json();
-        if (!data.candidates || !data.candidates[0].content) {
-          throw new Error("Réponse vide reçue de l'API Gemini.");
+        // Database CRUD Operations
+        async function getAllProductsFromDB() {
+            return new Promise((resolve) => {
+                const tx = db.transaction('products', 'readonly');
+                const store = tx.objectStore('products');
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result || []);
+            });
         }
 
-        let generatedHtml = data.candidates[0].content.parts[0].text;
-        generatedHtml = generatedHtml.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
-
-        files['index.html'] = generatedHtml;
-        if (activeFile === 'index.html' && editor) {
-          editor.setValue(generatedHtml);
+        async function saveProductToDB(product) {
+            return new Promise((resolve) => {
+                const tx = db.transaction('products', 'readwrite');
+                const store = tx.objectStore('products');
+                const request = store.add(product);
+                request.onsuccess = () => resolve(request.result);
+            });
         }
-        saveProjectToDB();
-        
-        chatBox.innerHTML += `<div class="msg ai">PWA générée, enregistrée dans IndexedDB et prête !</div>`;
-        logConsole("PWA générée et enregistrée avec succès.");
-        switchMainView('preview');
-      } catch (error) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur API : ${error.message}</div>`;
-        logConsole("Erreur API : " + error.message, true);
-      }
-    }
 
-    let vpnConnected = false;
-    function toggleVPN() {
-        vpnConnected = !vpnConnected;
-        document.getElementById('vpn-status').innerText = vpnConnected ? "Statut : Connecté" : "Statut : Déconnecté";
-    }
-  </script>
+        async function deleteProductFromDB(id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction('products', 'readwrite');
+                const store = tx.objectStore('products');
+                const request = store.delete(id);
+                request.onsuccess = () => resolve(true);
+            });
+        }
+
+        /* --- App Global State --- */
+        let products = [];
+        let cart = [];
+        let activeCategory = 'all';
+        let currentModalProduct = null;
+        let currentImageIdx = 0;
+        let uploadedPhotoBase64List = [];
+
+        /* --- Demo Data Seeder --- */
+        const demoProducts = [
+            {
+                title: "Ensemble Abaya de Luxe Silk & Satin",
+                category: "clothing",
+                price: 2500,
+                phone: "22245000000",
+                bankily: "45000000",
+                masrvi: "36000000",
+                photos: [
+                    "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80"
+                ],
+                description: "Superbe robe élégante en satin de qualité supérieure. Idéale pour les grandes occasions et fêtes. Tissu fluide et confortable."
+            },
+            {
+                title: "Sérum Éclat Visage à l'Huile d'Argan Bio",
+                category: "cosmetics",
+                price: 850,
+                phone: "22245000000",
+                bankily: "45000000",
+                masrvi: "36000000",
+                photos: [
+                    "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1608248597461-80032f9671d1?auto=format&fit=crop&w=600&q=80"
+                ],
+                description: "Nourrit en profondeur et ravive le teint. Formule 100% naturelle enrichie en vitamines E et huiles essentielles."
+            },
+            {
+                title: "Robe de Soirée Traditionnelle Moderne",
+                category: "clothing",
+                price: 3200,
+                phone: "22245000000",
+                bankily: "45000000",
+                masrvi: "36000000",
+                photos: [
+                    "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=600&q=80"
+                ],
+                description: "Coupe raffinée aux détails dorés. Haute couture fabriquée avec soin pour révéler votre élégance."
+            },
+            {
+                title: "Coffret Rouge à Lèvres Velvet Matte (Set de 5)",
+                category: "cosmetics",
+                price: 1200,
+                phone: "22245000000",
+                bankily: "45000000",
+                masrvi: "36000000",
+                photos: [
+                    "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=600&q=80"
+                ],
+                description: "Tenue longue durée 24h, résistant à l'eau. Nuances riches allant du nude au rouge passion."
+            }
+        ];
+
+        /* --- Initialization --- */
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            let dbProds = await getAllProductsFromDB();
+            
+            // Seed DB with demo data if completely empty
+            if (dbProds.length === 0) {
+                for (let item of demoProducts) {
+                    await saveProductToDB(item);
+                }
+                dbProds = await getAllProductsFromDB();
+            }
+
+            products = dbProds;
+            renderProducts();
+            registerPWA();
+        });
+
+        /* --- Render Product Feed --- */
+        function renderProducts() {
+            const container = document.getElementById('productFeed');
+            const emptyState = document.getElementById('emptyState');
+            
+            const searchTerm = (document.getElementById('searchInputDesktop').value || document.getElementById('searchInputMobile').value || '').toLowerCase();
+
+            const filtered = products.filter(p => {
+                const matchesCat = (activeCategory === 'all') || (p.category === activeCategory);
+                const matchesSearch = p.title.toLowerCase().includes(searchTerm) || (p.description && p.description.toLowerCase().includes(searchTerm));
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            container.innerHTML = filtered.map(p => {
+                const mainImg = (p.photos && p.photos.length > 0) ? p.photos[0] : 'https://via.placeholder.com/400?text=Neh-Forever';
+                const catName = p.category === 'cosmetics' ? 'Cosmétique' : 'Mode / Vêtement';
+                const catBadgeBg = p.category === 'cosmetics' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800';
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
+                        <!-- Image Container -->
+                        <div class="relative aspect-square overflow-hidden bg-slate-100 cursor-pointer" onclick="openProductModal(${p.id})">
+                            <img src="${mainImg}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            
+                            <span class="absolute top-2 left-2 text-[10px] font-bold px-2.5 py-1 rounded-full ${catBadgeBg} backdrop-blur-md">
+                                ${catName}
+                            </span>
+
+                            ${p.photos && p.photos.length > 1 ? `
+                                <span class="absolute bottom-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md bg-black/60 text-white">
+                                    <i class="fa-solid fa-images mr-1"></i>${p.photos.length}
+                                </span>
+                            ` : ''}
+                        </div>
+
+                        <!-- Info -->
+                        <div class="p-3.5 flex-1 flex flex-col justify-between">
+                            <div>
+                                <h3 onclick="openProductModal(${p.id})" class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 hover:text-brand-600 transition cursor-pointer">
+                                    ${p.title}
+                                </h3>
+                            </div>
+
+                            <div class="mt-3">
+                                <div class="flex items-baseline justify-between mb-2">
+                                    <span class="text-base sm:text-lg font-black text-brand-600">${p.price} <span class="text-xs font-semibold">MRU</span></span>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button onclick="addToCartDirect(${p.id})" class="py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                        <span class="hidden sm:inline">Panier</span>
+                                    </button>
+                                    <button onclick="openProductModal(${p.id})" class="py-2 px-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 shadow-sm">
+                                        <span>Voir</span>
+                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* --- Category & Search Filter Handlers --- */
+        function selectCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
+                btn.classList.add('bg-white', 'text-slate-600');
+            });
+            const activeBtn = document.getElementById(`cat-${cat}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white', 'text-slate-600');
+                activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow-md');
+            }
+            renderProducts();
+        }
+
+        function filterProducts() {
+            renderProducts();
+        }
+
+        function switchTab(tab) {
+            if (tab === 'shop') {
+                selectCategory('all');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        /* --- Product Modal & Image Carousel --- */
+        function openProductModal(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            currentModalProduct = product;
+            currentImageIdx = 0;
+
+            document.getElementById('detailCategoryBadge').innerText = product.category === 'cosmetics' ? 'Cosmétique & Beauté' : 'Mode & Vêtement';
+            document.getElementById('detailTitle').innerText = product.title;
+            document.getElementById('detailPrice').innerText = product.price;
+            document.getElementById('detailDescription').innerText = product.description || "Aucune description fournie par le vendeur.";
+            
+            document.getElementById('detailBankily').innerText = product.bankily || "Non spécifié";
+            document.getElementById('detailMasrvi').innerText = product.masrvi || "Non spécifié";
+
+            updateModalGallery();
+            document.getElementById('productDetailModal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productDetailModal').classList.add('hidden');
+            currentModalProduct = null;
+        }
+
+        function updateModalGallery() {
+            const photos = (currentModalProduct.photos && currentModalProduct.photos.length > 0) 
+                ? currentModalProduct.photos 
+                : ['https://via.placeholder.com/600?text=Neh-Forever'];
+
+            document.getElementById('detailMainImage').src = photos[currentImageIdx];
+            document.getElementById('imageCounter').innerText = `${currentImageIdx + 1}/${photos.length}`;
+
+            // Thumbnails
+            const thumbContainer = document.getElementById('detailThumbnails');
+            if (photos.length > 1) {
+                thumbContainer.innerHTML = photos.map((img, i) => `
+                    <img src="${img}" onclick="setGalleryImage(${i})" class="w-14 h-14 object-cover rounded-xl cursor-pointer border-2 ${i === currentImageIdx ? 'border-brand-600' : 'border-transparent opacity-60'} transition">
+                `).join('');
+                document.getElementById('prevImgBtn').classList.remove('hidden');
+                document.getElementById('nextImgBtn').classList.remove('hidden');
+            } else {
+                thumbContainer.innerHTML = '';
+                document.getElementById('prevImgBtn').classList.add('hidden');
+                document.getElementById('nextImgBtn').classList.add('hidden');
+            }
+        }
+
+        function setGalleryImage(idx) {
+            currentImageIdx = idx;
+            updateModalGallery();
+        }
+
+        function prevProductImage() {
+            if (!currentModalProduct || !currentModalProduct.photos) return;
+            currentImageIdx = (currentImageIdx - 1 + currentModalProduct.photos.length) % currentModalProduct.photos.length;
+            updateModalGallery();
+        }
+
+        function nextProductImage() {
+            if (!currentModalProduct || !currentModalProduct.photos) return;
+            currentImageIdx = (currentImageIdx + 1) % currentModalProduct.photos.length;
+            updateModalGallery();
+        }
+
+        /* --- Cart Logic --- */
+        function addToCartDirect(id) {
+            const prod = products.find(p => p.id === id);
+            if (!prod) return;
+            addToCartItem(prod);
+        }
+
+        function addToCartFromModal() {
+            if (currentModalProduct) {
+                addToCartItem(currentModalProduct);
+                closeProductModal();
+            }
+        }
+
+        function addToCartItem(prod) {
+            const existing = cart.find(item => item.id === prod.id);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ ...prod, qty: 1 });
+            }
+            updateCartUI();
+            toggleCartModal();
+        }
+
+        function updateCartUI() {
+            const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
+            const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+            // Badges
+            const badge = document.getElementById('cartCountBadge');
+            const mobileBadge = document.getElementById('mobileNavCartBadge');
+            
+            if (totalQty > 0) {
+                badge.innerText = totalQty;
+                badge.classList.remove('hidden');
+                mobileBadge.innerText = totalQty;
+                mobileBadge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                mobileBadge.classList.add('hidden');
+            }
+
+            document.getElementById('cartTotalPrice').innerText = `${totalPrice} MRU`;
+
+            // Render Cart List
+            const list = document.getElementById('cartItemsList');
+            if (cart.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-cart-flatbed text-4xl mb-2"></i>
+                        <p class="text-sm">Votre panier est vide.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = cart.map(item => `
+                <div class="flex items-center space-x-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                    <img src="${item.photos && item.photos[0] ? item.photos[0] : 'https://via.placeholder.com/100'}" class="w-14 h-14 object-cover rounded-xl">
+                    <div class="flex-1">
+                        <h4 class="text-xs font-bold text-slate-800 line-clamp-1">${item.title}</h4>
+                        <div class="text-xs font-black text-brand-600 mt-0.5">${item.price} MRU</div>
+                        
+                        <div class="flex items-center space-x-2 mt-2">
+                            <button onclick="changeCartQty(${item.id}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs hover:bg-slate-200">-</button>
+                            <span class="text-xs font-bold px-1">${item.qty}</span>
+                            <button onclick="changeCartQty(${item.id}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs hover:bg-slate-200">+</button>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart(${item.id})" class="text-slate-400 hover:text-rose-500 p-2">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function changeCartQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== id);
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            updateCartUI();
+        }
+
+        function toggleCartModal() {
+            document.getElementById('cartModal').classList.toggle('hidden');
+        }
+
+        /* --- Direct Order Modal Handler --- */
+        function openDirectOrderModal() {
+            if (!currentModalProduct) return;
+            
+            // Temporary add single product to cart for clean single checkout
+            cart = [{ ...currentModalProduct, qty: 1 }];
+            updateCartUI();
+            closeProductModal();
+            toggleCartModal();
+        }
+
+        /* --- Submit Order via WhatsApp --- */
+        function submitCartOrderWhatsApp() {
+            if (cart.length === 0) {
+                alert("Votre panier est vide.");
+                return;
+            }
+
+            const name = document.getElementById('orderClientName').value.trim();
+            const phone = document.getElementById('orderClientPhone').value.trim();
+            const address = document.getElementById('orderClientAddress').value.trim();
+            const paymentMethod = document.getElementById('orderPaymentMethod').value;
+
+            if (!name || !phone || !address) {
+                alert("Veuillez remplir tous les champs obligatoires (Nom, Téléphone, Adresse).");
+                return;
+            }
+
+            // Target seller phone (take seller phone from first item or default)
+            const sellerPhone = cart[0].phone || "22245000000";
+
+            let orderText = `* NOUVELLE COMMANDE NÉH-FOREVER *\n\n`;
+            orderText += `*Client:* ${name}\n`;
+            orderText += `*Téléphone:* ${phone}\n`;
+            orderText += `*Adresse:* ${address}\n`;
+            orderText += `*Moyen de Paiement:* ${paymentMethod}\n\n`;
+            orderText += `*Articles Commandés:*\n`;
+
+            let grandTotal = 0;
+            cart.forEach((item, i) => {
+                const subtotal = item.price * item.qty;
+                grandTotal += subtotal;
+                orderText += `${i+1}. ${item.title} (x${item.qty}) - ${subtotal} MRU\n`;
+                if (paymentMethod === 'Bankily' && item.bankily) {
+                    orderText += `   👉 Bankily Commerçant: ${item.bankily}\n`;
+                } else if (paymentMethod === 'Masrvi' && item.masrvi) {
+                    orderText += `   👉 Masrvi Commerçant: ${item.masrvi}\n`;
+                }
+            });
+
+            orderText += `\n*TOTAL À PAYER:* ${grandTotal} MRU\n\n`;
+            orderText += `Merci de traiter ma commande !`;
+
+            const encodedURL = `https://wa.me/${sellerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(orderText)}`;
+            window.open(encodedURL, '_blank');
+        }
+
+        /* --- Admin / Product Upload Functionality --- */
+        function toggleAdminModal() {
+            const modal = document.getElementById('adminModal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderAdminProductList();
+            }
+        }
+
+        function switchAdminTab(tab) {
+            const tabAdd = document.getElementById('adminTabAdd');
+            const tabList = document.getElementById('adminTabList');
+            const form = document.getElementById('addProductForm');
+            const list = document.getElementById('adminProductList');
+
+            if (tab === 'add') {
+                tabAdd.className = "flex-1 py-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
+                tabList.className = "flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500";
+                form.classList.remove('hidden');
+                list.classList.add('hidden');
+            } else {
+                tabList.className = "flex-1 py-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
+                tabAdd.className = "flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500";
+                form.classList.add('hidden');
+                list.classList.remove('hidden');
+                renderAdminProductList();
+            }
+        }
+
+        // Preview local photos uploaded in Admin
+        function previewImages(event) {
+            const files = event.target.files;
+            const container = document.getElementById('photoPreviewContainer');
+            container.innerHTML = '';
+            uploadedPhotoBase64List = [];
+
+            if (files.length === 0) return;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64Str = e.target.result;
+                    uploadedPhotoBase64List.push(base64Str);
+
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.className = "relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border border-slate-200";
+                    imgWrapper.innerHTML = `<img src="${base64Str}" class="w-full h-full object-cover">`;
+                    container.appendChild(imgWrapper);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Handle Product Save to IndexedDB
+        async function handleSaveProduct(event) {
+            event.preventDefault();
+
+            if (uploadedPhotoBase64List.length === 0) {
+                alert("Veuillez ajouter au moins une photo pour le produit.");
+                return;
+            }
+
+            const newProd = {
+                title: document.getElementById('prodTitle').value.trim(),
+                category: document.getElementById('prodCategory').value,
+                price: parseFloat(document.getElementById('prodPrice').value),
+                phone: document.getElementById('prodPhone').value.trim(),
+                bankily: document.getElementById('prodBankily').value.trim(),
+                masrvi: document.getElementById('prodMasrvi').value.trim(),
+                photos: uploadedPhotoBase64List,
+                description: document.getElementById('prodDescription').value.trim()
+            };
+
+            const newId = await saveProductToDB(newProd);
+            newProd.id = newId;
+            products.unshift(newProd);
+
+            // Reset form
+            document.getElementById('addProductForm').reset();
+            document.getElementById('photoPreviewContainer').innerHTML = '';
+            uploadedPhotoBase64List = [];
+
+            alert("Article publié avec succès sur Néh-Forever !");
+            renderProducts();
+            toggleAdminModal();
+        }
+
+        function renderAdminProductList() {
+            const list = document.getElementById('adminProductList');
+            document.getElementById('adminProductCount').innerText = products.length;
+
+            if (products.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Aucun article enregistré.</p>`;
+                return;
+            }
+
+            list.innerHTML = products.map(p => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div class="flex items-center space-x-3">
+                        <img src="${p.photos && p.photos[0] ? p.photos[0] : 'https://via.placeholder.com/80'}" class="w-12 h-12 object-cover rounded-xl">
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-800 line-clamp-1">${p.title}</h4>
+                            <span class="text-xs font-black text-brand-600">${p.price} MRU</span>
+                            <div class="text-[10px] text-slate-400">Tél: ${p.phone}</div>
+                        </div>
+                    </div>
+                    <button onclick="handleDeleteProduct(${p.id})" class="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function handleDeleteProduct(id) {
+            if (confirm("Voulez-vous vraiment supprimer cet article ?")) {
+                await deleteProductFromDB(id);
+                products = products.filter(p => p.id !== id);
+                renderProducts();
+                renderAdminProductList();
+            }
+        }
+
+        /* --- Progressive Web App (Service Worker + Manifest Dynamic) --- */
+        function registerPWA() {
+            // Inject Web Manifest
+            const manifest = {
+                name: "Néh-Forever Boutique",
+                short_name: "Néh-Forever",
+                start_url: ".",
+                display: "standalone",
+                background_color: "#ffffff",
+                theme_color: "#e11d48",
+                icons: [
+                    {
+                        src: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=192&q=80",
+                        sizes: "192x192",
+                        type: "image/png"
+                    }
+                ]
+            };
+            const stringManifest = JSON.stringify(manifest);
+            const blobManifest = new Blob([stringManifest], { type: 'application/json' });
+            const manifestURL = URL.createObjectURL(blobManifest);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestURL;
+            document.head.appendChild(link);
+
+            // Service Worker Inline Blob
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'neh-forever-v1';
+                    self.addEventListener('install', (e) => {
+                        self.skipWaiting();
+                    });
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(
+                            fetch(e.request).catch(() => caches.match(e.request))
+                        );
+                    });
+                `;
+                const blobSW = new Blob([swCode], { type: 'text/javascript' });
+                const swURL = URL.createObjectURL(blobSW);
+                navigator.serviceWorker.register(swURL).catch(() => {});
+            }
+        }
+    </script>
 </body>
 </html>
