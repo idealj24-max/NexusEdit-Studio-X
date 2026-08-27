@@ -191,20 +191,19 @@
       </div>
     </div>
 
-    <!-- PANNEAU IA -->
+    <!-- PANNEAU IA STYLE CAPTURE -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
-        <span>Nexus AI Engine</span>
-        <span style="font-size:0.6rem; color:var(--accent);">Gemini v1</span>
+        <span>NEXUS AI ENGINE</span>
+        <span style="font-size:0.6rem; color:var(--accent);">GEMINI 3.6 FLASH</span>
       </div>
       
       <div class="api-config-box">
-        <label>Modèle IA :</label>
-        <select id="ai-model" style="margin-bottom:4px;">
-          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommandé)</option>
-          <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+        <label>Fournisseur IA :</label>
+        <select id="ai-provider" style="margin-bottom:6px;">
+          <option value="google">Google Gemini API</option>
         </select>
-        <label>Clé API Google AI Studio :</label>
+        <label>Clé API (Token) :</label>
         <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
       </div>
 
@@ -213,7 +212,7 @@
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Crée une boutique en ligne Néh-Forever..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une application PWA de gestion de tâches..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer la PWA</button>
         <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
       </div>
@@ -246,7 +245,7 @@
 
     function initIndexedDB() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.OpenDBRequest ? indexedDB.open("NexusStudioDB", 1) : indexedDB.open("NexusStudioDB", 1);
+        const request = indexedDB.open("NexusStudioDB", 1);
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
           db = request.result;
@@ -583,12 +582,12 @@
       }
     }
 
-    // --- CORRECTION DE L'API GEMINI (VERSION STABLE V1) ---
+    // --- CORRECTION DE L'API GEMINI (VERSION STABLE CORRIGÉE SANS ERREUR FETCH) ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
-      const selectedModel = document.getElementById('ai-model').value;
+      
       if (!promptText) return;
 
       const chatBox = document.getElementById('chat-box');
@@ -597,37 +596,55 @@
       chatBox.scrollTop = chatBox.scrollHeight;
 
       if (!apiKey) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Entrez votre clé API.</div>`;
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : Veuillez entrer votre clé API Google AI Studio.</div>`;
         return;
       }
 
-      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini...</div>`;
+      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini 3.6 Flash...</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      // Utilisation de l'endpoint stable v1 avec le modèle séléctionné
-      const modelRoute = selectedModel.includes('pro') ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
-      const endpoint = `https://generativelanguage.googleapis.com/v1/models/${modelRoute}:generateContent?key=${apiKey}`;
+      // Utilisation du modèle flash stable v1beta / v1 pour éviter le "Failed to fetch"
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `Crée une application PWA complète avec IndexedDB et un design moderne pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome sans blocs markdown.` }] }]
+            contents: [{
+              parts: [{
+                text: `Crée une application PWA complète avec IndexedDB et un design moderne pour : "${promptText}". Renvoie UNIQUEMENT le code HTML complet autonome, sans balises markdown superflues ni blocs de code encadrés.`
+              }]
+            }]
           })
         });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error?.message || `Erreur HTTP ${response.status}`);
+        }
+
         const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
-        let generatedHtml = data.candidates[0].content.parts[0].text.replace(/```html|```/g, '').trim();
+        if (!data.candidates || !data.candidates[0].content) {
+          throw5 = new Error("Réponse vide reçue de l'API Gemini.");
+        }
+
+        let generatedHtml = data.candidates[0].content.parts[0].text;
+        // Nettoyage sécurisé du format markdown si l'IA en renvoie malgré tout
+        generatedHtml = generatedHtml.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
 
         files['index.html'] = generatedHtml;
-        if (activeFile === 'index.html' && editor) editor.setValue(generatedHtml);
+        if (activeFile === 'index.html' && editor) {
+          editor.setValue(generatedHtml);
+        }
         saveProjectToDB();
         
-        chatBox.innerHTML += `<div class="msg ai">PWA générée et enregistrée dans IndexedDB avec succès !</div>`;
+        chatBox.innerHTML += `<div class="msg ai">PWA générée, enregistrée dans IndexedDB et prête !</div>`;
+        logConsole("PWA générée et enregistrée avec succès.");
         switchMainView('preview');
       } catch (error) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${error.message}</div>`;
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur API : ${error.message}</div>`;
+        logConsole("Erreur API : " + error.message, true);
       }
     }
 
