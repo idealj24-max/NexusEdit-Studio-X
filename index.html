@@ -3,29 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Néh-Forever | Cosmétiques & Vêtements</title>
-    
-    <!-- PWA Meta Tags -->
+    <title>Néh-Forever | Boutique Virtuelle & Mode</title>
+    <meta name="description" content="Néh-Forever - Votre boutique en ligne de produits cosmétiques et vêtements.">
     <meta name="theme-color" content="#e11d48">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Néh-Forever">
-    <meta name="description" content="Veuillez découvrir notre boutique de mode et cosmétiques Néh-Forever. Commandez en ligne via Bankily ou Masrvi.">
+    <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=192&h=192&fit=crop&crop=faces">
 
-    <!-- Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                    },
                     colors: {
                         brand: {
                             50: '#fff1f2',
@@ -35,988 +26,1053 @@
                             700: '#be123c',
                             900: '#881337',
                         },
-                        gold: {
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                        },
                         bankily: '#008444',
-                        masrvi: '#00529b'
+                        masrvi: '#0055a5'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Segoe UI', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
         .glass-dark { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+        .safe-top { padding-top: env(safe-area-inset-top, 1rem); }
         @keyframes pulse-subtle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-        .animate-pulse-subtle { animation: pulse-subtle 3s infinite ease-in-out; }
+        .pulse-btn { animation: pulse-subtle 3s infinite ease-in-out; }
     </style>
 </head>
-<body class="h-full font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white pb-20 md:pb-6">
+<body class="h-full text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white flex flex-col">
 
-    <!-- APP HEADER -->
-    <header class="sticky top-0 z-40 glass border-b border-slate-100 shadow-sm transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('shop')">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-gold-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand-500/30">
-                        N
-                    </div>
-                    <div>
-                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-600 via-brand-700 to-gold-600 bg-clip-text text-transparent">
-                            Néh-Forever
-                        </span>
-                        <span class="block text-[10px] uppercase tracking-widest font-bold text-slate-400 -mt-1">Boutique Virtuelle</span>
-                    </div>
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-40 w-full glass border-b border-slate-100 shadow-sm transition-all safe-top">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="app.navigate('shop')">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-rose-400 flex items-center justify-center text-white shadow-md shadow-brand-500/30">
+                    <i class="fa-solid font-bold text-xl">N</i>
                 </div>
+                <div>
+                    <h1 class="font-extrabold text-xl leading-tight bg-gradient-to-r from-brand-700 to-rose-500 bg-clip-text text-transparent">
+                        Néh-Forever
+                    </h1>
+                    <p class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Cosmétique & Mode</p>
+                </div>
+            </div>
 
-                <!-- Search Bar (Desktop) -->
-                <div class="hidden md:flex flex-1 max-w-md mx-8">
-                    <div class="relative w-full">
-                        <input type="text" id="searchInputDesktop" oninput="filterProducts()" placeholder="Rechercher des robes, parfums, crèmes..." class="w-full bg-slate-100/80 border-0 pl-10 pr-4 py-2 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-sm"></i>
-                    </div>
-                </div>
+            <!-- Search Bar (Desktop/Tablet) -->
+            <div class="hidden md:flex flex-1 max-w-md mx-4 relative">
+                <input type="text" id="searchInputDesktop" oninput="app.handleSearch(this.value)" placeholder="Rechercher des vêtements, maquillages, soins..." class="w-full bg-slate-100/80 border-0 rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-brand-500 transition-all outline-none">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+            </div>
 
-                <!-- Actions -->
-                <div class="flex items-center space-x-3">
-                    <button onclick="toggleAdminModal()" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition" title="Espace Vendeur">
-                        <i class="fa-solid fa-store text-brand-600"></i>
-                        <span class="hidden sm:inline">Vendre</span>
-                    </button>
-                    
-                    <button onclick="toggleCartModal()" class="relative p-2.5 text-slate-700 hover:text-brand-600 rounded-full hover:bg-slate-100 transition">
-                        <i class="fa-solid fa-bag-shopping text-lg"></i>
-                        <span id="cartCountBadge" class="hidden absolute top-1 right-1 w-5 h-5 bg-brand-600 text-white font-bold text-[10px] rounded-full flex items-center justify-center border-2 border-white">0</span>
-                    </button>
-                </div>
+            <!-- Actions Header -->
+            <div class="flex items-center gap-2">
+                <button onclick="app.toggleAdminModal()" class="p-2.5 text-slate-600 hover:text-brand-600 hover:bg-rose-50 rounded-full transition relative" title="Espace Vendeur">
+                    <i class="fa-solid fa-store text-lg"></i>
+                    <span id="adminBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                </button>
+                
+                <button onclick="app.openCart()" class="p-2.5 text-slate-700 hover:bg-rose-50 rounded-full transition relative" title="Mon Panier">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span id="cartBadge" class="hidden absolute top-1 right-1 bg-brand-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                </button>
             </div>
         </div>
 
-        <!-- Mobile Search Bar -->
+        <!-- Search Bar (Mobile) -->
         <div class="px-4 pb-3 md:hidden">
-            <div class="relative w-full">
-                <input type="text" id="searchInputMobile" oninput="filterProducts()" placeholder="Rechercher sur Néh-Forever..." class="w-full bg-slate-100 border-0 pl-10 pr-4 py-2 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white">
+            <div class="relative">
+                <input type="text" id="searchInputMobile" oninput="app.handleSearch(this.value)" placeholder="Rechercher cosmétiques, vêtements..." class="w-full bg-slate-100 border-0 rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-brand-500 transition-all outline-none">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-sm"></i>
             </div>
         </div>
     </header>
 
-    <!-- MAIN CONTENT AREA -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <!-- CATEGORIES SCROLL BAR -->
+    <nav class="bg-white border-b border-slate-100 sticky top-[105px] md:top-[65px] z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar" id="categoryContainer">
+            <!-- Rendered JS Categories -->
+        </div>
+    </nav>
 
-        <!-- Hero Carousel Banner -->
-        <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 text-white shadow-xl mb-6">
-            <div class="absolute inset-0 opacity-40 mix-blend-overlay">
-                <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=80" class="w-full h-full object-cover" alt="Banner background">
-            </div>
-            <div class="relative z-10 p-6 sm:p-10 flex flex-col items-start justify-center min-h-[180px]">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gold-500/20 text-gold-400 border border-gold-500/30 mb-2">
-                    <i class="fa-solid fa-sparkles mr-1.5"></i> Nouvelle Collection
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 mb-20">
+        <!-- Banner Carousel / Hero -->
+        <section class="mb-8 rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 via-rose-950 to-brand-900 text-white relative shadow-xl">
+            <div class="p-6 md:p-10 relative z-10 max-w-xl">
+                <span class="inline-block bg-brand-500/30 text-rose-300 border border-rose-500/30 text-xs px-3 py-1 rounded-full font-semibold mb-3">
+                    ✨ Nouvelle Collection 2025
                 </span>
-                <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight max-w-xl">
-                    Élégance, Beauté & Style Unique
-                </h1>
-                <p class="mt-2 text-xs sm:text-sm text-slate-300 max-w-md">
-                    Découvrez les meilleurs vêtements et cosmétiques. Payez facilement via <strong class="text-emerald-400">Bankily</strong> ou <strong class="text-sky-400">Masrvi</strong>.
-                </p>
+                <h2 class="text-2xl md:text-4xl font-extrabold mb-2 leading-tight">Sublimez Votre Beauté & Élégance</h2>
+                <p class="text-slate-300 text-sm md:text-base mb-5">Découvrez nos gammes de cosmétiques raffinés et les dernières tendances vestimentaires livrés chez vous.</p>
+                <div class="flex gap-3">
+                    <button onclick="app.setCategory('cosmetiques')" class="bg-brand-600 hover:bg-brand-700 text-white text-xs md:text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-brand-600/40 transition">Cosmétiques</button>
+                    <button onclick="app.setCategory('vetements')" class="bg-white/10 hover:bg-white/20 backdrop-blur text-white border border-white/20 text-xs md:text-sm font-bold px-5 py-2.5 rounded-full transition">Vêtements</button>
+                </div>
+            </div>
+            <div class="absolute right-0 bottom-0 top-0 w-1/2 opacity-30 md:opacity-40 pointer-events-none bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800');"></div>
+        </section>
+
+        <!-- Product Grid Header -->
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 id="currentCategoryTitle" class="text-lg md:text-xl font-bold text-slate-800">Tous les produits</h3>
+                <p id="productCount" class="text-xs text-slate-500">Chargement des articles...</p>
             </div>
         </div>
 
-        <!-- Category Filters -->
-        <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-3 mb-4">
-            <button onclick="selectCategory('all')" id="cat-all" class="cat-btn active flex items-center space-x-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap bg-brand-600 text-white shadow-md shadow-brand-500/20 transition">
-                <i class="fa-solid fa-border-all text-xs"></i>
-                <span>Tous les articles</span>
-            </button>
-            <button onclick="selectCategory('cosmetics')" id="cat-cosmetics" class="cat-btn flex items-center space-x-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 transition">
-                <i class="fa-solid fa-wand-magic-sparkles text-xs text-brand-500"></i>
-                <span>Cosmétiques & Beauté</span>
-            </button>
-            <button onclick="selectCategory('clothing')" id="cat-clothing" class="cat-btn flex items-center space-x-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 transition">
-                <i class="fa-solid fa-shirt text-xs text-gold-500"></i>
-                <span>Vêtements & Mode</span>
-            </button>
+        <!-- Products Grid -->
+        <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            <!-- Skeleton items while loading -->
         </div>
-
-        <!-- Product Grid Feed -->
-        <section id="productFeed" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-            <!-- Dynamic Inject -->
-        </section>
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
-            <div class="w-20 h-20 rounded-full bg-rose-50 flex items-center justify-center text-brand-500 text-3xl mb-4">
+            <div class="w-20 h-20 bg-rose-50 text-brand-500 rounded-full flex items-center justify-center text-3xl mb-4">
                 <i class="fa-solid fa-box-open"></i>
             </div>
-            <h3 class="text-lg font-bold text-slate-800">Aucun produit disponible</h3>
-            <p class="text-sm text-slate-500 max-w-sm mt-1">Aucun produit ne correspond à vos critères ou le propriétaire n'a pas encore ajouté d'articles.</p>
-            <button onclick="toggleAdminModal()" class="mt-4 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-semibold shadow-md">
-                + Ajouter le premier produit
-            </button>
+            <h3 class="text-lg font-bold text-slate-700 mb-1">Aucun produit trouvé</h3>
+            <p class="text-slate-500 text-sm max-w-sm mb-4">Essayez de changer de catégorie ou ajoutez de nouveaux articles dans l'espace propriétaire.</p>
+            <button onclick="app.setCategory('all')" class="bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-xl">Réinitialiser les filtres</button>
         </div>
-
     </main>
 
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 glass border-t border-slate-200/80 md:hidden safe-bottom">
+        <div class="grid grid-cols-4 h-14">
+            <button onclick="app.navigate('shop')" id="navShop" class="flex flex-col items-center justify-center text-brand-600 font-semibold">
+                <i class="fa-solid fa-store text-lg mb-0.5"></i>
+                <span class="text-[10px]">Boutique</span>
+            </button>
+            <button onclick="app.setCategory('cosmetiques')" id="navCosmo" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-600">
+                <i class="fa-solid fa-pump-soap text-lg mb-0.5"></i>
+                <span class="text-[10px]">Beauté</span>
+            </button>
+            <button onclick="app.setCategory('vetements')" id="navCloth" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-600">
+                <i class="fa-solid fa-shirt text-lg mb-0.5"></i>
+                <span class="text-[10px]">Mode</span>
+            </button>
+            <button onclick="app.openCart()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-600 relative">
+                <i class="fa-solid fa-bag-shopping text-lg mb-0.5"></i>
+                <span class="text-[10px]">Panier</span>
+                <span id="navCartBadge" class="hidden absolute top-1 right-5 bg-brand-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </nav>
+
     <!-- PRODUCT DETAIL MODAL -->
-    <div id="productDetailModal" class="fixed inset-0 z-50 hidden overflow-y-auto glass-dark flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in slide-in-from-bottom duration-300">
-            <!-- Header bar -->
-            <div class="flex items-center justify-between p-4 border-b border-slate-100">
-                <span id="detailCategoryBadge" class="px-3 py-1 bg-brand-50 text-brand-600 text-xs font-bold rounded-full uppercase tracking-wider">Catégorie</span>
-                <button onclick="closeProductModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+    <div id="productDetailModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+        <div class="bg-white w-full sm:max-w-2xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <!-- Modal Header / Images -->
+            <div class="relative bg-slate-100 h-64 sm:h-80 overflow-hidden">
+                <img id="modalProductImage" src="" alt="Produit" class="w-full h-full object-cover">
+                <button onclick="app.closeProductModal()" class="absolute top-4 right-4 bg-black/40 hover:bg-black/60 text-white w-9 h-9 rounded-full flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
+                <div id="modalImageBadges" class="absolute bottom-3 left-4 flex gap-2">
+                    <!-- Badges -->
+                </div>
             </div>
 
-            <div class="overflow-y-auto p-4 sm:p-6 space-y-5">
-                <!-- Gallery Carousel -->
-                <div class="relative rounded-2xl overflow-hidden bg-slate-100 aspect-square sm:aspect-video flex items-center justify-center">
-                    <img id="detailMainImage" src="" alt="Produit" class="w-full h-full object-cover">
-                    
-                    <button id="prevImgBtn" onclick="prevProductImage()" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full glass flex items-center justify-center text-slate-800 shadow">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-                    <button id="nextImgBtn" onclick="nextProductImage()" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full glass flex items-center justify-center text-slate-800 shadow">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                    <div id="imageCounter" class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full glass text-xs font-bold text-slate-700">1/1</div>
-                </div>
-
-                <!-- Thumbnails -->
-                <div id="detailThumbnails" class="flex space-x-2 overflow-x-auto no-scrollbar py-1"></div>
-
-                <!-- Product Info -->
-                <div>
-                    <h2 id="detailTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900">Titre du produit</h2>
-                    <div class="mt-2 flex items-baseline space-x-2">
-                        <span id="detailPrice" class="text-2xl sm:text-3xl font-black text-brand-600">0</span>
-                        <span class="text-base font-bold text-brand-600">MRU / UM</span>
+            <!-- Content -->
+            <div class="p-5 flex-1 overflow-y-auto">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <div>
+                        <span id="modalCategoryTag" class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md">Catégorie</span>
+                        <h2 id="modalTitle" class="text-xl font-bold text-slate-900 mt-2">Nom du produit</h2>
                     </div>
+                    <div id="modalPrice" class="text-xl font-extrabold text-brand-600 whitespace-nowrap">0 MRU</div>
                 </div>
 
-                <!-- Payment Methods Info -->
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                    <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Moyens de paiement du vendeur</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center">BK</div>
+                <p id="modalDescription" class="text-slate-600 text-sm mt-3 leading-relaxed whitespace-pre-line">Description du produit...</p>
+
+                <!-- Seller Info Card -->
+                <div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <h4 class="text-xs font-bold uppercase text-slate-400 mb-2 tracking-wider">Contact & Payement du Commerçant</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="flex items-center gap-2 text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/60">
+                            <i class="fa-solid fa-phone text-brand-600"></i>
                             <div>
-                                <div class="text-[11px] text-slate-400 font-semibold">Bankily</div>
-                                <div id="detailBankily" class="text-xs font-bold text-slate-800">Non renseigné</div>
+                                <p class="text-[10px] text-slate-400 font-semibold">Téléphone</p>
+                                <p id="modalSellerPhone" class="font-bold">--</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                            <div class="w-8 h-8 rounded-lg bg-sky-700 text-white font-black text-xs flex items-center justify-center">MS</div>
+                        <div class="flex items-center gap-2 text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/60">
+                            <i class="fa-solid fa-wallet text-bankily"></i>
                             <div>
-                                <div class="text-[11px] text-slate-400 font-semibold">Masrvi</div>
-                                <div id="detailMasrvi" class="text-xs font-bold text-slate-800">Non renseigné</div>
+                                <p class="text-[10px] text-slate-400 font-semibold">Bankily</p>
+                                <p id="modalBankily" class="font-bold">--</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/60">
+                            <i class="fa-solid fa-credit-card text-masrvi"></i>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-semibold">Masrvi</p>
+                                <p id="modalMasrvi" class="font-bold">--</p>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Description -->
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900 mb-1">Description</h3>
-                    <p id="detailDescription" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line">Pas de description disponible.</p>
-                </div>
             </div>
 
-            <!-- Footer Action Buttons -->
-            <div class="p-4 border-t border-slate-100 bg-white grid grid-cols-2 gap-3">
-                <button id="addToCartBtn" onclick="addToCartFromModal()" class="w-full py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl flex items-center justify-center space-x-2 transition">
+            <!-- Footer Action -->
+            <div class="p-4 bg-white border-t border-slate-100 flex gap-3 safe-bottom">
+                <button id="modalAddToCartBtn" onclick="" class="flex-1 bg-gradient-to-r from-brand-600 to-rose-500 hover:from-brand-700 hover:to-rose-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 transition active:scale-98">
                     <i class="fa-solid fa-cart-plus"></i>
                     <span>Ajouter au panier</span>
                 </button>
-                <button id="directOrderBtn" onclick="openDirectOrderModal()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-rose-500 hover:from-brand-700 hover:to-rose-600 text-white font-bold rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-brand-500/25 transition">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>Commander</span>
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- CART MODAL -->
-    <div id="cartModal" class="fixed inset-0 z-50 hidden overflow-y-auto glass-dark flex items-end sm:items-center justify-end">
-        <div class="bg-white w-full sm:max-w-md h-full sm:h-[95vh] sm:rounded-l-3xl shadow-2xl flex flex-col">
+    <!-- CART & CHECKOUT DRAWER -->
+    <div id="cartDrawer" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm transition-opacity">
+        <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-200">
             <!-- Header -->
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-bag-shopping text-brand-600 text-lg"></i>
-                    <h2 class="text-lg font-bold text-slate-900">Mon Panier</h2>
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-bag-shopping text-brand-600 text-xl"></i>
+                    <h3 class="font-bold text-lg text-slate-800">Votre Panier</h3>
                 </div>
-                <button onclick="toggleCartModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+                <button onclick="app.closeCart()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Cart Items -->
-            <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-3">
-                <!-- Dynamic cart content -->
+            <!-- Items List -->
+            <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
+                <!-- Cart items rendered JS -->
             </div>
 
-            <!-- Order Form & Checkout -->
-            <div class="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
-                <div class="flex justify-between items-center text-slate-900">
-                    <span class="font-bold text-sm">Total à payer:</span>
-                    <span id="cartTotalPrice" class="text-xl font-black text-brand-600">0 MRU</span>
+            <!-- Checkout Form & Summary -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-4 safe-bottom">
+                <div class="space-y-2">
+                    <div class="flex justify-between text-slate-600 text-sm">
+                        <span>Sous-total</span>
+                        <span id="cartSubtotal" class="font-semibold">0 MRU</span>
+                    </div>
+                    <div class="flex justify-between text-slate-900 font-extrabold text-base pt-1 border-t border-slate-200">
+                        <span>Total à payer</span>
+                        <span id="cartTotal" class="text-brand-600">0 MRU</span>
+                    </div>
                 </div>
 
-                <div class="space-y-2 pt-2">
-                    <input type="text" id="orderClientName" placeholder="Votre Nom complet *" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500">
-                    <input type="tel" id="orderClientPhone" placeholder="Votre Numéro WhatsApp / Tél *" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500">
-                    <input type="text" id="orderClientAddress" placeholder="Adresse de livraison (Ville, Quartier) *" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500">
-                    
-                    <select id="orderPaymentMethod" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 font-semibold">
-                        <option value="Bankily">Mode de paiement: Bankily</option>
-                        <option value="Masrvi">Mode de paiement: Masrvi</option>
-                        <option value="Cash">Paiement à la livraison (Espèces)</option>
-                    </select>
+                <!-- Customer Form Inputs -->
+                <div id="checkoutForm" class="space-y-2 pt-2">
+                    <div>
+                        <input type="text" id="custName" placeholder="Votre nom complet *" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <input type="tel" id="custPhone" placeholder="Numéro de Téléphone (WhatsApp) *" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <input type="text" id="custAddress" placeholder="Adresse / Ville de livraison *" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+
+                    <!-- Payment Mode Selector -->
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 mb-1 block">Mode de Règlement Préféré :</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="paymentMethod" value="Bankily" checked class="peer hidden">
+                                <div class="p-2 border border-slate-300 rounded-xl text-center peer-checked:border-bankily peer-checked:bg-emerald-50 peer-checked:text-bankily font-bold text-xs transition">
+                                    Bankily
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="paymentMethod" value="Masrvi" class="peer hidden">
+                                <div class="p-2 border border-slate-300 rounded-xl text-center peer-checked:border-masrvi peer-checked:bg-blue-50 peer-checked:text-masrvi font-bold text-xs transition">
+                                    Masrvi
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="paymentMethod" value="Cash" class="peer hidden">
+                                <div class="p-2 border border-slate-300 rounded-xl text-center peer-checked:border-slate-800 peer-checked:bg-slate-100 peer-checked:text-slate-900 font-bold text-xs transition">
+                                    Espèces
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
-                <button onclick="submitCartOrderWhatsApp()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 transition">
-                    <i class="fa-brands fa-whatsapp text-lg"></i>
-                    <span>Envoyer la commande sur WhatsApp</span>
+                <button onclick="app.submitOrder()" class="w-full bg-gradient-to-r from-brand-600 to-rose-600 hover:from-brand-700 hover:to-rose-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Commander via WhatsApp</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ADMIN / ADD PRODUCT MODAL -->
-    <div id="adminModal" class="fixed inset-0 z-50 hidden overflow-y-auto glass-dark flex items-center justify-center p-3 sm:p-6">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-user-shield text-gold-400"></i>
-                    <h2 class="text-lg font-bold">Espace Vendeur / Admin</h2>
+    <!-- ADMIN / VENDOR MODAL -->
+    <div id="adminModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh]">
+            <!-- Header -->
+            <div class="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
+                        <i class="fa-solid fa-store-slash text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">Espace Gestion Vendeur</h3>
+                        <p class="text-xs text-slate-400">Gérez vos articles, prix & comptes de paiement</p>
+                    </div>
                 </div>
-                <button onclick="toggleAdminModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700">
+                <button onclick="app.toggleAdminModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Tabs: Add Product / Manage Products -->
-            <div class="flex border-b border-slate-200 bg-slate-50">
-                <button onclick="switchAdminTab('add')" id="adminTabAdd" class="flex-1 py-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600">
-                    + Ajouter un Article
-                </button>
-                <button onclick="switchAdminTab('list')" id="adminTabList" class="flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500">
-                    Gérer Mes Articles (<span id="adminProductCount">0</span>)
-                </button>
+            <!-- Tabs Navigation -->
+            <div class="flex border-b border-slate-200 bg-slate-50 text-xs sm:text-sm font-semibold text-slate-600">
+                <button onclick="app.setAdminTab('add')" id="tabBtnAdd" class="flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition">Ajouter Produit</button>
+                <button onclick="app.setAdminTab('list')" id="tabBtnList" class="flex-1 py-3 px-4 border-b-2 border-transparent hover:text-slate-900 transition">Mes Produits</button>
+                <button onclick="app.setAdminTab('settings')" id="tabBtnSettings" class="flex-1 py-3 px-4 border-b-2 border-transparent hover:text-slate-900 transition">Paramètres Vendeur</button>
             </div>
 
-            <div class="p-5 overflow-y-auto flex-1">
-                <!-- ADD FORM -->
-                <form id="addProductForm" onsubmit="handleSaveProduct(event)" class="space-y-4">
+            <!-- Tab Contents Container -->
+            <div class="p-5 flex-1 overflow-y-auto">
+
+                <!-- TAB 1: ADD / EDIT PRODUCT FORM -->
+                <form id="productForm" onsubmit="app.saveProduct(event)" class="space-y-4">
+                    <input type="hidden" id="prodId">
+                    
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Titre de l'article *</label>
-                            <input type="text" id="prodTitle" required placeholder="Ex: Robe de Soirée Silk, Parfum Rose..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nom de l'article *</label>
+                            <input type="text" id="prodName" required placeholder="Ex: Rouge à Lèvres Mat / Robe Soirée" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
                         </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Catégorie *</label>
-                            <select id="prodCategory" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500 font-semibold">
-                                <option value="cosmetics">Cosmétiques & Beauté</option>
-                                <option value="clothing">Vêtements & Mode</option>
+                            <select id="prodCategory" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                                <option value="cosmetiques">Cosmétiques & Beauté</option>
+                                <option value="vetements">Vêtements & Mode</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Prix (MRU / UM) *</label>
-                            <input type="number" id="prodPrice" required placeholder="Ex: 1500" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Prix (MRU) *</label>
+                            <input type="number" id="prodPrice" required placeholder="Ex: 1500" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
                         </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Tél Vendeur (WhatsApp) *</label>
-                            <input type="tel" id="prodPhone" required placeholder="Ex: 22245678900" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Bankily</label>
-                            <input type="tel" id="prodBankily" placeholder="Ex: 45678900" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Image du Produit *</label>
+                            <input type="file" id="prodImageInput" accept="image/*" onchange="app.handleImageUpload(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Masrvi</label>
-                        <input type="tel" id="prodMasrvi" placeholder="Ex: 36678900" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-brand-500">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Photos de l'article (1 ou plusieurs) *</label>
-                        <div class="relative border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:bg-slate-50 transition cursor-pointer">
-                            <input type="file" id="prodPhotos" multiple accept="image/*" onchange="previewImages(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
-                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-brand-500 mb-1"></i>
-                            <p class="text-xs font-bold text-slate-700">Cliquez pour ajouter des photos</p>
-                            <p class="text-[10px] text-slate-400">Formats acceptés: JPG, PNG, WEBP</p>
-                        </div>
-                        <!-- Photo Preview List -->
-                        <div id="photoPreviewContainer" class="flex space-x-2 overflow-x-auto mt-3 pb-1"></div>
+                    <!-- Image Preview -->
+                    <div id="imagePreviewContainer" class="hidden relative w-32 h-32 rounded-2xl overflow-hidden border border-slate-200">
+                        <img id="imagePreview" src="" class="w-full h-full object-cover">
+                        <button type="button" onclick="app.clearImagePreview()" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">✕</button>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Description détaillée</label>
-                        <textarea id="prodDescription" rows="3" placeholder="Caractéristiques, tailles disponibles, conseils d'utilisation..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:ring-2 focus:ring-brand-500"></textarea>
+                        <textarea id="prodDesc" rows="3" placeholder="Description, taillant, ingrédients, conseils d'utilisation..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none"></textarea>
                     </div>
 
-                    <button type="submit" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/25 transition">
-                        Publier l'article sur Néh-Forever
-                    </button>
+                    <div class="pt-2 flex justify-end gap-3">
+                        <button type="button" onclick="app.resetProductForm()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 font-semibold text-xs hover:bg-slate-100 transition">Effacer</button>
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition">Enregistrer le produit</button>
+                    </div>
                 </form>
 
-                <!-- LIST / MANAGEMENT -->
+                <!-- TAB 2: MY PRODUCTS LIST -->
                 <div id="adminProductList" class="hidden space-y-3">
-                    <!-- Dynamic List -->
+                    <!-- Dynamic Product List for Admin -->
                 </div>
+
+                <!-- TAB 3: SELLER SETTINGS -->
+                <form id="settingsForm" onsubmit="app.saveSettings(event)" class="hidden space-y-4">
+                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Ces coordonnées seront automatiquement affichées aux clients lors de leurs commandes pour effectuer le règlement via Bankily ou Masrvi.
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Téléphone Vendeur (WhatsApp) *</label>
+                        <input type="tel" id="sellerPhone" placeholder="Ex: 222XXXXXXXX" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Bankily</label>
+                        <input type="text" id="sellerBankily" placeholder="Ex: 222XXXXX / 36XXXXX" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Numéro Masrvi</label>
+                        <input type="text" id="sellerMasrvi" placeholder="Ex: 222XXXXX / 46XXXXX" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-xs shadow-md transition">Sauvegarder mes coordonnées</button>
+                    </div>
+                </form>
+
             </div>
         </div>
     </div>
 
-    <!-- BOTTOM MOBILE NAVIGATION BAR -->
-    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur-md border-t border-slate-200 md:hidden flex justify-around items-center py-2 px-3 shadow-lg">
-        <button onclick="switchTab('shop')" class="flex flex-col items-center text-brand-600">
-            <i class="fa-solid fa-store text-lg"></i>
-            <span class="text-[10px] font-bold mt-0.5">Boutique</span>
-        </button>
-        <button onclick="selectCategory('cosmetics')" class="flex flex-col items-center text-slate-500 hover:text-brand-600">
-            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
-            <span class="text-[10px] font-semibold mt-0.5">Cosmétique</span>
-        </button>
-        <button onclick="selectCategory('clothing')" class="flex flex-col items-center text-slate-500 hover:text-brand-600">
-            <i class="fa-solid fa-shirt text-lg"></i>
-            <span class="text-[10px] font-semibold mt-0.5">Mode</span>
-        </button>
-        <button onclick="toggleCartModal()" class="flex flex-col items-center text-slate-500 hover:text-brand-600 relative">
-            <i class="fa-solid fa-bag-shopping text-lg"></i>
-            <span class="text-[10px] font-semibold mt-0.5">Panier</span>
-            <span id="mobileNavCartBadge" class="hidden absolute -top-1 right-2 w-4 h-4 bg-brand-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center">0</span>
-        </button>
-    </nav>
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- SCRIPT SECTION -->
+    <!-- MAIN APP JAVASCRIPT & INDEXEDDB ENGINE -->
     <script>
-        /* --- IndexedDB Setup --- */
-        const DB_NAME = 'NehForeverDB';
-        const DB_VERSION = 1;
-        let db = null;
-
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onupgradeneeded = (e) => {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains('products')) {
-                        database.createObjectStore('products', { keyPath: 'id', autoIncrement: true });
-                    }
-                };
-                request.onsuccess = (e) => {
-                    db = e.target.result;
-                    resolve(db);
-                };
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        // Database CRUD Operations
-        async function getAllProductsFromDB() {
-            return new Promise((resolve) => {
-                const tx = db.transaction('products', 'readonly');
-                const store = tx.objectStore('products');
-                const request = store.getAll();
-                request.onsuccess = () => resolve(request.result || []);
-            });
-        }
-
-        async function saveProductToDB(product) {
-            return new Promise((resolve) => {
-                const tx = db.transaction('products', 'readwrite');
-                const store = tx.objectStore('products');
-                const request = store.add(product);
-                request.onsuccess = () => resolve(request.result);
-            });
-        }
-
-        async function deleteProductFromDB(id) {
-            return new Promise((resolve) => {
-                const tx = db.transaction('products', 'readwrite');
-                const store = tx.objectStore('products');
-                const request = store.delete(id);
-                request.onsuccess = () => resolve(true);
-            });
-        }
-
-        /* --- App Global State --- */
-        let products = [];
-        let cart = [];
-        let activeCategory = 'all';
-        let currentModalProduct = null;
-        let currentImageIdx = 0;
-        let uploadedPhotoBase64List = [];
-
-        /* --- Demo Data Seeder --- */
-        const demoProducts = [
-            {
-                title: "Ensemble Abaya de Luxe Silk & Satin",
-                category: "clothing",
-                price: 2500,
-                phone: "22245000000",
-                bankily: "45000000",
-                masrvi: "36000000",
-                photos: [
-                    "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
-                    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80"
-                ],
-                description: "Superbe robe élégante en satin de qualité supérieure. Idéale pour les grandes occasions et fêtes. Tissu fluide et confortable."
-            },
-            {
-                title: "Sérum Éclat Visage à l'Huile d'Argan Bio",
-                category: "cosmetics",
-                price: 850,
-                phone: "22245000000",
-                bankily: "45000000",
-                masrvi: "36000000",
-                photos: [
-                    "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80",
-                    "https://images.unsplash.com/photo-1608248597461-80032f9671d1?auto=format&fit=crop&w=600&q=80"
-                ],
-                description: "Nourrit en profondeur et ravive le teint. Formule 100% naturelle enrichie en vitamines E et huiles essentielles."
-            },
-            {
-                title: "Robe de Soirée Traditionnelle Moderne",
-                category: "clothing",
-                price: 3200,
-                phone: "22245000000",
-                bankily: "45000000",
-                masrvi: "36000000",
-                photos: [
-                    "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=600&q=80"
-                ],
-                description: "Coupe raffinée aux détails dorés. Haute couture fabriquée avec soin pour révéler votre élégance."
-            },
-            {
-                title: "Coffret Rouge à Lèvres Velvet Matte (Set de 5)",
-                category: "cosmetics",
-                price: 1200,
-                phone: "22245000000",
-                bankily: "45000000",
-                masrvi: "36000000",
-                photos: [
-                    "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=600&q=80"
-                ],
-                description: "Tenue longue durée 24h, résistant à l'eau. Nuances riches allant du nude au rouge passion."
+        /**
+         * INDEXEDDB WRAPPER
+         */
+        class NehDB {
+            constructor() {
+                this.dbName = 'NehForeverDB';
+                this.version = 1;
+                this.db = null;
             }
-        ];
 
-        /* --- Initialization --- */
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initDB();
-            let dbProds = await getAllProductsFromDB();
-            
-            // Seed DB with demo data if completely empty
-            if (dbProds.length === 0) {
-                for (let item of demoProducts) {
-                    await saveProductToDB(item);
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.version);
+
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('products')) {
+                            db.createObjectStore('products', { keyPath: 'id' });
+                        }
+                        if (!db.objectStoreNames.contains('settings')) {
+                            db.createObjectStore('settings', { keyPath: 'id' });
+                        }
+                    };
+
+                    request.onsuccess = (e) => {
+                        this.db = e.target.result;
+                        resolve(this.db);
+                    };
+
+                    request.onerror = (e) => reject(e.target.error);
+                });
+            }
+
+            async getAll(storeName) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(storeName, 'readonly');
+                    const store = tx.objectStore(storeName);
+                    const req = store.getAll();
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            async put(storeName, item) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(storeName, 'readwrite');
+                    const store = tx.objectStore(storeName);
+                    const req = store.put(item);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            async delete(storeName, id) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(storeName, 'readwrite');
+                    const store = tx.objectStore(storeName);
+                    const req = store.delete(id);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            async get(storeName, id) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(storeName, 'readonly');
+                    const store = tx.objectStore(storeName);
+                    const req = store.get(id);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+        }
+
+        /**
+         * CORE APP LOGIC
+         */
+        class App {
+            constructor() {
+                this.db = new NehDB();
+                this.products = [];
+                this.cart = [];
+                this.activeCategory = 'all';
+                this.searchQuery = '';
+                this.currentBase64Image = '';
+                this.selectedProduct = null;
+                this.settings = {
+                    id: 'seller_info',
+                    phone: '22240000000',
+                    bankily: '22240000000',
+                    masrvi: '22240000000'
+                };
+
+                this.categories = [
+                    { id: 'all', name: 'Tout', icon: 'fa-border-all' },
+                    { id: 'cosmetiques', name: 'Cosmétiques', icon: 'fa-pump-soap' },
+                    { id: 'vetements', name: 'Vêtements', icon: 'fa-shirt' }
+                ];
+            }
+
+            async init() {
+                try {
+                    await this.db.init();
+                    await this.loadSettings();
+                    await this.loadProducts();
+                    this.renderCategories();
+                    this.renderProducts();
+                    this.updateCartUI();
+                    this.registerPWA();
+                } catch (err) {
+                    console.error('Init Error:', err);
+                    this.showToast('Erreur d\'initialisation du stockage', 'error');
                 }
-                dbProds = await getAllProductsFromDB();
             }
 
-            products = dbProds;
-            renderProducts();
-            registerPWA();
-        });
+            // LOAD & SEED SETTINGS
+            async loadSettings() {
+                const saved = await this.db.get('settings', 'seller_info');
+                if (saved) {
+                    this.settings = saved;
+                } else {
+                    await this.db.put('settings', this.settings);
+                }
 
-        /* --- Render Product Feed --- */
-        function renderProducts() {
-            const container = document.getElementById('productFeed');
-            const emptyState = document.getElementById('emptyState');
-            
-            const searchTerm = (document.getElementById('searchInputDesktop').value || document.getElementById('searchInputMobile').value || '').toLowerCase();
+                // Populate form
+                document.getElementById('sellerPhone').value = this.settings.phone || '';
+                document.getElementById('sellerBankily').value = this.settings.bankily || '';
+                document.getElementById('sellerMasrvi').value = this.settings.masrvi || '';
+            }
 
-            const filtered = products.filter(p => {
-                const matchesCat = (activeCategory === 'all') || (p.category === activeCategory);
-                const matchesSearch = p.title.toLowerCase().includes(searchTerm) || (p.description && p.description.toLowerCase().includes(searchTerm));
-                return matchesCat && matchesSearch;
-            });
+            async saveSettings(e) {
+                e.preventDefault();
+                this.settings.phone = document.getElementById('sellerPhone').value.trim();
+                this.settings.bankily = document.getElementById('sellerBankily').value.trim();
+                this.settings.masrvi = document.getElementById('sellerMasrvi').value.trim();
 
-            if (filtered.length === 0) {
-                container.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-                return;
-            } else {
+                await this.db.put('settings', this.settings);
+                this.showToast('Paramètres vendeurs enregistrés');
+            }
+
+            // PRODUCTS MANAGMENT
+            async loadProducts() {
+                this.products = await this.db.getAll('products');
+                
+                // Seed initial data if store is empty
+                if (this.products.length === 0) {
+                    const seedData = [
+                        {
+                            id: 'p1',
+                            name: 'Sérum Éclat Visage Rose',
+                            category: 'cosmetiques',
+                            price: 1200,
+                            description: 'Sérum hydratant bio enrichi en vitamines C et E pour un teint radieux.',
+                            image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+                            createdAt: Date.now()
+                        },
+                        {
+                            id: 'p2',
+                            name: 'Robe de Soirée Élégante',
+                            category: 'vetements',
+                            price: 3500,
+                            description: 'Robe longue en tissu satiné haut de gamme, parfaite pour vos grands événements.',
+                            image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600',
+                            createdAt: Date.now()
+                        },
+                        {
+                            id: 'p3',
+                            name: 'Palette Maquillage Nude',
+                            category: 'cosmetiques',
+                            price: 1800,
+                            description: '12 teintes pigmentées mats et irisées longue tenue.',
+                            image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600',
+                            createdAt: Date.now()
+                        },
+                        {
+                            id: 'p4',
+                            name: 'Ensemble Traditionnel Chic',
+                            category: 'vetements',
+                            price: 4500,
+                            description: 'Ensemble 2 pièces brodé avec des finitions délicates et confortables.',
+                            image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=600',
+                            createdAt: Date.now()
+                        }
+                    ];
+                    for (const item of seedData) {
+                        await this.db.put('products', item);
+                    }
+                    this.products = seedData;
+                }
+            }
+
+            renderCategories() {
+                const container = document.getElementById('categoryContainer');
+                container.innerHTML = this.categories.map(cat => `
+                    <button onclick="app.setCategory('${cat.id}')" 
+                        class="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition flex items-center gap-2 ${this.activeCategory === cat.id ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                        <i class="fa-solid ${cat.icon}"></i>
+                        <span>${cat.name}</span>
+                    </button>
+                `).join('');
+            }
+
+            setCategory(catId) {
+                this.activeCategory = catId;
+                this.renderCategories();
+                this.renderProducts();
+                
+                // Update navigation highlights
+                document.getElementById('navShop').className = catId === 'all' ? 'flex flex-col items-center justify-center text-brand-600 font-semibold' : 'flex flex-col items-center justify-center text-slate-500 hover:text-brand-600';
+                document.getElementById('navCosmo').className = catId === 'cosmetiques' ? 'flex flex-col items-center justify-center text-brand-600 font-semibold' : 'flex flex-col items-center justify-center text-slate-500 hover:text-brand-600';
+                document.getElementById('navCloth').className = catId === 'vetements' ? 'flex flex-col items-center justify-center text-brand-600 font-semibold' : 'flex flex-col items-center justify-center text-slate-500 hover:text-brand-600';
+            }
+
+            handleSearch(val) {
+                this.searchQuery = val.toLowerCase().trim();
+                this.renderProducts();
+            }
+
+            renderProducts() {
+                const grid = document.getElementById('productGrid');
+                const emptyState = document.getElementById('emptyState');
+                const title = document.getElementById('currentCategoryTitle');
+
+                const filtered = this.products.filter(p => {
+                    const matchCategory = this.activeCategory === 'all' || p.category === this.activeCategory;
+                    const matchSearch = p.name.toLowerCase().includes(this.searchQuery) || (p.description && p.description.toLowerCase().includes(this.searchQuery));
+                    return matchCategory && matchSearch;
+                });
+
+                // Update Category Title
+                if (this.activeCategory === 'cosmetiques') title.textContent = "Cosmétiques & Soins";
+                else if (this.activeCategory === 'vetements') title.textContent = "Vêtements & Mode";
+                else title.textContent = "Tous les produits";
+
+                document.getElementById('productCount').textContent = `${filtered.length} article(s) disponible(s)`;
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                    return;
+                }
+
                 emptyState.classList.add('hidden');
                 emptyState.classList.remove('flex');
-            }
 
-            container.innerHTML = filtered.map(p => {
-                const mainImg = (p.photos && p.photos.length > 0) ? p.photos[0] : 'https://via.placeholder.com/400?text=Neh-Forever';
-                const catName = p.category === 'cosmetics' ? 'Cosmétique' : 'Mode / Vêtement';
-                const catBadgeBg = p.category === 'cosmetics' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800';
-
-                return `
-                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
-                        <!-- Image Container -->
-                        <div class="relative aspect-square overflow-hidden bg-slate-100 cursor-pointer" onclick="openProductModal(${p.id})">
-                            <img src="${mainImg}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            
-                            <span class="absolute top-2 left-2 text-[10px] font-bold px-2.5 py-1 rounded-full ${catBadgeBg} backdrop-blur-md">
-                                ${catName}
+                grid.innerHTML = filtered.map(p => `
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
+                        <div class="relative aspect-square overflow-hidden bg-slate-100 cursor-pointer" onclick="app.openProductModal('${p.id}')">
+                            <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <span class="absolute top-2 left-2 bg-slate-900/70 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded-full capitalize">
+                                ${p.category === 'cosmetiques' ? 'Beauté' : 'Mode'}
                             </span>
-
-                            ${p.photos && p.photos.length > 1 ? `
-                                <span class="absolute bottom-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md bg-black/60 text-white">
-                                    <i class="fa-solid fa-images mr-1"></i>${p.photos.length}
-                                </span>
-                            ` : ''}
                         </div>
-
-                        <!-- Info -->
                         <div class="p-3.5 flex-1 flex flex-col justify-between">
                             <div>
-                                <h3 onclick="openProductModal(${p.id})" class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 hover:text-brand-600 transition cursor-pointer">
-                                    ${p.title}
-                                </h3>
+                                <h4 onclick="app.openProductModal('${p.id}')" class="font-bold text-slate-800 text-xs sm:text-sm line-clamp-1 hover:text-brand-600 cursor-pointer">${p.name}</h4>
+                                <p class="text-slate-400 text-[11px] line-clamp-1 mt-0.5">${p.description || 'Produit de qualité supérieure'}</p>
                             </div>
-
-                            <div class="mt-3">
-                                <div class="flex items-baseline justify-between mb-2">
-                                    <span class="text-base sm:text-lg font-black text-brand-600">${p.price} <span class="text-xs font-semibold">MRU</span></span>
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="grid grid-cols-2 gap-1.5">
-                                    <button onclick="addToCartDirect(${p.id})" class="py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1">
-                                        <i class="fa-solid fa-cart-plus"></i>
-                                        <span class="hidden sm:inline">Panier</span>
-                                    </button>
-                                    <button onclick="openProductModal(${p.id})" class="py-2 px-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 shadow-sm">
-                                        <span>Voir</span>
-                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                    </button>
-                                </div>
+                            <div class="mt-3 flex items-center justify-between gap-1">
+                                <span class="text-sm sm:text-base font-extrabold text-brand-600">${p.price} <span class="text-[10px] font-normal text-slate-400">MRU</span></span>
+                                <button onclick="app.addToCart('${p.id}')" class="bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white p-2 rounded-xl transition-all active:scale-95 flex items-center justify-center">
+                                    <i class="fa-solid fa-cart-plus text-xs sm:text-sm"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
-                `;
-            }).join('');
-        }
-
-        /* --- Category & Search Filter Handlers --- */
-        function selectCategory(cat) {
-            activeCategory = cat;
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
-                btn.classList.add('bg-white', 'text-slate-600');
-            });
-            const activeBtn = document.getElementById(`cat-${cat}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-white', 'text-slate-600');
-                activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow-md');
-            }
-            renderProducts();
-        }
-
-        function filterProducts() {
-            renderProducts();
-        }
-
-        function switchTab(tab) {
-            if (tab === 'shop') {
-                selectCategory('all');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-
-        /* --- Product Modal & Image Carousel --- */
-        function openProductModal(id) {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
-
-            currentModalProduct = product;
-            currentImageIdx = 0;
-
-            document.getElementById('detailCategoryBadge').innerText = product.category === 'cosmetics' ? 'Cosmétique & Beauté' : 'Mode & Vêtement';
-            document.getElementById('detailTitle').innerText = product.title;
-            document.getElementById('detailPrice').innerText = product.price;
-            document.getElementById('detailDescription').innerText = product.description || "Aucune description fournie par le vendeur.";
-            
-            document.getElementById('detailBankily').innerText = product.bankily || "Non spécifié";
-            document.getElementById('detailMasrvi').innerText = product.masrvi || "Non spécifié";
-
-            updateModalGallery();
-            document.getElementById('productDetailModal').classList.remove('hidden');
-        }
-
-        function closeProductModal() {
-            document.getElementById('productDetailModal').classList.add('hidden');
-            currentModalProduct = null;
-        }
-
-        function updateModalGallery() {
-            const photos = (currentModalProduct.photos && currentModalProduct.photos.length > 0) 
-                ? currentModalProduct.photos 
-                : ['https://via.placeholder.com/600?text=Neh-Forever'];
-
-            document.getElementById('detailMainImage').src = photos[currentImageIdx];
-            document.getElementById('imageCounter').innerText = `${currentImageIdx + 1}/${photos.length}`;
-
-            // Thumbnails
-            const thumbContainer = document.getElementById('detailThumbnails');
-            if (photos.length > 1) {
-                thumbContainer.innerHTML = photos.map((img, i) => `
-                    <img src="${img}" onclick="setGalleryImage(${i})" class="w-14 h-14 object-cover rounded-xl cursor-pointer border-2 ${i === currentImageIdx ? 'border-brand-600' : 'border-transparent opacity-60'} transition">
                 `).join('');
-                document.getElementById('prevImgBtn').classList.remove('hidden');
-                document.getElementById('nextImgBtn').classList.remove('hidden');
-            } else {
-                thumbContainer.innerHTML = '';
-                document.getElementById('prevImgBtn').classList.add('hidden');
-                document.getElementById('nextImgBtn').classList.add('hidden');
-            }
-        }
-
-        function setGalleryImage(idx) {
-            currentImageIdx = idx;
-            updateModalGallery();
-        }
-
-        function prevProductImage() {
-            if (!currentModalProduct || !currentModalProduct.photos) return;
-            currentImageIdx = (currentImageIdx - 1 + currentModalProduct.photos.length) % currentModalProduct.photos.length;
-            updateModalGallery();
-        }
-
-        function nextProductImage() {
-            if (!currentModalProduct || !currentModalProduct.photos) return;
-            currentImageIdx = (currentImageIdx + 1) % currentModalProduct.photos.length;
-            updateModalGallery();
-        }
-
-        /* --- Cart Logic --- */
-        function addToCartDirect(id) {
-            const prod = products.find(p => p.id === id);
-            if (!prod) return;
-            addToCartItem(prod);
-        }
-
-        function addToCartFromModal() {
-            if (currentModalProduct) {
-                addToCartItem(currentModalProduct);
-                closeProductModal();
-            }
-        }
-
-        function addToCartItem(prod) {
-            const existing = cart.find(item => item.id === prod.id);
-            if (existing) {
-                existing.qty += 1;
-            } else {
-                cart.push({ ...prod, qty: 1 });
-            }
-            updateCartUI();
-            toggleCartModal();
-        }
-
-        function updateCartUI() {
-            const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
-            const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-
-            // Badges
-            const badge = document.getElementById('cartCountBadge');
-            const mobileBadge = document.getElementById('mobileNavCartBadge');
-            
-            if (totalQty > 0) {
-                badge.innerText = totalQty;
-                badge.classList.remove('hidden');
-                mobileBadge.innerText = totalQty;
-                mobileBadge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-                mobileBadge.classList.add('hidden');
             }
 
-            document.getElementById('cartTotalPrice').innerText = `${totalPrice} MRU`;
+            // PRODUCT MODAL
+            openProductModal(id) {
+                const prod = this.products.find(p => p.id === id);
+                if (!prod) return;
 
-            // Render Cart List
-            const list = document.getElementById('cartItemsList');
-            if (cart.length === 0) {
-                list.innerHTML = `
-                    <div class="text-center py-12 text-slate-400">
-                        <i class="fa-solid fa-cart-flatbed text-4xl mb-2"></i>
-                        <p class="text-sm">Votre panier est vide.</p>
-                    </div>
-                `;
-                return;
+                this.selectedProduct = prod;
+                document.getElementById('modalTitle').textContent = prod.name;
+                document.getElementById('modalPrice').textContent = `${prod.price} MRU`;
+                document.getElementById('modalCategoryTag').textContent = prod.category;
+                document.getElementById('modalDescription').textContent = prod.description || 'Aucune description fournie.';
+                document.getElementById('modalProductImage').src = prod.image;
+                
+                document.getElementById('modalSellerPhone').textContent = this.settings.phone || 'Non renseigné';
+                document.getElementById('modalBankily').textContent = this.settings.bankily || 'Non renseigné';
+                document.getElementById('modalMasrvi').textContent = this.settings.masrvi || 'Non renseigné';
+
+                document.getElementById('modalAddToCartBtn').onclick = () => {
+                    this.addToCart(prod.id);
+                    this.closeProductModal();
+                };
+
+                document.getElementById('productDetailModal').classList.remove('hidden');
             }
 
-            list.innerHTML = cart.map(item => `
-                <div class="flex items-center space-x-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
-                    <img src="${item.photos && item.photos[0] ? item.photos[0] : 'https://via.placeholder.com/100'}" class="w-14 h-14 object-cover rounded-xl">
-                    <div class="flex-1">
-                        <h4 class="text-xs font-bold text-slate-800 line-clamp-1">${item.title}</h4>
-                        <div class="text-xs font-black text-brand-600 mt-0.5">${item.price} MRU</div>
-                        
-                        <div class="flex items-center space-x-2 mt-2">
-                            <button onclick="changeCartQty(${item.id}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs hover:bg-slate-200">-</button>
-                            <span class="text-xs font-bold px-1">${item.qty}</span>
-                            <button onclick="changeCartQty(${item.id}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs hover:bg-slate-200">+</button>
-                        </div>
-                    </div>
-                    <button onclick="removeFromCart(${item.id})" class="text-slate-400 hover:text-rose-500 p-2">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function changeCartQty(id, delta) {
-            const item = cart.find(i => i.id === id);
-            if (!item) return;
-            item.qty += delta;
-            if (item.qty <= 0) {
-                cart = cart.filter(i => i.id !== id);
-            }
-            updateCartUI();
-        }
-
-        function removeFromCart(id) {
-            cart = cart.filter(i => i.id !== id);
-            updateCartUI();
-        }
-
-        function toggleCartModal() {
-            document.getElementById('cartModal').classList.toggle('hidden');
-        }
-
-        /* --- Direct Order Modal Handler --- */
-        function openDirectOrderModal() {
-            if (!currentModalProduct) return;
-            
-            // Temporary add single product to cart for clean single checkout
-            cart = [{ ...currentModalProduct, qty: 1 }];
-            updateCartUI();
-            closeProductModal();
-            toggleCartModal();
-        }
-
-        /* --- Submit Order via WhatsApp --- */
-        function submitCartOrderWhatsApp() {
-            if (cart.length === 0) {
-                alert("Votre panier est vide.");
-                return;
+            closeProductModal() {
+                document.getElementById('productDetailModal').classList.add('hidden');
             }
 
-            const name = document.getElementById('orderClientName').value.trim();
-            const phone = document.getElementById('orderClientPhone').value.trim();
-            const address = document.getElementById('orderClientAddress').value.trim();
-            const paymentMethod = document.getElementById('orderPaymentMethod').value;
-
-            if (!name || !phone || !address) {
-                alert("Veuillez remplir tous les champs obligatoires (Nom, Téléphone, Adresse).");
-                return;
-            }
-
-            // Target seller phone (take seller phone from first item or default)
-            const sellerPhone = cart[0].phone || "22245000000";
-
-            let orderText = `* NOUVELLE COMMANDE NÉH-FOREVER *\n\n`;
-            orderText += `*Client:* ${name}\n`;
-            orderText += `*Téléphone:* ${phone}\n`;
-            orderText += `*Adresse:* ${address}\n`;
-            orderText += `*Moyen de Paiement:* ${paymentMethod}\n\n`;
-            orderText += `*Articles Commandés:*\n`;
-
-            let grandTotal = 0;
-            cart.forEach((item, i) => {
-                const subtotal = item.price * item.qty;
-                grandTotal += subtotal;
-                orderText += `${i+1}. ${item.title} (x${item.qty}) - ${subtotal} MRU\n`;
-                if (paymentMethod === 'Bankily' && item.bankily) {
-                    orderText += `   👉 Bankily Commerçant: ${item.bankily}\n`;
-                } else if (paymentMethod === 'Masrvi' && item.masrvi) {
-                    orderText += `   👉 Masrvi Commerçant: ${item.masrvi}\n`;
+            // CART MANAGEMENT
+            addToCart(prodId) {
+                const existing = this.cart.find(item => item.id === prodId);
+                if (existing) {
+                    existing.qty += 1;
+                } else {
+                    const prod = this.products.find(p => p.id === prodId);
+                    if (prod) {
+                        this.cart.push({ ...prod, qty: 1 });
+                    }
                 }
-            });
-
-            orderText += `\n*TOTAL À PAYER:* ${grandTotal} MRU\n\n`;
-            orderText += `Merci de traiter ma commande !`;
-
-            const encodedURL = `https://wa.me/${sellerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(orderText)}`;
-            window.open(encodedURL, '_blank');
-        }
-
-        /* --- Admin / Product Upload Functionality --- */
-        function toggleAdminModal() {
-            const modal = document.getElementById('adminModal');
-            modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                renderAdminProductList();
+                this.updateCartUI();
+                this.showToast('Produit ajouté au panier !');
             }
-        }
 
-        function switchAdminTab(tab) {
-            const tabAdd = document.getElementById('adminTabAdd');
-            const tabList = document.getElementById('adminTabList');
-            const form = document.getElementById('addProductForm');
-            const list = document.getElementById('adminProductList');
+            updateCartUI() {
+                const totalItems = this.cart.reduce((sum, item) => sum + item.qty, 0);
+                
+                // Badges
+                const cartBadge = document.getElementById('cartBadge');
+                const navCartBadge = document.getElementById('navCartBadge');
+                
+                if (totalItems > 0) {
+                    cartBadge.textContent = totalItems;
+                    cartBadge.classList.remove('hidden');
+                    navCartBadge.textContent = totalItems;
+                    navCartBadge.classList.remove('hidden');
+                } else {
+                    cartBadge.classList.add('hidden');
+                    navCartBadge.classList.add('hidden');
+                }
 
-            if (tab === 'add') {
-                tabAdd.className = "flex-1 py-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
-                tabList.className = "flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500";
-                form.classList.remove('hidden');
-                list.classList.add('hidden');
-            } else {
-                tabList.className = "flex-1 py-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600";
-                tabAdd.className = "flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500";
-                form.classList.add('hidden');
-                list.classList.remove('hidden');
-                renderAdminProductList();
+                // Render cart items
+                const container = document.getElementById('cartItemsContainer');
+                if (this.cart.length === 0) {
+                    container.innerHTML = `
+                        <div class="py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-basket-shopping text-4xl mb-2"></i>
+                            <p class="text-sm">Votre panier est vide</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = this.cart.map(item => `
+                        <div class="py-3 flex items-center gap-3">
+                            <img src="${item.image}" class="w-14 h-14 rounded-xl object-cover bg-slate-100">
+                            <div class="flex-1 min-w-0">
+                                <h5 class="font-bold text-xs text-slate-800 truncate">${item.name}</h5>
+                                <p class="text-xs font-semibold text-brand-600 mt-0.5">${item.price} MRU</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <button onclick="app.updateQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">-</button>
+                                    <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                                    <button onclick="app.updateQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                            <button onclick="app.removeFromCart('${item.id}')" class="text-slate-400 hover:text-red-500 p-2">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+
+                // Totals
+                const total = this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                document.getElementById('cartSubtotal').textContent = `${total} MRU`;
+                document.getElementById('cartTotal').textContent = `${total} MRU`;
             }
-        }
 
-        // Preview local photos uploaded in Admin
-        function previewImages(event) {
-            const files = event.target.files;
-            const container = document.getElementById('photoPreviewContainer');
-            container.innerHTML = '';
-            uploadedPhotoBase64List = [];
+            updateQty(id, delta) {
+                const item = this.cart.find(i => i.id === id);
+                if (item) {
+                    item.qty += delta;
+                    if (item.qty <= 0) {
+                        this.removeFromCart(id);
+                    } else {
+                        this.updateCartUI();
+                    }
+                }
+            }
 
-            if (files.length === 0) return;
+            removeFromCart(id) {
+                this.cart = this.cart.filter(i => i.id !== id);
+                this.updateCartUI();
+            }
 
-            Array.from(files).forEach(file => {
+            openCart() {
+                document.getElementById('cartDrawer').classList.remove('hidden');
+            }
+
+            closeCart() {
+                document.getElementById('cartDrawer').classList.add('hidden');
+            }
+
+            // ORDER SUBMISSION VIA WHATSAPP
+            submitOrder() {
+                if (this.cart.length === 0) {
+                    this.showToast('Votre panier est vide', 'error');
+                    return;
+                }
+
+                const name = document.getElementById('custName').value.trim();
+                const phone = document.getElementById('custPhone').value.trim();
+                const address = document.getElementById('custAddress').value.trim();
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+                if (!name || !phone || !address) {
+                    this.showToast('Veuillez remplir vos coordonnées', 'error');
+                    return;
+                }
+
+                const sellerPhone = this.settings.phone || '22240000000';
+                const total = this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+                let message = `🛒 *NOUVELLE COMMANDE NÉH-FOREVER*\n\n`;
+                message += `👤 *Client:* ${name}\n`;
+                message += `📞 *Tél:* ${phone}\n`;
+                message += `📍 *Adresse:* ${address}\n`;
+                message += `💳 *Mode de paiement:* ${paymentMethod}\n\n`;
+                message += `*Détails des articles :*\n`;
+
+                this.cart.forEach((item, index) => {
+                    message += `${index + 1}. ${item.name} (x${item.qty}) - ${item.price * item.qty} MRU\n`;
+                });
+
+                message += `\n💰 *Total à régler:* ${total} MRU\n\n`;
+
+                if (paymentMethod === 'Bankily') {
+                    message += `ℹ️ *Paiement Bankily:* Veuillez transférer ${total} MRU au numéro *${this.settings.bankily}*`;
+                } else if (paymentMethod === 'Masrvi') {
+                    message += `ℹ️ *Paiement Masrvi:* Veuillez transférer ${total} MRU au numéro *${this.settings.masrvi}*`;
+                } else {
+                    message += `ℹ️ Paiement en espèces à la livraison.`;
+                }
+
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/${sellerPhone.replace(/\D/g, '')}?text=${encodedMessage}`;
+
+                // Clear cart & close drawer
+                this.cart = [];
+                this.updateCartUI();
+                this.closeCart();
+
+                // Redirect to WhatsApp
+                window.open(whatsappUrl, '_blank');
+            }
+
+            // ADMIN MANAGEMENT
+            toggleAdminModal() {
+                const modal = document.getElementById('adminModal');
+                modal.classList.toggle('hidden');
+                if (!modal.classList.contains('hidden')) {
+                    this.setAdminTab('add');
+                }
+            }
+
+            setAdminTab(tab) {
+                const form = document.getElementById('productForm');
+                const list = document.getElementById('adminProductList');
+                const settings = document.getElementById('settingsForm');
+
+                const btnAdd = document.getElementById('tabBtnAdd');
+                const btnList = document.getElementById('tabBtnList');
+                const btnSettings = document.getElementById('tabBtnSettings');
+
+                // Reset styles
+                [btnAdd, btnList, btnSettings].forEach(b => {
+                    b.className = "flex-1 py-3 px-4 border-b-2 border-transparent hover:text-slate-900 transition";
+                });
+
+                if (tab === 'add') {
+                    form.classList.remove('hidden');
+                    list.classList.add('hidden');
+                    settings.classList.add('hidden');
+                    btnAdd.className = "flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition";
+                } else if (tab === 'list') {
+                    form.classList.add('hidden');
+                    list.classList.remove('hidden');
+                    settings.classList.add('hidden');
+                    btnList.className = "flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition";
+                    this.renderAdminProductList();
+                } else if (tab === 'settings') {
+                    form.classList.add('hidden');
+                    list.classList.add('hidden');
+                    settings.classList.remove('hidden');
+                    btnSettings.className = "flex-1 py-3 px-4 border-b-2 border-brand-600 text-brand-600 font-bold transition";
+                }
+            }
+
+            handleImageUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    const base64Str = e.target.result;
-                    uploadedPhotoBase64List.push(base64Str);
-
-                    const imgWrapper = document.createElement('div');
-                    imgWrapper.className = "relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border border-slate-200";
-                    imgWrapper.innerHTML = `<img src="${base64Str}" class="w-full h-full object-cover">`;
-                    container.appendChild(imgWrapper);
+                reader.onload = (event) => {
+                    this.currentBase64Image = event.target.result;
+                    document.getElementById('imagePreview').src = this.currentBase64Image;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
-            });
-        }
-
-        // Handle Product Save to IndexedDB
-        async function handleSaveProduct(event) {
-            event.preventDefault();
-
-            if (uploadedPhotoBase64List.length === 0) {
-                alert("Veuillez ajouter au moins une photo pour le produit.");
-                return;
             }
 
-            const newProd = {
-                title: document.getElementById('prodTitle').value.trim(),
-                category: document.getElementById('prodCategory').value,
-                price: parseFloat(document.getElementById('prodPrice').value),
-                phone: document.getElementById('prodPhone').value.trim(),
-                bankily: document.getElementById('prodBankily').value.trim(),
-                masrvi: document.getElementById('prodMasrvi').value.trim(),
-                photos: uploadedPhotoBase64List,
-                description: document.getElementById('prodDescription').value.trim()
-            };
-
-            const newId = await saveProductToDB(newProd);
-            newProd.id = newId;
-            products.unshift(newProd);
-
-            // Reset form
-            document.getElementById('addProductForm').reset();
-            document.getElementById('photoPreviewContainer').innerHTML = '';
-            uploadedPhotoBase64List = [];
-
-            alert("Article publié avec succès sur Néh-Forever !");
-            renderProducts();
-            toggleAdminModal();
-        }
-
-        function renderAdminProductList() {
-            const list = document.getElementById('adminProductList');
-            document.getElementById('adminProductCount').innerText = products.length;
-
-            if (products.length === 0) {
-                list.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Aucun article enregistré.</p>`;
-                return;
+            clearImagePreview() {
+                this.currentBase64Image = '';
+                document.getElementById('imagePreview').src = '';
+                document.getElementById('imagePreviewContainer').classList.add('hidden');
+                document.getElementById('prodImageInput').value = '';
             }
 
-            list.innerHTML = products.map(p => `
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-2xl">
-                    <div class="flex items-center space-x-3">
-                        <img src="${p.photos && p.photos[0] ? p.photos[0] : 'https://via.placeholder.com/80'}" class="w-12 h-12 object-cover rounded-xl">
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-800 line-clamp-1">${p.title}</h4>
-                            <span class="text-xs font-black text-brand-600">${p.price} MRU</span>
-                            <div class="text-[10px] text-slate-400">Tél: ${p.phone}</div>
+            async saveProduct(e) {
+                e.preventDefault();
+
+                const id = document.getElementById('prodId').value || 'prod_' + Date.now();
+                const name = document.getElementById('prodName').value.trim();
+                const category = document.getElementById('prodCategory').value;
+                const price = parseFloat(document.getElementById('prodPrice').value);
+                const description = document.getElementById('prodDesc').value.trim();
+                const image = this.currentBase64Image || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600';
+
+                const newProd = {
+                    id,
+                    name,
+                    category,
+                    price,
+                    description,
+                    image,
+                    createdAt: Date.now()
+                };
+
+                await this.db.put('products', newProd);
+                await this.loadProducts();
+                this.renderProducts();
+                this.resetProductForm();
+                this.showToast('Produit enregistré avec succès !');
+                this.setAdminTab('list');
+            }
+
+            resetProductForm() {
+                document.getElementById('productForm').reset();
+                document.getElementById('prodId').value = '';
+                this.clearImagePreview();
+            }
+
+            renderAdminProductList() {
+                const container = document.getElementById('adminProductList');
+                if (this.products.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Aucun produit en stock.</p>`;
+                    return;
+                }
+
+                container.innerHTML = this.products.map(p => `
+                    <div class="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white transition">
+                        <img src="${p.image}" class="w-12 h-12 rounded-xl object-cover">
+                        <div class="flex-1 min-w-0">
+                            <h5 class="font-bold text-xs text-slate-800 truncate">${p.name}</h5>
+                            <p class="text-xs text-brand-600 font-semibold">${p.price} MRU • <span class="capitalize text-slate-400 font-normal">${p.category}</span></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="app.editProduct('${p.id}')" class="p-2 text-slate-600 hover:text-brand-600">
+                                <i class="fa-solid fa-pen-to-square text-sm"></i>
+                            </button>
+                            <button onclick="app.deleteProduct('${p.id}')" class="p-2 text-slate-400 hover:text-red-600">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
                         </div>
                     </div>
-                    <button onclick="handleDeleteProduct(${p.id})" class="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        async function handleDeleteProduct(id) {
-            if (confirm("Voulez-vous vraiment supprimer cet article ?")) {
-                await deleteProductFromDB(id);
-                products = products.filter(p => p.id !== id);
-                renderProducts();
-                renderAdminProductList();
+                `).join('');
             }
-        }
 
-        /* --- Progressive Web App (Service Worker + Manifest Dynamic) --- */
-        function registerPWA() {
-            // Inject Web Manifest
-            const manifest = {
-                name: "Néh-Forever Boutique",
-                short_name: "Néh-Forever",
-                start_url: ".",
-                display: "standalone",
-                background_color: "#ffffff",
-                theme_color: "#e11d48",
-                icons: [
-                    {
-                        src: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=192&q=80",
-                        sizes: "192x192",
-                        type: "image/png"
-                    }
-                ]
-            };
-            const stringManifest = JSON.stringify(manifest);
-            const blobManifest = new Blob([stringManifest], { type: 'application/json' });
-            const manifestURL = URL.createObjectURL(blobManifest);
-            const link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = manifestURL;
-            document.head.appendChild(link);
+            editProduct(id) {
+                const prod = this.products.find(p => p.id === id);
+                if (!prod) return;
 
-            // Service Worker Inline Blob
-            if ('serviceWorker' in navigator) {
-                const swCode = `
-                    const CACHE_NAME = 'neh-forever-v1';
-                    self.addEventListener('install', (e) => {
-                        self.skipWaiting();
-                    });
-                    self.addEventListener('fetch', (e) => {
-                        e.respondWith(
-                            fetch(e.request).catch(() => caches.match(e.request))
-                        );
-                    });
+                document.getElementById('prodId').value = prod.id;
+                document.getElementById('prodName').value = prod.name;
+                document.getElementById('prodCategory').value = prod.category;
+                document.getElementById('prodPrice').value = prod.price;
+                document.getElementById('prodDesc').value = prod.description || '';
+
+                if (prod.image) {
+                    this.currentBase64Image = prod.image;
+                    document.getElementById('imagePreview').src = prod.image;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                }
+
+                this.setAdminTab('add');
+            }
+
+            async deleteProduct(id) {
+                if (confirm('Voulez-vous vraiment supprimer cet article ?')) {
+                    await this.db.delete('products', id);
+                    await this.loadProducts();
+                    this.renderProducts();
+                    this.renderAdminProductList();
+                    this.showToast('Produit supprimé', 'error');
+                }
+            }
+
+            // NAVIGATION & TOAST UTILS
+            navigate(view) {
+                if (view === 'shop') {
+                    this.setCategory('all');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+
+            showToast(msg, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `px-4 py-3 rounded-2xl text-xs font-bold text-white shadow-xl flex items-center gap-2 transform transition-all duration-300 pointer-events-auto ${type === 'error' ? 'bg-red-600' : 'bg-slate-900'}`;
+                toast.innerHTML = `
+                    <i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'} text-brand-500"></i>
+                    <span>${msg}</span>
                 `;
-                const blobSW = new Blob([swCode], { type: 'text/javascript' });
-                const swURL = URL.createObjectURL(blobSW);
-                navigator.serviceWorker.register(swURL).catch(() => {});
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                    setTimeout(() => toast.remove(), 300);
+                }, 2500);
+            }
+
+            // INLINE PWA SERVICE WORKER REGISTRATION
+            registerPWA() {
+                if ('serviceWorker' in navigator) {
+                    const swCode = `
+                        const CACHE_NAME = 'neh-forever-v1';
+                        self.addEventListener('install', (e) => {
+                            self.skipWaiting();
+                        });
+                        self.addEventListener('activate', (e) => {
+                            e.waitUntil(clients.claim());
+                        });
+                        self.addEventListener('fetch', (e) => {
+                            e.respondWith(
+                                fetch(e.request).catch(() => caches.match(e.request))
+                            );
+                        });
+                    `;
+                    const blob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(blob);
+                    navigator.serviceWorker.register(swUrl).catch(console.error);
+                }
             }
         }
+
+        // INITIALIZE APP
+        const app = new App();
+        document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
 </body>
 </html>
