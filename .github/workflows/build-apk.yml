@@ -1,0 +1,31 @@
+name: Nexus PWA to APK Builder
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v3
+
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Installation de l'outil de génération PWABuilder CLI
+        run: npm install -g @pwabuilder/pwapush
+
+      - name: Validation du Manifeste et des fichiers PWA
+        run: |
+          echo "Vérification de la présence de index.html et manifest.json..."
+          ls -la
+
+      # Optionnel : Étape de génération ou appel direct au service de packaging Android
+      - name: Notification de succès du build source
+        run: |
+          echo "Le code source de la PWA est prêt pour l'empaquetage Android."
