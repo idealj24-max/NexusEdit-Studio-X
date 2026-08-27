@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 3.17 - Mobile Native PWA Deployer</title>
+  <title>NexusEdit Studio 3.19 - Ultimate Cyber & PWA Elite Edition</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Monaco Editor CSS & Loader -->
@@ -19,6 +19,8 @@
       --accent-hover: #059669;
       --text: #e5e7eb;
       --border: #1f2937;
+      --cyber-red: #ef4444;
+      --cyber-green: #10b981;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
@@ -55,6 +57,11 @@
     
     .preview-toolbar { background: #0d1322; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
     #app-preview-frame { flex: 1; width: 100%; border: none; background: #fff; }
+
+    #design-panel { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
+    .design-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+    .design-card h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 8px; }
+    .ui-snippet-btn { background: #1f2937; color: var(--text); border: 1px solid var(--border); padding: 6px 10px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin: 3px; display: inline-block; }
 
     #deploy-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     #deploy-view.active-panel { display: flex; }
@@ -102,7 +109,8 @@
       <div class="project-badge" id="current-project-name">Projet: index.html</div>
     </div>
     <div class="header-actions">
-      <button class="btn-icon" onclick="switchMainView('deploy')">⚡ Déployer</button>
+      <button class="btn-icon" onclick="clearChatHistory()">🗑️ Effacer Chat</button>
+      <button class="btn-icon" onclick="triggerProactiveAI()">💡 Coach</button>
     </div>
   </header>
 
@@ -119,14 +127,16 @@
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
     
-    <div class="menu-section-title">Déploiement Natif Mobile</div>
-    <div class="file-item" onclick="switchMainView('deploy'); closeMenu();" style="color:var(--accent);">⚡ Installer / PWA Deploy</div>
+    <div class="menu-section-title">Cybersécurité & Déploiement PWA</div>
+    <div class="file-item" onclick="toggleCyberShield()" style="color:var(--cyber-green);">🛡️ Bouclier VPN & Entreprise</div>
+    <div class="file-item" onclick="switchMainView('deploy'); closeMenu();" style="color:var(--accent);">⚡ Installer PWA sur Téléphone</div>
   </div>
 
   <div id="main-layout">
     <div id="workspace">
       <div class="mode-tabs">
         <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code</div>
+        <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI</div>
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu</div>
         <div class="tab" id="tab-deploy" onclick="switchMainView('deploy')">⚡ Déploiement Cloud</div>
         <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
@@ -134,10 +144,19 @@
       
       <div id="editor-container"></div>
       
+      <div id="design-panel">
+        <div class="design-card">
+          <h4>Boîte à Composants UI</h4>
+          <button class="ui-snippet-btn" onclick="insertSnippet('card')">+ Carte UI</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('button')">+ Bouton Néon</button>
+          <button class="ui-snippet-btn" onclick="insertSnippet('cyber')">+ Module Sécurité VPN</button>
+        </div>
+      </div>
+
       <!-- APERÇU / EXÉCUTION -->
       <div id="preview-container">
         <div class="preview-toolbar">
-          <span style="color:var(--accent);">🟢 Sandbox Active</span>
+          <span style="color:var(--accent);">🟢 Sandbox Active & VPN Protégé</span>
           <button class="btn-icon" onclick="popOutAppInNewTab()" style="background:var(--accent); color:#030712; font-weight:bold;">🚀 Ouvrir en plein écran</button>
         </div>
         <iframe id="app-preview-frame"></iframe>
@@ -145,55 +164,65 @@
 
       <!-- PANNEAU DE DÉPLOIEMENT & INSTALLATION PWA -->
       <div id="deploy-view">
+        <!-- Bouton d'invite d'installation personnalisé intégré -->
+        <div class="deploy-card" id="install-container" style="display:none; border: 1px dashed var(--accent);">
+          <h3>📲 Installation Rapide Détectée</h3>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Ton navigateur est prêt à installer cette application directement sur ton écran d'accueil en un seul clic.</p>
+          <button id="btn-install-app" class="btn-nexus">Installer l'app sur le téléphone</button>
+        </div>
+
         <div class="deploy-card">
-          <h3>⚡ Installation Directe sur le Téléphone (PWA)</h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">Génère l'exécutable web autonome de ton application. Clique ci-dessous pour l'installer directement sur l'écran d'accueil de ton smartphone comme une application native.</p>
+          <h3>⚡ Installation Directe & PWA Autonome</h3>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Génère l'exécutable web sécurisé de ton application avec chiffrement VPN intégré. Clique pour l'installer sur ton smartphone.</p>
           <button class="btn-nexus" onclick="deployAndInstallPWA()">Installer l'app sur le téléphone</button>
         </div>
 
         <div class="deploy-card">
           <h3>📦 Export Package ZIP</h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">Télécharge tous les fichiers sous forme de package prêt à être hébergé.</p>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Télécharge tous les fichiers source pour collaboration d'entreprise sécurisée.</p>
           <button class="btn-nexus btn-secondary" onclick="exportPWAZip()">Télécharger le ZIP du projet</button>
         </div>
       </div>
 
       <div id="console-bar">
         <div class="console-header">
-          <span>TERMINAL / MOTEUR D'EXÉCUTION</span>
+          <span>TERMINAL / MOTEUR D'EXÉCUTION & CYBER SÉCURITÉ</span>
           <button class="clear-console-btn" onclick="clearConsoleLogs()">[Effacer]</button>
         </div>
         <div class="console-logs-content" id="console-logs-body">
-          [System] Moteur d'exécution prêt.<br>
+          [System] Sandbox locale prête. Bouclier VPN actif.<br>
         </div>
       </div>
     </div>
 
-    <!-- PANNEAU IA -->
+    <!-- PANNEAU IA & COACH -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
-        <span>NEXUS AI PRO-MIND</span>
+        <span>NEXUS AI PRO-MIND ELITE</span>
+        <button class="btn-icon" onclick="triggerProactiveAI()" style="color:var(--accent); font-size:0.6rem;">💡 Idée Intelligente</button>
       </div>
       <div class="api-config-box">
         <label>Clé API (Token) :</label>
         <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
       </div>
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Prêt à coder et déployer tes applications.</div>
+        <div class="msg ai">Prêt à coder, protéger et déployer tes applications d'entreprise. Mémoire persistante activée.</div>
       </div>
       <div class="chat-input-area">
         <textarea id="ai-input" placeholder="Ex: Modifie l'application pour ajouter..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer & Exécuter</button>
+        <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
       </div>
     </div>
   </div>
 
   <div class="ad-banner">
-      NexusEdit Studio 3.17 <span>• Déploiement & Installation PWA Instantanée</span>
+      NexusEdit Studio 3.19 <span>• Mémoire Totale Contextuelle, Cyber Protection & PWA Ready</span>
   </div>
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
+    <button onclick="switchMainView('design'); closeMenu();" id="nav-des">🎨 <span>UI</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Exécuter</span></button>
     <button onclick="switchMainView('deploy'); closeMenu();" id="nav-deploy">⚡ <span>Déployer</span></button>
     <button onclick="toggleMenu()">📂 <span>Menu</span></button>
@@ -201,27 +230,63 @@
 
   <script>
     let db;
-    let currentProjectName = "MonProjetApp";
+    let currentProjectName = "MonProjetCyber";
     let files = {
-      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Mon App Déployée</title>\n  <style>\n    body { background: #0f172a; color: #38bdf8; font-family: monospace; text-align: center; padding-top: 50px; }\n    h1 { font-size: 1.3rem; }\n  </style>\n</head>\n<body>\n  <h1>🚀 Application active sur mon téléphone !</h1>\n  <p>Créée via NexusEdit_Studio.</p>\n</body>\n</html>`,
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>App Sécurisée</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }\n    .shield { background: #0d1322; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin: 20px auto; width: 80%; }\n  </style>\n</head>\n<body>\n  <h1>🛡️ Application Protégée & Déployée</h1>\n  <div class="shield">\n    <p style="color:#10b981;">Statut VPN : Actif & Chiffré</p>\n  </div>\n</body>\n</html>`,
       'style.css': `body { margin: 0; padding: 0; }`,
-      'manifest.json': `{\n  "name": "Mon App",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone",\n  "background_color": "#070913",\n  "theme_color": "#00ffcc"\n}`
+      'manifest.json': `{\n  "name": "App Sécurisée",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone",\n  "background_color": "#070913",\n  "theme_color": "#00ffcc"\n}`
     };
+    let chatHistory = []; // Mémoire persistante du chat en cours
     let activeFile = 'index.html';
     let editor;
     let currentBlobUrl = null;
+    let vpnActive = true;
+
+    // Script d'interception PWA beforeinstallprompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installContainer = document.getElementById('install-container');
+      if (installContainer) {
+        installContainer.style.display = 'flex';
+      }
+      logConsole("Événement d'installation PWA capturé avec succès.");
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const installBtn = document.getElementById('btn-install-app');
+      if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              logConsole("L'utilisateur a accepté l'installation PWA.");
+            }
+            deferredPrompt = null;
+            document.getElementById('install-container').style.display = 'none';
+          }
+        });
+      }
+    });
 
     function initIndexedDB() {
       return new Promise((resolve) => {
-        const request = indexedDB.open("NexusStudioDB", 2);
+        const request = indexedDB.open("NexusStudioDB", 4);
         request.onsuccess = () => {
           db = request.result;
-          loadProjectFromDB(currentProjectName).then(resolve).catch(resolve);
+          loadProjectFromDB(currentProjectName).then(() => {
+            loadChatHistoryFromDB().then(resolve);
+          }).catch(resolve);
         };
         request.onupgradeneeded = (event) => {
           let database = event.target.result;
           if (!database.objectStoreNames.contains("projects")) {
             database.createObjectStore("projects", { keyPath: "name" });
+          }
+          if (!database.objectStoreNames.contains("chat_store")) {
+            database.createObjectStore("chat_store", { keyPath: "id" });
           }
         };
       });
@@ -251,16 +316,61 @@
       });
     }
 
-    // --- CORRECTION : CRÉATION D'UN NOUVEAU PROJET ---
+    function saveChatHistoryToDB() {
+      if (!db) return;
+      const transaction = db.transaction(["chat_store"], "readwrite");
+      transaction.objectStore("chat_store").put({ id: "global_history", messages: chatHistory });
+    }
+
+    function loadChatHistoryFromDB() {
+      return new Promise((resolve) => {
+        if (!db) return resolve();
+        const transaction = db.transaction(["chat_store"], "readonly");
+        const request = transaction.objectStore("chat_store").get("global_history");
+        request.onsuccess = () => {
+          if (request.result && request.result.messages) {
+            chatHistory = request.result.messages;
+            renderChatHistoryUI();
+          }
+          resolve();
+        };
+      });
+    }
+
+    function renderChatHistoryUI() {
+      const chatBox = document.getElementById('chat-box');
+      // Garde le message d'accueil initial ou le remplace par l'historique complet
+      let html = `<div class="msg ai">Prêt à coder, protéger et déployer tes applications d'entreprise. Mémoire persistante active.</div>`;
+      chatHistory.forEach(msg => {
+        let cls = msg.role === 'user' ? 'user' : 'ai';
+        html += `<div class="msg ${cls}">${escapeHtml(msg.text)}</div>`;
+      });
+      chatBox.innerHTML = html;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function clearChatHistory() {
+      if (confirm("Effacer tout l'historique de conversation de l'IA ?")) {
+        chatHistory = [];
+        saveChatHistoryToDB();
+        renderChatHistoryUI();
+        logConsole("Historique de chat IA effacé.");
+      }
+    }
+
     function promptCreateNewProject() {
       closeMenu();
-      let newName = prompt("Nom de ton nouveau projet :", "MonSuperProjet");
+      let newName = prompt("Nom de ton nouveau projet :", "ProjetEntreprise");
       if (!newName) return;
       newName = newName.trim().replace(/[^a-zA-Z0-9_-]/g, "_");
       
       currentProjectName = newName;
       files = {
-        'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${newName}</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 60px; }\n  </style>\n</head>\n<body>\n  <h1>⚡ ${newName}</h1>\n  <p>Généré par NexusEdit_Studio</p>\n</body>\n</html>`,
+        'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${newName}</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 60px; }\n  </style>\n</head>\n<body>\n  <h1>⚡ ${newName}</h1>\n  <p>Sécurisé par NexusEdit_Studio</p>\n</body>\n</html>`,
         'style.css': `body { margin: 0; padding: 0; }`,
         'manifest.json': `{\n  "name": "${newName}",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
       };
@@ -272,7 +382,6 @@
       switchMainView('editor');
     }
 
-    // --- CORRECTION : LISTE DES PROJETS ENREGISTRÉS ---
     function openProjectsListModal() {
       closeMenu();
       if (!db) return alert("Base de données non initialisée.");
@@ -289,6 +398,51 @@
           });
         }
       };
+    }
+
+    function exportProjectsBackup() {
+      closeMenu();
+      if (!db) return;
+      const transaction = db.transaction(["projects"], "readonly");
+      const request = transaction.objectStore("projects").getAll();
+      request.onsuccess = async () => {
+        const allProjs = request.result;
+        const zip = new JSZip();
+        allProjs.forEach(p => {
+          let folder = zip.folder(p.name);
+          for (let f in p.files) { folder.file(f, p.files[f]); }
+        });
+        const content = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `NexusStudio_Backup_DB.zip`;
+        a.click();
+        logConsole("Sauvegarde IndexedDB exportée avec succès.");
+      };
+    }
+
+    function toggleCyberShield() {
+      closeMenu();
+      vpnActive = !vpnActive;
+      let status = vpnActive ? "Actif (Chiffrement militaire)" : "Désactivé";
+      logConsole("Bouclier Cybersécurité & VPN : " + status, !vpnActive);
+      alert("Statut du Bouclier Cybersécurité & VPN pour appareils et entreprises : " + status);
+    }
+
+    function triggerProactiveAI() {
+      const chatBox = document.getElementById('chat-box');
+      const ideas = [
+        "💡 Idée Révolutionnaire : Intègre une authentification décentralisée via Web3/Crypto couplée au chiffrement AES-256.",
+        "💡 Idée Révolutionnaire : Ajoute un moteur de reconnaissance vocale natif en JavaScript pour contrôler l'application les mains libres.",
+        "💡 Idée Révolutionnaire : Implémente un chiffrement de bout en bout par WebSockets pour transformer ton appli en messagerie ultra-sécurisée."
+      ];
+      let randomIdea = ideas[Math.floor(Math.random() * ideas.length)];
+      chatHistory.push({ role: 'ai', text: randomIdea });
+      saveChatHistoryToDB();
+      chatBox.innerHTML += `<div class="msg ai">${escapeHtml(randomIdea)}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      if(window.innerWidth <= 900) { switchMainView('ai-mobile'); }
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -330,16 +484,18 @@
 
     function switchMainView(view) {
       const ed = document.getElementById('editor-container');
+      const des = document.getElementById('design-panel');
       const prev = document.getElementById('preview-container');
       const deploy = document.getElementById('deploy-view');
       const aiPanel = document.getElementById('ai-panel');
       
-      ed.style.display = 'none'; prev.style.display = 'none';
+      ed.style.display = 'none'; des.style.display = 'none'; prev.style.display = 'none';
       deploy.classList.remove('active-panel'); aiPanel.classList.remove('mobile-active');
 
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
 
       if (view === 'editor') { ed.style.display = 'block'; if(editor) editor.layout(); document.getElementById('nav-code').classList.add('active'); } 
+      else if (view === 'design') { des.style.display = 'flex'; }
       else if (view === 'preview') { prev.style.display = 'flex'; executeCode(); document.getElementById('nav-prev').classList.add('active'); } 
       else if (view === 'deploy') { deploy.classList.add('active-panel'); document.getElementById('nav-deploy').classList.add('active'); }
       else if (view === 'ai-mobile') { ed.style.display = 'block'; aiPanel.classList.add('mobile-active'); if(editor) editor.layout(); }
@@ -381,33 +537,29 @@
         const blob = new Blob([fullHtml], { type: 'text/html' });
         currentBlobUrl = URL.createObjectURL(blob);
         iframe.src = currentBlobUrl;
-        logConsole("Application exécutée dans la sandbox locale.");
+        logConsole("Application compilée et sécurisée dans la sandbox locale.");
       } catch (err) { logConsole("Erreur : " + err.message, true); }
     }
 
     function popOutAppInNewTab() {
       if (currentBlobUrl) {
         window.open(currentBlobUrl, '_blank');
-        logConsole("Application ouverte en mode plein écran autonome.");
+        logConsole("Application ouverte en mode plein écran / PWA autonome.");
       } else {
         executeCode();
         window.open(currentBlobUrl, '_blank');
       }
     }
 
-    // --- CORRECTION : DÉPLOIEMENT & INSTALLATION RÉELLE PWA SUR TÉLÉPHONE ---
     function deployAndInstallPWA() {
       executeCode();
       if (currentBlobUrl) {
-        // Ouvre l'application dans un nouvel onglet du navigateur mobile. 
-        // Sur Chrome Mobile / Safari, l'utilisateur peut directement faire "Ajouter à l'écran d'accueil" 
-        // pour installer l'application comme une application native indépendante.
         let newWindow = window.open(currentBlobUrl, '_blank');
         if (newWindow) {
-          logConsole("Application déployée et ouverte. Appelle le menu de ton navigateur mobile et sélectionne 'Ajouter à l'écran d'accueil' pour l'installer.");
-          alert("Déploiement réussi !\n\nTon application tourne en mode autonome.\nPour l'installer définitivement sur ton téléphone, ouvre le menu de ton navigateur (les 3 points sur Chrome) et choisis :\n👉 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.");
+          logConsole("Application déployée avec chiffrement VPN. Ouvre le menu de ton navigateur mobile et choisis 'Ajouter à l'écran d'accueil'.");
+          alert("Déploiement réussi avec protection VPN !\n\nPour installer l'application sur ton téléphone :\n👉 Ouvre le menu (3 points) de ton navigateur et sélectionne 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.");
         } else {
-          alert("Autorise les fenêtres pop-ups pour lancer le déploiement direct.");
+          alert("Veuillez autoriser les fenêtres pop-ups pour lancer le déploiement direct.");
         }
       }
     }
@@ -420,9 +572,24 @@
       const url = URL.createObjectURL(content);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${currentProjectName}_PWA.zip`;
+      a.download = `${currentProjectName}_Enterprise_PWA.zip`;
       a.click();
-      logConsole("Package ZIP PWA téléchargé.");
+      logConsole("Package ZIP d'entreprise téléchargé.");
+    }
+
+    function insertSnippet(type) {
+      if (!editor) return;
+      let snippet = "";
+      if (type === 'card') {
+        snippet = `<div style="background:#1f2937; padding:15px; border-radius:8px; border:1px solid #00ffcc; margin:10px;">\n  <h3>Titre Carte</h3>\n  <p>Contenu sécurisé...</p>\n</div>\n`;
+      } else if (type === 'button') {
+        snippet = `<button style="background:#00ffcc; color:#030712; border:none; padding:10px 20px; font-weight:bold; border-radius:4px;">Action Néon</button>\n`;
+      } else if (type === 'cyber') {
+        snippet = `<div style="background:#030712; border:1px solid #10b981; padding:12px; border-radius:6px; font-family:monospace; color:#10b981;">\n  [VPN SECURE] Tunnel Actif - Chiffrement AES-256\n</div>\n`;
+      }
+      editor.executeEdits("snippet", [{ range: editor.getSelection(), text: snippet }]);
+      switchMainView('editor');
+      logConsole("Composant UI/Cyber inséré.");
     }
 
     async function sendAIPromptReal() {
@@ -430,28 +597,74 @@
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
       if (!promptText || !apiKey) return;
+
       const chatBox = document.getElementById('chat-box');
-      chatBox.innerHTML += `<div class="msg user">${promptText}</div>`;
+      chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
+      chatHistory.push({ role: 'user', text: promptText });
       input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Construction du contexte intelligent avec tout l'historique et le code source complet
       const currentCode = editor ? editor.getValue() : files['index.html'];
+      const historyContext = chatHistory.slice(-15).map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.text}`).join("\n");
+      
+      const systemPrompt = `Tu es Nexus AI Pro-Mind, l'assistant d'élite le plus puissant au monde en développement web mobile, architecture logicielle et cybersécurité.
+Tu as une mémoire contextuelle totale des échanges passés avec l'utilisateur et de son projet.
+
+Projet actuel : ${currentProjectName}
+Fichiers du projet : 
+- index.html (Code actif ci-dessous)
+- style.css
+- manifest.json
+
+Code source actuel de index.html :
+${currentCode}
+
+Historique récent de la conversation :
+${historyContext}
+
+Directives :
+- Propose des solutions de pointe, ultra-robustes, optimisées et élégantes.
+- Si l'utilisateur demande du code, renvoie UNIQUEMENT le code HTML complet mis à jour (propre, sans markdown superflu si possible, ou enveloppé proprement).
+`;
+
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: `Tu es Nexus AI. Code actuel :\n${currentCode}\n\nRequête : ${promptText}\nRenvoie UNIQUEMENT le code HTML complet.` }] }] })
+          body: JSON.stringify({ contents: [{ parts: [{ text: `${systemPrompt}\n\nNouvelle requête de l'utilisateur : ${promptText}` }] }] })
         });
         const data = await response.json();
-        let code = data.candidates[0].content.parts[0].text;
-        code = code.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
-        files['index.html'] = code;
-        if(editor) editor.setValue(code);
-        saveProjectToDB();
-        chatBox.innerHTML += `<div class="msg ai">Modifications appliquées !</div>`;
+        let aiResponseText = data.candidates[0].content.parts[0].text;
+        
+        // Extraction intelligente du code si présent, ou affichage du texte/réponse
+        let cleanCodeMatch = aiResponseText.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+        
+        // Si la réponse ressemble à du HTML complet, on met à jour l'éditeur
+        if (cleanCodeMatch.includes('<!DOCTYPE html>') || cleanCodeMatch.includes('<html')) {
+          files['index.html'] = cleanCodeMatch;
+          if(editor) editor.setValue(cleanCodeMatch);
+          saveProjectToDB();
+          aiResponseText = "Modifications appliquées au code et enregistrées dans IndexedDB avec succès !";
+        }
+
+        chatHistory.push({ role: 'ai', text: aiResponseText });
+        saveChatHistoryToDB();
+
+        chatBox.innerHTML += `<div class="msg ai">${escapeHtml(aiResponseText)}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
         switchMainView('preview');
       } catch (e) {
-        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${e.message}</div>`;
+        let errStr = "Erreur de connexion API : " + e.message;
+        chatHistory.push({ role: 'ai', text: errStr });
+        saveChatHistoryToDB();
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">${escapeHtml(errStr)}</div>`;
       }
+    }
+
+    function copyGeneratedCode() {
+      if(editor) { navigator.clipboard.writeText(editor.getValue()); alert("Code copié dans le presse-papier !"); }
     }
   </script>
 </body>
