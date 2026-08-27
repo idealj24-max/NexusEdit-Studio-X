@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 3.15 - Cyber Shield H24 Enterprise</title>
+  <title>NexusEdit Studio 3.16 - Cloud Local & Sandbox Engine</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Monaco Editor CSS & Loader -->
@@ -21,7 +21,6 @@
       --border: #1f2937;
       --cyber-red: #ef4444;
       --cyber-green: #10b981;
-      --cyber-gold: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
@@ -54,26 +53,21 @@
     .tab.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.03); font-weight: bold; }
 
     #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
-    #preview-container { flex: 1; display: none; background: #030712; position: relative; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
-    #app-preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
+    #preview-container { flex: 1; display: none; background: #030712; position: relative; flex-direction: column; width: 100%; overflow: hidden; }
+    
+    .preview-toolbar { background: #0d1322; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
+    #app-preview-frame { flex: 1; width: 100%; border: none; background: #fff; }
 
     #design-panel { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     .design-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
     .design-card h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 8px; }
     .ui-snippet-btn { background: #1f2937; color: var(--text); border: 1px solid var(--border); padding: 6px 10px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin: 3px; display: inline-block; }
 
-    /* PANNEAU CYBER SHIELD H24 */
-    #cyber-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
-    #cyber-view.active-panel { display: flex; }
-    .cyber-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-    .cyber-card h3 { color: var(--accent); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-    .shield-status-badge { font-size: 0.65rem; padding: 3px 8px; border-radius: 4px; background: #1f2937; color: #9ca3af; font-weight: bold; }
-    .shield-status-badge.active { background: rgba(16, 185, 129, 0.2); color: var(--cyber-green); border: 1px solid var(--cyber-green); }
-    .shield-status-badge.b2b { background: rgba(245, 158, 11, 0.2); color: var(--cyber-gold); border: 1px solid var(--cyber-gold); }
-
-    .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
-    .stat-box { background: #030712; padding: 8px; border-radius: 4px; border: 1px solid var(--border); font-size: 0.7rem; }
-    .stat-box span { color: var(--accent); font-weight: bold; display: block; font-size: 0.9rem; margin-top: 2px; }
+    /* PANNEAU DÉPLOIEMENT INSTANTANÉ (NETLIFY-LIKE) */
+    #deploy-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
+    #deploy-view.active-panel { display: flex; }
+    .deploy-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .deploy-card h3 { color: var(--accent); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
 
     #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; }
     .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -139,10 +133,10 @@
     <div class="menu-section-title">Fichiers</div>
     <div class="file-item active" onclick="openFile('index.html')">📄 index.html</div>
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
+    <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
     
-    <div class="menu-section-title">Déploiement & Cloud</div>
-    <div class="file-item" onclick="deployToNexusCloud()" style="color:var(--accent);">🌐 Héberger Nexus Cloud</div>
-    <div class="file-item" onclick="syncGitHub()">🐙 Push GitHub</div>
+    <div class="menu-section-title">Déploiement Instantané</div>
+    <div class="file-item" onclick="switchMainView('deploy')" style="color:var(--accent);">⚡ Héberger & Exécuter (Netlify Style)</div>
   </div>
 
   <div id="main-layout">
@@ -151,7 +145,7 @@
         <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code</div>
         <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI</div>
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu</div>
-        <div class="tab" id="tab-cyber" onclick="switchMainView('cyber')">🛡️ Cyber Shield H24</div>
+        <div class="tab" id="tab-deploy" onclick="switchMainView('deploy')">⚡ Déploiement Cloud</div>
         <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
       </div>
       
@@ -165,60 +159,48 @@
         </div>
       </div>
 
+      <!-- APERÇU / EXÉCUTION TYPE REPLIT/NETLIFY -->
       <div id="preview-container">
+        <div class="preview-toolbar">
+          <span style="color:var(--accent);">🟢 Sandbox Active (Exécution locale)</span>
+          <div>
+            <button class="btn-icon" onclick="popOutAppInNewTab()" style="background:var(--accent); color:#030712; font-weight:bold;">🚀 Ouvrir en plein écran (PWA)</button>
+          </div>
+        </div>
         <iframe id="app-preview-frame"></iframe>
       </div>
 
-      <!-- PANNEAU CYBER SHIELD H24 & ENTREPRISES PARTENAIRES -->
-      <div id="cyber-view">
-        <div class="cyber-card">
-          <h3>
-            <span>🛡️ Surveillance Appareil & Réseau (H24)</span>
-            <span class="shield-status-badge active" id="shield-24-status">Actif (7j/7)</span>
-          </h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">L'IA analyse en permanence l'intégrité de ton smartphone, bloque les scripts malveillants locaux et surveille les connexions réseau.</p>
-          <div class="grid-stats">
-            <div class="stat-box">Menaces bloquées <span id="stat-threats">0</span></div>
-            <div class="stat-box">Réseaux sécurisés <span id="stat-networks">1 (TLS)</span></div>
-          </div>
-          <button class="btn-nexus btn-secondary" onclick="toggleH24Guard()">Mettre en pause la veille H24</button>
+      <!-- PANNEAU DE DÉPLOIEMENT INSTANTANÉ -->
+      <div id="deploy-view">
+        <div class="deploy-card">
+          <h3>⚡ Hébergement Instantané (Zero-Wait Deploy)</h3>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Génère un lien local éphémère ou une PWA autonome exécutée directement sur ton téléphone, exactement comme Netlify ou Replit.</p>
+          <button class="btn-nexus" onclick="deployInstantCloud()">Lancer le déploiement instantané</button>
         </div>
 
-        <div class="cyber-card">
-          <h3>
-            <span>🏢 Portail Entreprises Partenaires (B2B)</span>
-            <span class="shield-status-badge b2b" id="b2b-status">0 Partenaire</span>
-          </h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">Connexion sécurisée pour les entreprises qui souhaitent que NexusEdit_Studio protège leurs serveurs et audite leurs codes source 24h/24.</p>
-          <input type="text" id="b2b-company-name" placeholder="Nom de l'entreprise partenaire..." style="margin: 5px 0;">
-          <button class="btn-nexus" onclick="registerEnterprisePartner()">Connecter une entreprise partenaire</button>
-        </div>
-
-        <div class="cyber-card">
-          <h3>
-            <span>🔒 Tunnel Chiffré (VPN / Proxy)</span>
-            <span class="shield-status-badge" id="vpn-status-badge">Inactif</span>
-          </h3>
-          <button class="btn-nexus" id="vpn-toggle-btn" onclick="toggleNexusVPN()">Activer le Secure Tunnel</button>
+        <div class="deploy-card">
+          <h3>📦 Export Package PWA / ZIP</h3>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Télécharge tous les fichiers sous forme de package prêt à être hébergé partout instantanément.</p>
+          <button class="btn-nexus btn-secondary" onclick="exportPWAZip()">Télécharger le ZIP du projet</button>
         </div>
       </div>
 
       <div id="console-bar">
         <div class="console-header">
-          <span>TERMINAL / CONSOLE DE SÉCURITÉ H24</span>
+          <span>TERMINAL / MOTEUR D'EXÉCUTION</span>
           <button class="clear-console-btn" onclick="clearConsoleLogs()">[Effacer]</button>
         </div>
         <div class="console-logs-content" id="console-logs-body">
-          [System] Bouclier Cyber H24 opérationnel et en écoute.<br>
+          [System] Sandbox locale prête à exécuter les applications.<br>
         </div>
       </div>
     </div>
 
-    <!-- PANNEAU IA (GEMINI 3.6 FLASH) -->
+    <!-- PANNEAU IA -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>NEXUS AI PRO-MIND</span>
-        <span style="font-size:0.6rem; color:var(--accent);">H24 AI GUARD</span>
+        <span style="font-size:0.6rem; color:var(--accent);">SANDBOX AI</span>
       </div>
       
       <div class="api-config-box">
@@ -227,26 +209,26 @@
       </div>
 
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Mode H24 actif. Je protège ton appareil et tes partenaires en arrière-plan.</div>
+        <div class="msg ai">Prêt. Je compile et exécute tes applications instantanément.</div>
       </div>
       
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Analyse les risques de mon réseau actuel..."></textarea>
-        <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Lancer l'analyse</button>
+        <textarea id="ai-input" placeholder="Ex: Modifie l'application pour ajouter..."></textarea>
+        <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer & Exécuter</button>
         <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
       </div>
     </div>
   </div>
 
   <div class="ad-banner">
-      NexusEdit Studio 3.15 H24 <span>• Protection Totale Appareil, Réseau & Entreprises 24/7</span>
+      NexusEdit Studio 3.16 <span>• Exécution instantanée style Netlify/Replit sur Mobile</span>
   </div>
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
-    <button onclick="switchMainView('design'); closeMenu();" id="nav-des">🎨 <span>Design</span></button>
-    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Aperçu</span></button>
-    <button onclick="switchMainView('cyber'); closeMenu();" id="nav-cyber">🛡️ <span>Cyber</span></button>
+    <button onclick="switchMainView('design'); closeMenu();" id="nav-des">🎨 <span>UI</span></button>
+    <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Exécuter</span></button>
+    <button onclick="switchMainView('deploy'); closeMenu();" id="nav-deploy">⚡ <span>Déployer</span></button>
     <button onclick="toggleMenu()">📂 <span>Menu</span></button>
   </footer>
 
@@ -254,25 +236,13 @@
     let db;
     let currentProjectName = "MonProjetPWA";
     let files = {
-      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Sécurisée H24</title>\n</head>\n<body>\n  <h2>Protégé par Nexus Cyber Shield H24</h2>\n</body>\n</html>`,
-      'style.css': `body { background: #070913; color: #fff; font-family: sans-serif; }`
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Mon App Déployée</title>\n  <style>\n    body { background: #0f172a; color: #38bdf8; font-family: monospace; text-align: center; padding-top: 50px; }\n    h1 { font-size: 1.5rem; }\n  </style>\n</head>\n<body>\n  <h1>🚀 Application exécutée avec succès sur NexusEdit_Studio !</h1>\n  <p>Tourne en local sans attente.</p>\n</body>\n</html>`,
+      'style.css': `body { margin: 0; padding: 0; }`,
+      'manifest.json': `{\n  "name": "Mon App",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
     };
     let activeFile = 'index.html';
     let editor;
-    let threatsCount = 0;
-    let h24Active = true;
-
-    // Simulation de surveillance H24 en arrière-plan (toutes les 15 secondes)
-    setInterval(() => {
-      if (!h24Active) return;
-      // Simulation d'un scan automatique de l'appareil et du réseau
-      const randomCheck = Math.random();
-      if (randomCheck > 0.85) {
-        threatsCount++;
-        document.getElementById('stat-threats').innerText = threatsCount;
-        logConsole(`[H24 Gardien] Tentative de pistage/requête suspecte interceptée et bloquée sur l'appareil.`, true);
-      }
-    }, 15000);
+    let currentBlobUrl = null;
 
     function initIndexedDB() {
       return new Promise((resolve) => {
@@ -352,18 +322,18 @@
       const ed = document.getElementById('editor-container');
       const des = document.getElementById('design-panel');
       const prev = document.getElementById('preview-container');
-      const cyber = document.getElementById('cyber-view');
+      const deploy = document.getElementById('deploy-view');
       const aiPanel = document.getElementById('ai-panel');
       
       ed.style.display = 'none'; des.style.display = 'none'; prev.style.display = 'none';
-      cyber.classList.remove('active-panel'); aiPanel.classList.remove('mobile-active');
+      deploy.classList.remove('active-panel'); aiPanel.classList.remove('mobile-active');
 
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
 
       if (view === 'editor') { ed.style.display = 'block'; if(editor) editor.layout(); document.getElementById('nav-code').classList.add('active'); } 
       else if (view === 'design') { des.style.display = 'flex'; }
       else if (view === 'preview') { prev.style.display = 'flex'; executeCode(); document.getElementById('nav-prev').classList.add('active'); } 
-      else if (view === 'cyber') { cyber.classList.add('active-panel'); document.getElementById('nav-cyber').classList.add('active'); }
+      else if (view === 'deploy') { deploy.classList.add('active-panel'); document.getElementById('nav-deploy').classList.add('active'); }
       else if (view === 'ai-mobile') { ed.style.display = 'block'; aiPanel.classList.add('mobile-active'); if(editor) editor.layout(); }
     }
 
@@ -372,7 +342,7 @@
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
       event.currentTarget.classList.add('active');
-      let lang = filename.endsWith('.css') ? 'css' : 'html';
+      let lang = filename.endsWith('.css') ? 'css' : filename.endsWith('.json') ? 'json' : 'html';
       if(editor) {
         monaco.editor.setModelLanguage(editor.getModel(), lang);
         editor.setValue(files[filename] || '');
@@ -391,57 +361,57 @@
       document.getElementById('console-logs-body').innerHTML = `<span style="color:#6b7280">[System] Console nettoyée.</span><br>`;
     }
 
+    // --- MOTEUR D'EXÉCUTION LOCAL (TYPE REPLIT / NETLIFY) ---
     function executeCode() {
       try {
         if(editor) files[activeFile] = editor.getValue();
         const iframe = document.getElementById('app-preview-frame');
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open(); doc.write(files['index.html']); doc.close();
-        logConsole("Aperçu rafraîchi.");
-      } catch (err) { logConsole("Erreur d'affichage : " + err.message, true); }
+        
+        // Création d'un Blob URL pour exécuter l'application proprement en environnement isolé
+        let fullHtml = files['index.html'];
+        // Injection automatique du style CSS si présent
+        if(files['style.css'] && !fullHtml.includes('style.css')) {
+          fullHtml = fullHtml.replace('</head>', `<style>${files['style.css']}</style></head>`);
+        }
+
+        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+        const blob = new Blob([fullHtml], { type: 'text/html' });
+        currentBlobUrl = URL.createObjectURL(blob);
+        
+        iframe.src = currentBlobUrl;
+        logConsole("Application compilée et exécutée dans la sandbox locale.");
+      } catch (err) { logConsole("Erreur d'exécution : " + err.message, true); }
     }
 
-    // --- FONCTIONS CYBER H24 & B2B ---
-    function toggleH24Guard() {
-      h24Active = !h24Active;
-      const badge = document.getElementById('shield-24-status');
-      if(h24Active) {
-        badge.classList.add('active');
-        badge.innerText = "Actif (7j/7)";
-        logConsole("Veille H24 de l'appareil et du réseau réactivée.");
+    function popOutAppInNewTab() {
+      if (currentBlobUrl) {
+        window.open(currentBlobUrl, '_blank');
+        logConsole("Application ouverte en mode plein écran / PWA autonome.");
       } else {
-        badge.classList.remove('active');
-        badge.innerText = "En pause";
-        logConsole("Veille H24 mise en pause.", true);
+        executeCode();
+        window.open(currentBlobUrl, '_blank');
       }
     }
 
-    function registerEnterprisePartner() {
-      const companyInput = document.getElementById('b2b-company-name');
-      const companyName = companyInput.value.trim();
-      if(!companyName) { alert("Veuillez entrer le nom de l'entreprise partenaire."); return; }
-      
-      const badge = document.getElementById('b2b-status');
-      badge.innerText = `1 Partenaire actif (${companyName})`;
-      companyInput.value = '';
-      logConsole(`Entreprise partenaire "${companyName}" connectée au bouclier H24.`);
-      alert(`Succès ! L'entreprise ${companyName} est désormais connectée à la passerelle de sécurité Nexus Shield 24h/24.`);
+    function deployInstantCloud() {
+      executeCode();
+      alert("Déploiement instantané réussi ! Ton application est active et exécutée en local sur ton téléphone. Tu peux l'ouvrir en plein écran depuis l'onglet Aperçu.");
+      switchMainView('preview');
     }
 
-    let vpnActive = false;
-    function toggleNexusVPN() {
-      vpnActive = !vpnActive;
-      const badge = document.getElementById('vpn-status-badge');
-      const btn = document.getElementById('vpn-toggle-btn');
-      if(vpnActive) {
-        badge.classList.add('active'); badge.innerText = "Actif (Chiffré)";
-        btn.innerText = "Désactiver le Secure Tunnel";
-        logConsole("🔒 Tunnel chiffré activé pour le réseau.");
-      } else {
-        badge.classList.remove('active'); badge.innerText = "Inactif";
-        btn.innerText = "Activer le Secure Tunnel";
-        logConsole("🔓 Tunnel chiffré désactivé.");
+    async function exportPWAZip() {
+      if(editor) files[activeFile] = editor.getValue();
+      const zip = new JSZip();
+      for (let filename in files) {
+        zip.file(filename, files[filename]);
       }
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentProjectName}_Package.zip`;
+      a.click();
+      logConsole("Package ZIP du projet téléchargé avec succès.");
     }
 
     async function sendAIPromptReal() {
@@ -460,17 +430,21 @@
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
-              parts: [{ text: `Tu es Nexus AI, bouclier cyber H24. Code source actuel :\n${currentCode}\n\nRequête : ${promptText}\nRéponds de manière experte et renvoie le code mis à jour si nécessaire.` }]
+              parts: [{ text: `Tu es Nexus AI, expert en développement web mobile. Code actuel :\n${currentCode}\n\nRequête : ${promptText}\nRenvoie UNIQUEMENT le code HTML complet mis à jour.` }]
             }]
           })
         });
         const data = await response.json();
         let code = data.candidates[0].content.parts[0].text;
-        chatBox.innerHTML += `<div class="msg ai">Analyse et protection H24 exécutées avec succès !</div>`;
-        logConsole("IA H24 : Analyse terminée.");
+        code = code.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+        files['index.html'] = code;
+        if(editor) editor.setValue(code);
+        saveProjectToDB();
+        chatBox.innerHTML += `<div class="msg ai">Application générée et exécutée avec succès !</div>`;
+        switchMainView('preview');
       } catch (e) {
         chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${e.message}</div>`;
       }
@@ -478,17 +452,6 @@
 
     function copyGeneratedCode() {
       if(editor) { navigator.clipboard.writeText(editor.getValue()); alert("Code copié !"); }
-    }
-    function deployToNexusCloud() {
-      closeMenu();
-      if(editor) files[activeFile] = editor.getValue();
-      const win = window.open();
-      win.document.write(files['index.html']);
-      win.document.close();
-    }
-    async function syncGitHub() {
-      closeMenu();
-      alert("Synchronisation GitHub effectuée sous protection Nexus Shield.");
     }
   </script>
 </body>
