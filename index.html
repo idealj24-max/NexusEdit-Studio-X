@@ -191,11 +191,11 @@
       </div>
     </div>
 
-    <!-- PANNEAU IA MIS À JOUR (GEMINI FLASH) -->
+    <!-- PANNEAU IA MIS À JOUR (GEMINI 3.6 FLASH) -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>NEXUS AI ENGINE</span>
-        <span style="font-size:0.6rem; color:var(--accent);">GEMINI FLASH</span>
+        <span style="font-size:0.6rem; color:var(--accent);">GEMINI 3.6 FLASH</span>
       </div>
       
       <div class="api-config-box">
@@ -582,7 +582,7 @@
       }
     }
 
-    // --- FONCTION IA CORRIGÉE (GEMINI 2.5 FLASH) ---
+    // --- FONCTION IA CORRIGÉE (GEMINI 3.6 FLASH) ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
@@ -600,11 +600,11 @@
         return;
       }
 
-      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini Flash...</div>`;
+      chatBox.innerHTML += `<div class="msg ai">Génération de la PWA par Gemini 3.6 Flash...</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      // Endpoint corrigé et mis à jour pour le modèle Flash stable
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      // Endpoint mis à jour avec le modèle requis par l'API v1beta
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
       try {
         const response = await fetch(endpoint, {
