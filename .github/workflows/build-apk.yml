@@ -31,13 +31,11 @@ jobs:
           test -f index.html
           test -f manifest.json
           test -f sw.js
+          test -f twa-manifest.json
 
       - name: ⚙️ Build Android Automatisé
         run: |
-          # On initialise le projet Bubblewrap en mode non-interactif complet avec la variable JAVA_HOME
-          npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --skip-sdk-install --unattended || true
-          
-          cd android-app
+          # Lancement direct du build à partir du fichier twa-manifest.json à la racine
           npx @bubblewrap/cli build
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
@@ -46,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexus-edit-apk
-          path: android-app/app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/*.apk
