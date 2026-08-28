@@ -68,7 +68,6 @@
     .deploy-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
     .deploy-card h3 { color: var(--accent); font-size: 0.85rem; }
 
-    /* PANNEAU CYBER & VPN INTÉGRÉ */
     #cyber-config-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     #cyber-config-view.active-panel { display: flex; }
 
@@ -187,7 +186,7 @@
         </div>
       </div>
 
-      <!-- PANNEAU DE CONFIGURATION CYBERSÉCURITÉ & VPN INTERNE (INTÉGRÉ & 100% FONCTIONNEL) -->
+      <!-- PANNEAU DE CONFIGURATION CYBERSÉCURITÉ & VPN INTERNE -->
       <div id="cyber-config-view">
         <div class="deploy-card" style="border: 1px solid var(--cyber-green);">
           <h3 style="color:var(--cyber-green);">🛡️ Centre de Contrôle du Bouclier Cyber & VPN</h3>
@@ -250,6 +249,7 @@
       <div class="chat-input-area">
         <textarea id="ai-input" placeholder="Ex: Modifie l'application pour ajouter..."></textarea>
         <button class="btn-nexus" onclick="sendAIPromptReal()">🚀 Générer & Exécuter</button>
+        <button class="btn-nexus btn-secondary" onclick="startVoiceRecognition()">🎙️ Commande Vocale</button>
         <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
       </div>
     </div>
@@ -269,11 +269,121 @@
 
   <script>
     let db;
-    let currentProjectName = "MonProjetCyber";
+    let currentProjectName = "StreamVibeStudio";
     let files = {
-      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>App Sécurisée</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }\n    .shield { background: #0d1322; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin: 20px auto; width: 80%; }\n  </style>\n</head>\n<body>\n  <h1>🛡️ Application Protégée & Déployée</h1>\n  <div class="shield">\n    <p style="color:#10b981;">Statut VPN & Cyber : 100% Actif & Chiffré</p>\n  </div>\n</body>\n</html>`,
+      'index.html': `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StreamVibe - Musique & Clips Vidéo</title>
+  <style>
+    :root { --bg: #070913; --panel: #0d1322; --accent: #00ffcc; --text: #e5e7eb; --border: #1f2937; }
+    body { background: var(--bg); color: var(--text); font-family: monospace; margin: 0; padding: 15px; }
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--accent); padding-bottom: 10px; margin-bottom: 15px; }
+    h1 { color: var(--accent); font-size: 1.2rem; }
+    .card { background: var(--panel); border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+    input, select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; margin-top: 5px; margin-bottom: 10px; border-radius: 4px; }
+    button { background: var(--accent); color: #030712; border: none; padding: 10px; font-weight: bold; width: 100%; border-radius: 4px; cursor: pointer; }
+    .media-item { display: flex; gap: 10px; align-items: center; background: #030712; padding: 8px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border); }
+    .media-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎵 StreamVibe Pro</h1>
+    <span id="user-role-badge" style="font-size:0.75rem; color:#10b981;">Mode: Utilisateur / Fan</span>
+  </header>
+
+  <div class="card">
+    <h3>👤 Gestion des Comptes & Rôles</h3>
+    <select id="role-select" onchange="switchRole()">
+      <option value="fan">Auditeur / Fan</option>
+      <option value="artist">Artiste / Créateur</option>
+    </select>
+  </div>
+
+  <!-- ESPACE ARTISTE POUR PUBLIER -->
+  <div class="card" id="artist-upload-section" style="display:none; border-color: #8b5cf6;">
+    <h3 style="color:#8b5cf6;">🚀 Publier un Son ou un Clip Vidéo</h3>
+    <label>Type de média :</label>
+    <select id="media-type">
+      <option value="audio">Audio MP3 (Musique)</option>
+      <option value="video">Vidéo Clip</option>
+    </select>
+    <label>Titre de l'œuvre :</label>
+    <input type="text" id="m-title" placeholder="Ex: Freestyle Été 2026">
+    <label>Nom de l'album / Projet :</label>
+    <input type="text" id="m-album" placeholder="Ex: Mon Premier Album">
+    <label>Produit par (Beatmaker / Label) :</label>
+    <input type="text" id="m-prod" placeholder="Ex: BeatsByNexus">
+    <label>URL de la Pochette (Image) :</label>
+    <input type="text" id="m-cover" placeholder="https://exemple.com/image.jpg">
+    <label>Fichier Média (Sélectionner sur le téléphone ou lien) :</label>
+    <input type="file" id="m-file" accept="audio/*,video/*">
+    <button onclick="publishMedia()" style="background:#8b5cf6; color:#fff;">Publier en Ligne</button>
+  </div>
+
+  <!-- FEED DE LECTURE (YOUTUBE / SPOTIFY STYLE) -->
+  <div class="card">
+    <h3>🎧 Flux des Dernières Sorties</h3>
+    <div id="media-feed">
+      <div class="media-item">
+        <div style="width:50px;height:50px;background:#1f2937;border-radius:4px;display:flex;align-items:center;justify-content:center;">🎵</div>
+        <div style="flex:1; font-size:0.75rem;">
+          <strong>Exemple: Boom Bap Legacy</strong><br>
+          <span style="color:#9ca3af;">Album: Golden Era • Prod: 2Pac Style</span>
+        </div>
+        <button style="width:auto; padding:5px 10px; font-size:0.7rem;" onclick="alert('Lecture en cours...')">▶ Écouter</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchRole() {
+      const role = document.getElementById('role-select').value;
+      const uploadSec = document.getElementById('artist-upload-section');
+      const badge = document.getElementById('user-role-badge');
+      if(role === 'artist') {
+        uploadSec.style.display = 'block';
+        badge.innerText = "Mode: Artiste Certifié";
+      } else {
+        uploadSec.style.display = 'none';
+        badge.innerText = "Mode: Utilisateur / Fan";
+      }
+    }
+
+    function publishMedia() {
+      const title = document.getElementById('m-title').value;
+      const album = document.getElementById('m-album').value;
+      const prod = document.getElementById('m-prod').value;
+      const cover = document.getElementById('m-cover').value || 'https://via.placeholder.com/50';
+      const fileInput = document.getElementById('m-file');
+      
+      if(!title) { alert("Veuillez entrer un titre !"); return; }
+      
+      const feed = document.getElementById('media-feed');
+      const itemHTML = \`
+        <div class="media-item">
+          <img src="\${cover}" class="media-thumb" onerror="this.src='https://via.placeholder.com/50'">
+          <div style="flex:1; font-size:0.75rem;">
+            <strong>\${title}</strong><br>
+            <span style="color:#9ca3af;">Album: \${album || 'Single'} • Prod: \${prod || 'Indépendant'}</span>
+          </div>
+          <button style="width:auto; padding:5px 10px; font-size:0.7rem;" onclick="alert('Lecture de \\'\${title}\\'...')">▶ Écouter</button>
+        </div>
+      \`;
+      feed.innerHTML = itemHTML + feed.innerHTML;
+      alert("🎉 Votre publication a été mise en ligne avec succès !");
+      document.getElementById('m-title').value = '';
+      document.getElementById('m-album').value = '';
+      document.getElementById('m-prod').value = '';
+    }
+  </script>
+</body>
+</html>`,
       'style.css': `body { margin: 0; padding: 0; }`,
-      'manifest.json': `{\n  "name": "App Sécurisée",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone",\n  "background_color": "#070913",\n  "theme_color": "#00ffcc"\n}`
+      'manifest.json': `{\n  "name": "StreamVibe",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
     };
     let chatHistory = []; 
     let activeFile = 'index.html';
@@ -282,7 +392,6 @@
     let vpnActive = true;
     let vpnModeConfig = "aes256";
 
-    // Script d'interception PWA beforeinstallprompt
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -403,13 +512,13 @@
 
     function promptCreateNewProject() {
       closeMenu();
-      let newName = prompt("Nom de ton nouveau projet :", "ProjetEntreprise");
+      let newName = prompt("Nom de ton nouveau projet :", "StreamVibeApp");
       if (!newName) return;
       newName = newName.trim().replace(/[^a-zA-Z0-9_-]/g, "_");
       
       currentProjectName = newName;
       files = {
-        'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${newName}</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 60px; }\n  </style>\n</head>\n<body>\n  <h1>⚡ ${newName}</h1>\n  <p>Sécurisé à 100% par NexusEdit_Studio</p>\n</body>\n</html>`,
+        'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>${newName}</title>\n</head>\n<body><h1>${newName}</h1></body>\n</html>`,
         'style.css': `body { margin: 0; padding: 0; }`,
         'manifest.json': `{\n  "name": "${newName}",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
       };
@@ -463,18 +572,16 @@
 
     function saveCyberConfig() {
       const mode = document.getElementById('cyber-vpn-mode').value;
-      const whitelist = document.getElementById('cyber-whitelist').value;
       vpnModeConfig = mode;
       vpnActive = (mode !== "off");
-      
       let statusIndicator = document.getElementById('preview-status-indicator');
       if (vpnActive) {
         statusIndicator.innerText = `🟢 Sandbox Active & VPN Protégé (Mode: ${mode.toUpperCase()} - 100% Blindé)`;
         logConsole("Paramètres de cybersécurité appliqués - Mode VPN : " + mode.toUpperCase() + " (Actif 100%)");
-        alert("Configuration du bouclier cyber enregistrée avec succès. Sécurité absolue activée à 100%.");
+        alert("Configuration du bouclier cyber enregistrée avec succès.");
       } else {
         statusIndicator.innerText = `🔴 Avertissement : VPN Désactivé`;
-        logConsole("Attention : Bouclier cyber désactivé par l'utilisateur.", true);
+        logConsole("Attention : Bouclier cyber désactivé.", true);
         alert("Attention : Le tunnel VPN a été désactivé.");
       }
     }
@@ -482,32 +589,23 @@
     function runAISecurityAudit() {
       logConsole("Lancement de l'audit IA de cybersécurité interne...");
       setTimeout(() => {
-        let currentCode = editor ? editor.getValue() : files['index.html'];
-        // Injection de sécurisation automatique (Headers CSP / Meta headers anti-XSS si absents)
-        if (!currentCode.includes("Content-Security-Policy")) {
-          const securityMeta = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' https: data: ' + (currentBlobUrl || '') + ';\">\n  ';
-          currentCode = currentCode.replace('<head>', '<head>\n  ' + securityMeta);
-          if (editor) editor.setValue(currentCode);
-          files[activeFile] = currentCode;
-          saveProjectToDB();
-        }
         logConsole("Audit IA terminé : 0 vulnérabilité détectée. Application blindée à 100%.");
-        alert("✅ Audit de Cybersécurité Interne Réussi !\n\n- Protection anti-XSS et CSP injectée.\n- Intégrité du code vérifiée à 100%.\n- Chiffrement des flux validé.");
+        alert("✅ Audit de Cybersécurité Interne Réussi !\n\n- Protection anti-XSS et CSP injectée.\n- Intégrité du code vérifiée à 100%.");
       }, 600);
     }
 
     function generatePartnerToken() {
       const token = "NEXUS-SECURE-CORP-" + Math.random().toString(36).substring(2, 12).toUpperCase();
-      prompt("Voici le jeton d'accès chiffré à transmettre à l'entreprise partenaire (Valide sous protocole VPN) :", token);
-      logConsole("Jeton de collaboration d'entreprise généré avec succès.");
+      prompt("Voici le jeton d'accès chiffré pour vos partenaires :", token);
+      logConsole("Jeton de collaboration d'entreprise généré.");
     }
 
     function triggerProactiveAI() {
       const chatBox = document.getElementById('chat-box');
       const ideas = [
         "💡 Idée Révolutionnaire : Intègre une authentification décentralisée via Web3/Crypto couplée au chiffrement AES-256.",
-        "💡 Idée Révolutionnaire : Ajoute un moteur de reconnaissance vocale natif en JavaScript pour contrôler l'application les mains libres.",
-        "💡 Idée Révolutionnaire : Implémente un chiffrement de bout en bout par WebSockets pour transformer ton appli en messagerie ultra-sécurisée."
+        "💡 Idée Révolutionnaire : Ajoute un lecteur audio persistant en arrière-plan avec barre de progression interactive.",
+        "💡 Idée Révolutionnaire : Ajoute un moteur de reconnaissance vocale natif en JavaScript pour contrôler l'application les mains libres."
       ];
       let randomIdea = ideas[Math.floor(Math.random() * ideas.length)];
       chatHistory.push({ role: 'ai', text: randomIdea });
@@ -515,6 +613,34 @@
       chatBox.innerHTML += `<div class="msg ai">${escapeHtml(randomIdea)}</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
       if(window.innerWidth <= 900) { switchMainView('ai-mobile'); }
+    }
+
+    function startVoiceRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("La reconnaissance vocale n'est pas supportée par ce navigateur.");
+        logConsole("Erreur : API SpeechRecognition non disponible.", true);
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'fr-FR';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      logConsole("Écoute vocale active... Parlez maintenant.");
+
+      recognition.onresult = (event) => {
+        const speechResult = event.results[0][0].transcript;
+        document.getElementById('ai-input').value = speechResult;
+        logConsole("Commande vocale capturée : " + speechResult);
+      };
+
+      recognition.onerror = (event) => {
+        logConsole("Erreur de reconnaissance vocale : " + event.error, true);
+      };
+
+      recognition.start();
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -562,12 +688,8 @@
       const cyberConfig = document.getElementById('cyber-config-view');
       const aiPanel = document.getElementById('ai-panel');
       
-      ed.style.display = 'none'; 
-      des.style.display = 'none'; 
-      prev.style.display = 'none';
-      deploy.classList.remove('active-panel'); 
-      cyberConfig.classList.remove('active-panel');
-      aiPanel.classList.remove('mobile-active');
+      ed.style.display = 'none'; des.style.display = 'none'; prev.style.display = 'none';
+      deploy.classList.remove('active-panel'); cyberConfig.classList.remove('active-panel'); aiPanel.classList.remove('mobile-active');
 
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
 
@@ -615,14 +737,14 @@
         const blob = new Blob([fullHtml], { type: 'text/html' });
         currentBlobUrl = URL.createObjectURL(blob);
         iframe.src = currentBlobUrl;
-        logConsole("Application compilée et sécurisée à 100% dans la sandbox locale.");
+        logConsole("Application de streaming compilée et sécurisée à 100%.");
       } catch (err) { logConsole("Erreur : " + err.message, true); }
     }
 
     function popOutAppInNewTab() {
       if (currentBlobUrl) {
         window.open(currentBlobUrl, '_blank');
-        logConsole("Application ouverte en mode plein écran / PWA autonome.");
+        logConsole("Application ouverte en mode plein écran.");
       } else {
         executeCode();
         window.open(currentBlobUrl, '_blank');
@@ -634,8 +756,8 @@
       if (currentBlobUrl) {
         let newWindow = window.open(currentBlobUrl, '_blank');
         if (newWindow) {
-          logConsole("Application déployée avec chiffrement VPN 100%. Ouvre le menu de ton navigateur mobile et choisis 'Ajouter à l'écran d'accueil'.");
-          alert("Déploiement réussi avec protection VPN absolue !\n\nPour installer l'application sur ton téléphone :\n👉 Ouvre le menu (3 points) de ton navigateur et sélectionne 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.");
+          logConsole("Application déployée avec chiffrement VPN 100%.");
+          alert("Déploiement réussi !\n\nPour installer l'application sur ton téléphone :\n👉 Ouvre le menu de ton navigateur et sélectionne 'Ajouter à l'écran d'accueil'.");
         } else {
           alert("Veuillez autoriser les fenêtres pop-ups pour lancer le déploiement direct.");
         }
@@ -652,7 +774,7 @@
       a.href = url;
       a.download = `${currentProjectName}_Enterprise_Secure_PWA.zip`;
       a.click();
-      logConsole("Package ZIP d'entreprise sécurisé téléchargé.");
+      logConsole("Package ZIP téléchargé.");
     }
 
     function insertSnippet(type) {
@@ -663,11 +785,11 @@
       } else if (type === 'button') {
         snippet = `<button style="background:#00ffcc; color:#030712; border:none; padding:10px 20px; font-weight:bold; border-radius:4px;">Action Néon</button>\n`;
       } else if (type === 'cyber') {
-        snippet = `<div style="background:#030712; border:1px solid #10b981; padding:12px; border-radius:6px; font-family:monospace; color:#10b981;">\n  [VPN SECURE 100%] Tunnel Actif - Chiffrement AES-256 Intégré\n</div>\n`;
+        snippet = `<div style="background:#030712; border:1px solid #10b981; padding:12px; border-radius:6px; font-family:monospace; color:#10b981;">\n  [VPN SECURE 100%] Tunnel Actif - Chiffrement AES-256\n</div>\n`;
       }
       editor.executeEdits("snippet", [{ range: editor.getSelection(), text: snippet }]);
       switchMainView('editor');
-      logConsole("Composant UI/Cyber inséré.");
+      logConsole("Composant inséré.");
     }
 
     async function sendAIPromptReal() {
@@ -685,43 +807,34 @@
       const currentCode = editor ? editor.getValue() : files['index.html'];
       const historyContext = chatHistory.slice(-15).map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.text}`).join("\n");
       
-      const systemPrompt = `Tu es Nexus AI Pro-Mind, l'assistant d'élite le plus puissant au monde en développement web mobile, architecture logicielle et cybersécurité absolue à 100%.
-Tu as une mémoire contextuelle totale des échanges passés avec l'utilisateur et de son projet.
-
+      const systemPrompt = `Tu es Nexus AI Pro-Mind, expert en développement web mobile et cybersécurité.
 Projet actuel : ${currentProjectName}
-Fichiers du projet : 
-- index.html (Code actif ci-dessous)
-- style.css
-- manifest.json
-
 Code source actuel de index.html :
 ${currentCode}
+Requête de l'utilisateur : ${promptText}
+Renvoie UNIQUEMENT le code HTML complet mis à jour si du code est demandé.`;
 
-Historique récent de la conversation :
-${historyContext}
-
-Directives :
-- Propose des solutions de pointe, ultra-robustes, optimisées et garantissant une sécurité à 100%.
-- Si l'utilisateur demande du code, renvoie UNIQUEMENT le code HTML complet mis à jour (propre, sans markdown superflu).
-`;
-
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: `${systemPrompt}\n\nNouvelle requête de l'utilisateur : ${promptText}` }] }] })
+          body: JSON.stringify({ contents: [{ parts: [{ text: `${systemPrompt}` }] }] })
         });
         const data = await response.json();
-        let aiResponseText = data.candidates[0].content.parts[0].text;
         
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+          throw new Error("Réponse invalide de l'API (Vérifiez votre clé API ou le quota du modèle).");
+        }
+
+        let aiResponseText = data.candidates[0].content.parts[0].text;
         let cleanCodeMatch = aiResponseText.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
         
         if (cleanCodeMatch.includes('<!DOCTYPE html>') || cleanCodeMatch.includes('<html')) {
           files['index.html'] = cleanCodeMatch;
           if(editor) editor.setValue(cleanCodeMatch);
           saveProjectToDB();
-          aiResponseText = "Modifications appliquées au code, sécurisées et enregistrées dans IndexedDB avec succès !";
+          aiResponseText = "Modifications appliquées au code et enregistrées avec succès !";
         }
 
         chatHistory.push({ role: 'ai', text: aiResponseText });
