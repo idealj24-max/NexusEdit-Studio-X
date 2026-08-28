@@ -33,3 +33,18 @@ jobs:
           test -f manifest.json
           test -f sw.js
           echo "📦 Structure PWA validée avec succès."
+
+      - name: ⚙️ Initialisation et Build Android avec Bubblewrap
+        run: |
+          # Configuration non interactive en utilisant le manifest.json à la racine
+          bubblewrap init --manifest=./manifest.json --directory=android-app --skip-sdk-check || true
+          
+          # Se placer dans le dossier généré et compiler l'APK
+          cd android-app
+          bubblewrap build
+
+      - name: 📦 Sauvegarde et Export de l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-edit-apk
+          path: android-app/app/build/outputs/apk/release/*.apk
