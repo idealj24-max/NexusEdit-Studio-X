@@ -128,6 +128,7 @@
     <div class="file-item active" onclick="openFile('index.html')">📄 index.html</div>
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json</div>
+    <div class="file-item" onclick="openFile('sw.js')">⚙️ sw.js (Service Worker)</div>
     
     <div class="menu-section-title">Cybersécurité & Déploiement PWA</div>
     <div class="file-item" onclick="switchMainView('cyber-config'); closeMenu();" style="color:var(--cyber-green);">🛡️ Bouclier VPN & Entreprise</div>
@@ -270,7 +271,8 @@
     let files = {
       'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>App Sécurisée</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }\n    .shield { background: #0d1322; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin: 20px auto; width: 80%; }\n  </style>\n</head>\n<body>\n  <h1>🛡️ Application Protégée & Déployée</h1>\n  <div class="shield">\n    <p style="color:#10b981;">Statut VPN & Cyber : 100% Actif & Chiffré</p>\n  </div>\n</body>\n</html>`,
       'style.css': `body { margin: 0; padding: 0; }`,
-      'manifest.json': `{\n  "name": "App Sécurisée",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone",\n  "background_color": "#070913",\n  "theme_color": "#00ffcc"\n}`
+      'manifest.json': `{\n  "name": "App Sécurisée",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone",\n  "background_color": "#070913",\n  "theme_color": "#00ffcc"\n}`,
+      'sw.js': `const CACHE_NAME = 'nexus-studio-v4';\nconst ASSETS_TO_CACHE = [\n  './',\n  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js',\n  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.css',\n  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.nls.js',\n  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.js'\n];\n\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then((cache) => {\n      console.log('[Service Worker] Mise en cache des ressources');\n      return cache.addAll(ASSETS_TO_CACHE);\n    })\n  );\n});\n\nself.addEventListener('fetch', (event) => {\n  event.respondWith(\n    caches.match(event.request).then((cachedResponse) => {\n      return cachedResponse || fetch(event.request);\n    })\n  );\n});\n\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys().then((cacheNames) => {\n      return Promise.all(\n        cacheNames.map((cache) => {\n          if (cache !== CACHE_NAME) {\n            console.log('[Service Worker] Suppression de l\\'ancien cache', cache);\n            return caches.delete(cache);\n          }\n        })\n      );\n    })\n  );\n});`
     };
     let chatHistory = []; 
     let activeFile = 'index.html';
@@ -412,7 +414,8 @@
       files = {
         'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${newName}</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 60px; }\n  </style>\n</head>\n<body>\n  <h1>⚡ ${newName}</h1>\n  <p>Sécurisé à 100% par NexusEdit_Studio</p>\n</body>\n</html>`,
         'style.css': `body { margin: 0; padding: 0; }`,
-        'manifest.json': `{\n  "name": "${newName}",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
+        'manifest.json': `{\n  "name": "${newName}",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`,
+        'sw.js': `const CACHE_NAME = 'nexus-studio-v4';\nconst ASSETS_TO_CACHE = ['./'];\nself.addEventListener('install', (event) => {\n  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)));\n});\nself.addEventListener('fetch', (event) => {\n  event.respondWith(caches.match(event.request).then((cachedResponse) => cachedResponse || fetch(event.request)));\n});`
       };
       activeFile = 'index.html';
       saveProjectToDB();
@@ -639,7 +642,7 @@
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
       event.currentTarget.classList.add('active');
-      let lang = filename.endsWith('.css') ? 'css' : filename.endsWith('.json') ? 'json' : 'html';
+      let lang = filename.endsWith('.css') ? 'css' : filename.endsWith('.json') ? 'json' : 'javascript';
       if(editor) {
         monaco.editor.setModelLanguage(editor.getModel(), lang);
         editor.setValue(files[filename] || '');
@@ -666,6 +669,13 @@
         if(files['style.css'] && !fullHtml.includes('style.css')) {
           fullHtml = fullHtml.replace('</head>', `<style>${files['style.css']}</style></head>`);
         }
+        
+        // Injection automatique de l'enregistrement du Service Worker s'il n'est pas déjà présent dans l'index.html du projet
+        if (!fullHtml.includes('serviceWorker')) {
+          const swRegistrationScript = `\n<script>\n  if ('serviceWorker' in navigator) {\n    window.addEventListener('load', () => {\n      navigator.serviceWorker.register('./sw.js')\n        .then((reg) => console.log('SW enregistré:', reg.scope))\n        .catch((err) => console.log('Erreur SW:', err));\n    });\n  }\n<\/script>\n</body>`;
+          fullHtml = fullHtml.replace('</body>', swRegistrationScript);
+        }
+
         if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
         const blob = new Blob([fullHtml], { type: 'text/html' });
         currentBlobUrl = URL.createObjectURL(blob);
@@ -748,7 +758,6 @@ Historique récent :
 ${historyContext}
 Directives : Renvoie UNIQUEMENT le code HTML complet mis à jour si du code est demandé.`;
 
-      // Utilisation du modèle actuel recommandé : models/gemini-3.6-flash
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
@@ -768,7 +777,7 @@ Directives : Renvoie UNIQUEMENT le code HTML complet mis à jour si du code est 
         
         if (cleanCodeMatch.includes('<!DOCTYPE html>') || cleanCodeMatch.includes('<html')) {
           files['index.html'] = cleanCodeMatch;
-          if(editor) editor.setValue(cleanCodeMatch);
+          if(editor && activeFile === 'index.html') editor.setValue(cleanCodeMatch);
           saveProjectToDB();
           aiResponseText = "Modifications appliquées au code et enregistrées dans IndexedDB avec succès !";
         }
