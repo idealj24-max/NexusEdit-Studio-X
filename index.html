@@ -6,11 +6,16 @@
   <title>NexusEdit Studio 4.0 - Universal Mega-Studio & Video AI</title>
   <link rel="manifest" href="manifest.json">
 
+  <!-- 1. Charger Pyodide EN PREMIER (avant Require.js pour éviter le conflit d'erreur) -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+
+  <!-- Monaco Editor (charge Require.js) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+  
+  <!-- Autres utilitaires -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
   <style>
     :root {
@@ -60,7 +65,6 @@
     .preview-toolbar { background: #0d1322; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
     #app-preview-frame { flex: 1; width: 100%; border: none; background: #fff; }
 
-    /* Vues Panneaux Spécifiques */
     .universal-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     .universal-view.active-panel { display: flex; }
     
@@ -167,8 +171,8 @@
         <div class="preview-toolbar">
           <span style="color:var(--accent);" id="preview-status-indicator">🟢 Sandbox Active & Moteur Universel Prêt</span>
           <div style="display:flex; gap:6px;">
-            <button class="btn-icon" onclick="runPythonCodeInConsole()" style="background:#8b5cf6; color:#fff;" id="btn-run-python" style="display:none;">▶️ Exécuter Python</button>
-            <button class="btn-icon" onclick="renderMarkdownPreview()" style="background:#3b82f6; color:#fff;" id="btn-render-md" style="display:none;">📖 Rendu Markdown</button>
+            <button class="btn-icon" onclick="runPythonCodeInConsole()" style="background:#8b5cf6; color:#fff; display:none;" id="btn-run-python">▶️ Exécuter Python</button>
+            <button class="btn-icon" onclick="renderMarkdownPreview()" style="background:#3b82f6; color:#fff; display:none;" id="btn-render-md">📖 Rendu Markdown</button>
             <button class="btn-icon" onclick="popOutAppInNewTab()" style="background:var(--accent); color:#030712; font-weight:bold;">🚀 Plein écran</button>
           </div>
         </div>
@@ -338,20 +342,23 @@
     let pyodideReady = false;
     let pyodideInstance = null;
 
-    // Initialisation de Pyodide pour exécuter du Python en local
+    // Initialisation sécurisée de Pyodide pour éviter le conflit Require.js
     async function initPyodideRuntime() {
       try {
         logConsole("Chargement du moteur Python Pyodide dans le navigateur...");
-        pyodideInstance = await loadPyodide();
-        pyodideReady = true;
-        logConsole("Moteur Python Pyodide prêt.");
+        if (typeof loadPyodide === 'function') {
+          pyodideInstance = await loadPyodide();
+          pyodideReady = true;
+          logConsole("Moteur Python Pyodide prêt.");
+        } else {
+          throw new Error("loadPyodide non disponible globalement.");
+        }
       } catch(e) {
         logConsole("Erreur d'initialisation de Pyodide : " + e.message, true);
       }
     }
-    initPyodideRuntime();
+    setTimeout(initPyodideRuntime, 500);
 
-    // IndexedDB Setup
     function initIndexedDB() {
       return new Promise((resolve) => {
         const request = indexedDB.open("NexusStudioMegaDB", 5);
@@ -503,7 +510,6 @@
       };
     }
 
-    // --- SUPER APP LAUNCHER ---
     function openSuperAppLauncher() {
       if (!db) return alert("BDD non initialisée.");
       const transaction = db.transaction(["projects"], "readonly");
@@ -550,27 +556,19 @@
       if (m) m.remove();
     }
 
-    // --- STUDIO VIDÉO TIKTOK / SHORTS IA (NOUVEAU) ---
     async function generateAIVideoScript() {
       const topic = document.getElementById('video-topic-input').value.trim();
       const format = document.getElementById('video-format-select').value;
       const tone = document.getElementById('video-tone-select').value;
       const apiKey = document.getElementById('ai-api-key').value.trim();
 
-      if (!topic) {
-        alert("Veuillez saisir un sujet ou un thème pour la vidéo.");
-        return;
-      }
-      if (!apiKey) {
-        alert("Veuillez renseigner votre clé API Gemini dans le panneau latéral pour générer le scénario vidéo.");
-        return;
-      }
+      if (!topic) return alert("Veuillez saisir un sujet ou un thème pour la vidéo.");
+      if (!apiKey) return alert("Veuillez renseigner votre clé API Gemini.");
 
       logConsole("Génération du scénario vidéo / mini-série par l'IA...");
       const prompt = `Agis en tant que réalisateur et scénariste expert en formats viraux TikTok, Shorts et mini-séries. 
-Rédige un scénario complet, structuré avec des accroches puissantes, les dialogues, les indications visuelles (cadrage, texte à l'écran) et le rythme pour le sujet suivant : "${topic}".
-Format demandé : ${format}. Ton : ${tone}.
-Structure la réponse clairement en épisodes ou en parties prêtes à être tournées ou synthétisées en vidéo.`;
+Rédige un scénario complet, structuré avec des accroches puissantes, les dialogues, les indications visuelles (cadrage, texte à l'écran) pour le sujet suivant : "${topic}".
+Format : ${format}. Ton : ${tone}.`;
 
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
       try {
@@ -582,12 +580,10 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
         
-        let scriptText = data.candidates[0].content.parts[0].text;
-        document.getElementById('video-script-output').value = scriptText;
+        document.getElementById('video-script-output').value = data.candidates[0].content.parts[0].text;
         logConsole("Scénario vidéo généré avec succès !");
       } catch (e) {
         logConsole("Erreur génération vidéo : " + e.message, true);
-        alert("Erreur : " + e.message);
       }
     }
 
@@ -603,7 +599,6 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
       logConsole("Script vidéo exporté en Markdown.");
     }
 
-    // --- PACKAGES D'EXPORT UNIVERSELS (NOUVEAU) ---
     async function exportPackage(type) {
       if(editor) files[activeFile] = editor.getValue();
       const zip = new JSZip();
@@ -614,7 +609,6 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
         downloadBlob(content, `${currentProjectName}_Source_Code.zip`);
         logConsole("Code source exporté en ZIP.");
       } else if (type === 'extension') {
-        // Ajout d'un manifeste pour extension Chrome/Firefox Manifest V3
         files['manifest.json'] = JSON.stringify({
           "manifest_version": 3,
           "name": currentProjectName,
@@ -626,7 +620,6 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
         downloadBlob(content, `${currentProjectName}_Browser_Extension.zip`);
         logConsole("Package Extension Navigateur généré.");
       } else if (type === 'desktop-template') {
-        // Scaffold Electron / Tauri basique
         zip.file("main.js", `const { app, BrowserWindow } = require('electron');\nfunction createWindow () {\n  const win = new BrowserWindow({ width: 800, height: 600 });\n  win.loadFile('index.html');\n}\napp.whenReady().then(createWindow);`);
         zip.file("package.json", JSON.stringify({ "name": currentProjectName.toLowerCase(), "version": "1.0.0", "main": "main.js" }, null, 2));
         for (let f in files) zip.file(f, files[f]);
@@ -644,20 +637,12 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
       a.click();
     }
 
-    // --- EXÉCUTION & RUNTIME PYTHON / MARKDOWN / WEB ---
     async function runPythonCodeInConsole() {
-      if (!pyodideReady) {
-        alert("Le moteur Python est encore en cours de chargement...");
-        return;
-      }
+      if (!pyodideReady) return alert("Le moteur Python est encore en cours de chargement...");
       const code = editor ? editor.getValue() : files['script.py'];
       logConsole("Exécution du script Python dans le navigateur...");
       try {
-        pyodideInstance.runPython(`
-          import sys
-          import io
-          sys.stdout = io.StringIO()
-        `);
+        pyodideInstance.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
         pyodideInstance.runPython(code);
         let stdout = pyodideInstance.runPython("sys.stdout.getvalue()");
         logConsole("=== Sortie Python ===");
@@ -683,13 +668,12 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
         if(editor) files[activeFile] = editor.getValue();
         const iframe = document.getElementById('app-preview-frame');
         
-        // Si on édite un fichier Python ou Markdown, on active les boutons dédiés
         document.getElementById('btn-run-python').style.display = (activeFile.endsWith('.py')) ? 'inline-block' : 'none';
         document.getElementById('btn-render-md').style.display = (activeFile.endsWith('.md')) ? 'inline-block' : 'none';
 
         if (activeFile.endsWith('.py')) {
           runPythonCodeInConsole();
-          iframe.srcdoc = `<html><body style="background:#070913;color:#10b981;font-family:monospace;padding:20px;"><h3>🐍 Script Python actif</h3><p>Clique sur "Exécuter Python" pour voir le résultat dans le terminal ci-dessous.</p></body></html>`;
+          iframe.srcdoc = `<html><body style="background:#070913;color:#10b981;font-family:monospace;padding:20px;"><h3>🐍 Script Python actif</h3><p>Clique sur "Exécuter Python" pour voir le résultat dans le terminal.</p></body></html>`;
           return;
         }
         if (activeFile.endsWith('.md')) {
@@ -710,7 +694,6 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
       } catch (err) { logConsole("Erreur : " + err.message, true); }
     }
 
-    // --- CLOUD BUILD APK ---
     async function triggerCloudApkBuild() {
       const repo = document.getElementById('github-repo-input').value.trim();
       const token = document.getElementById('github-token-input').value.trim();
@@ -732,11 +715,9 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
         }
       } catch (err) {
         logConsole("Erreur Cloud Build : " + err.message, true);
-        alert("Échec du build distant : " + err.message);
       }
     }
 
-    // --- CYBER & SÉCURITÉ ---
     function saveCyberConfig() {
       const mode = document.getElementById('cyber-vpn-mode').value;
       logConsole("Sécurité mise à jour. Mode VPN : " + mode.toUpperCase());
@@ -758,7 +739,6 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
       prompt("Jeton d'accès cryptographique SHA-256 généré :", token);
     }
 
-    // --- RECONNAISSANCE VOCALE & ASSISTANT ---
     function startVoiceRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) return alert("Reconnaissance vocale non supportée.");
@@ -771,9 +751,9 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
 
     function triggerProactiveAI() {
       const ideas = [
-        "💡 Idée : Crée un mini-jeu Python interactif basé sur Pygame Web !",
-        "💡 Idée : Rédige un script de mini-série TikTok en 3 parties sur l'intelligence artificielle.",
-        "💡 Idée : Ajoute un fichier de configuration JSON pour connecter l'application à une API distante."
+        "💡 Idée : Crée un mini-jeu Python interactif !",
+        "💡 Idée : Rédige un script de mini-série TikTok en 3 parties sur la tech.",
+        "💡 Idée : Ajoute un fichier de configuration JSON."
       ];
       let idea = ideas[Math.floor(Math.random() * ideas.length)];
       chatHistory.push({ role: 'ai', text: idea });
@@ -782,7 +762,6 @@ Structure la réponse clairement en épisodes ou en parties prêtes à être tou
       if(window.innerWidth <= 900) switchMainView('ai-mobile');
     }
 
-    // Initialisation Monaco Editor
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
     require(['vs/editor/editor.main'], function() {
       editor = monaco.editor.create(document.getElementById('editor-container'), {
