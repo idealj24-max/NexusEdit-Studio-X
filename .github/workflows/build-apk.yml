@@ -1,3 +1,8 @@
+      - name: 📦 Sauvegarde et Export de l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-edit-apk
+          path: android-app/app/build/outputs/apk/release/*.apk
 name: Nexus PWA to APK Builder
 
 on:
@@ -28,8 +33,8 @@ jobs:
 
       - name: ⚙️ Build Android Automatisé
         run: |
-          # On répond "Yes" automatiquement pour que Bubblewrap gère l'installation du JDK tout seul
-          echo "Y" | npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --unattended
+          # Utilisation de la commande yes pour répondre automatiquement à toutes les questions interactives (JDK, SDK, etc.)
+          yes | npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --unattended
           
           cd android-app
           npx @bubblewrap/cli build
