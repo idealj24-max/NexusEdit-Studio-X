@@ -6,7 +6,6 @@
   <title>NexusEdit Studio 3.19 - Ultimate Cyber & PWA Elite Edition</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Monaco Editor CSS & Loader -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -68,7 +67,6 @@
     .deploy-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
     .deploy-card h3 { color: var(--accent); font-size: 0.85rem; }
 
-    /* PANNEAU CYBER & VPN INTÉGRÉ */
     #cyber-config-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     #cyber-config-view.active-panel { display: flex; }
 
@@ -157,7 +155,6 @@
         </div>
       </div>
 
-      <!-- APERÇU / EXÉCUTION -->
       <div id="preview-container">
         <div class="preview-toolbar">
           <span style="color:var(--accent);" id="preview-status-indicator">🟢 Sandbox Active & VPN Protégé (100% Blindé)</span>
@@ -166,7 +163,6 @@
         <iframe id="app-preview-frame"></iframe>
       </div>
 
-      <!-- PANNEAU DE DÉPLOIEMENT & INSTALLATION PWA -->
       <div id="deploy-view">
         <div class="deploy-card" id="install-container" style="display:none; border: 1px dashed var(--accent);">
           <h3>📲 Installation Rapide Détectée</h3>
@@ -187,7 +183,6 @@
         </div>
       </div>
 
-      <!-- PANNEAU DE CONFIGURATION CYBERSÉCURITÉ & VPN INTERNE -->
       <div id="cyber-config-view">
         <div class="deploy-card" style="border: 1px solid var(--cyber-green);">
           <h3 style="color:var(--cyber-green);">🛡️ Centre de Contrôle du Bouclier Cyber & VPN</h3>
@@ -234,7 +229,6 @@
       </div>
     </div>
 
-    <!-- PANNEAU IA & COACH -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>NEXUS AI PRO-MIND ELITE</span>
@@ -285,7 +279,6 @@
     let vpnActive = true;
     let vpnModeConfig = "aes256";
 
-    // Script d'interception PWA beforeinstallprompt
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -332,6 +325,9 @@
             database.createObjectStore("chat_store", { keyPath: "id" });
           }
         };
+        request.onerror = () => {
+          resolve();
+        };
       });
     }
 
@@ -356,6 +352,7 @@
           }
           resolve();
         };
+        request.onerror = () => resolve();
       });
     }
 
@@ -377,6 +374,7 @@
           }
           resolve();
         };
+        request.onerror = () => resolve();
       });
     }
 
@@ -464,14 +462,12 @@
       };
     }
 
-    // FONCTION VPN RÉELLE (Mise en place de routeurs virtuels ou de proxys fetch interceptés si nécessaire, ou application d'un header global de routage sécurisé)
     function saveCyberConfig() {
       const mode = document.getElementById('cyber-vpn-mode').value;
       const whitelist = document.getElementById('cyber-whitelist').value;
       vpnModeConfig = mode;
       vpnActive = (mode !== "off");
       
-      // Logique Réelle : Stockage dans localStorage pour persistance réseau et application dans le moteur d'exécution sandbox
       localStorage.setItem('nexus_vpn_mode', mode);
       localStorage.setItem('nexus_vpn_whitelist', whitelist);
       localStorage.setItem('nexus_vpn_active', vpnActive ? 'true' : 'false');
@@ -488,13 +484,11 @@
       }
     }
 
-    // FONCTION D'AUDIT IA RÉEL (Analyse syntaxique et recherche de vulnérabilités réelles sur le code source)
     function runAISecurityAudit() {
       logConsole("Lancement de l'audit de sécurité réel sur le code source...");
       let currentCode = editor ? editor.getValue() : files['index.html'];
       let issuesFound = [];
 
-      // Vérification réelle de failles potentielles
       if (!currentCode.includes("Content-Security-Policy")) {
         issuesFound.push("Absence d'en-tête CSP (Content-Security-Policy)");
       }
@@ -509,7 +503,6 @@
         if (issuesFound.length > 0) {
           logConsole("Audit terminé : " + issuesFound.length + " vulnérabilité(s) potentielle(s) détectée(s). Application automatique du correctif de blindage.", true);
           
-          // Correction automatique réelle : Injection d'un Meta CSP et d'un script de nettoyage
           const securityMeta = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' https: data: ' + (currentBlobUrl || '') + ';\">\n  ';
           if (!currentCode.includes("Content-Security-Policy")) {
             currentCode = currentCode.replace('<head>', '<head>\n  ' + securityMeta);
@@ -526,7 +519,6 @@
       }, 500);
     }
 
-    // FONCTION DE JETON RÉEL (Génération d'un hash cryptographique réel via SubtleCrypto ou SHA-256)
     async function generatePartnerToken() {
       logConsole("Génération d'un jeton d'accès cryptographique sécurisé (SHA-256)...");
       const rawData = currentProjectName + "-" + Date.now() + "-" + Math.random();
@@ -539,7 +531,6 @@
       logConsole("Jeton cryptographique généré avec succès.");
     }
 
-    // RECONNAISSANCE VOCALE RÉELLE (Web Speech API)
     function startVoiceRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
@@ -757,6 +748,7 @@ Historique récent :
 ${historyContext}
 Directives : Renvoie UNIQUEMENT le code HTML complet mis à jour si du code est demandé.`;
 
+      // Utilisation du modèle actuel recommandé : models/gemini-3.6-flash
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
@@ -765,6 +757,11 @@ Directives : Renvoie UNIQUEMENT le code HTML complet mis à jour si du code est 
           body: JSON.stringify({ contents: [{ parts: [{ text: `${systemPrompt}\n\nRequête : ${promptText}` }] }] })
         });
         const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error.message || "Erreur de l'API Gemini");
+        }
+
         let aiResponseText = data.candidates[0].content.parts[0].text;
         
         let cleanCodeMatch = aiResponseText.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
