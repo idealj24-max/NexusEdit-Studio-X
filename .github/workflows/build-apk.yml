@@ -12,12 +12,6 @@ jobs:
       - name: 📥 Récupération du code source
         uses: actions/checkout@v4
 
-      - name: ☕ Configuration de Java (JDK 17)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
       - name: 🟢 Configuration de Node.js
         uses: actions/setup-node@v4
         with:
@@ -26,20 +20,17 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: 📱 Validation et préparation de la PWA
+      - name: 📱 Validation de la PWA
         run: |
-          echo "Vérification des fichiers essentiels..."
           test -f index.html
           test -f manifest.json
           test -f sw.js
-          echo "📦 Structure PWA validée avec succès."
 
-      - name: ⚙️ Initialisation et Build Android avec Bubblewrap
+      - name: ⚙️ Build Android Automatisé
         run: |
-          # Envoi automatique de "N" pour refuser l'installation du JDK par Bubblewrap et utiliser le JDK 17 existant
-          echo "N" | npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --skip-sdk-check --unattended
+          # On répond "Yes" automatiquement pour que Bubblewrap gère l'installation du JDK tout seul
+          echo "Y" | npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --unattended
           
-          # Se placer dans le dossier généré et compiler l'application
           cd android-app
           npx @bubblewrap/cli build
 
