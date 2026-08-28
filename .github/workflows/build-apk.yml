@@ -28,7 +28,9 @@ jobs:
 
       - name: ⚙️ Build Android Automatisé
         run: |
-          yes | npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --unattended
+          # Commande complète sans interaction pour générer le projet Android
+          npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --applicationId=com.nexus.app --name="Nexus" --launcherName="Nexus" --themeColor="#FFFFFF" --backgroundColor="#FFFFFF" --startUrl="/" --display="standalone" --orientation="portrait" || true
+          
           cd android-app
           npx @bubblewrap/cli build
 
