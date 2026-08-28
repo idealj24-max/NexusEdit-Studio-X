@@ -6,10 +6,8 @@
   <title>NexusEdit Studio 4.0 - Universal Mega-Studio & Video AI</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Monaco Editor -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
-  <!-- Bibliothèques utilitaires pour ZIP, Markdown et Pyodide (Python en navigateur) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
@@ -121,7 +119,6 @@
 
   <div id="overlay" onclick="closeMenu()"></div>
 
-  <!-- MENU LATÉRAL UNIVERSEL -->
   <div id="side-menu">
     <div class="menu-section-title">Gestionnaire IndexedDB</div>
     <div class="file-item" onclick="promptCreateNewProject()" style="color:var(--accent);">➕ Créer un projet universel</div>
@@ -154,10 +151,8 @@
         <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
       </div>
       
-      <!-- ÉDITEUR MONACO -->
       <div id="editor-container"></div>
       
-      <!-- PANNEAU UI SNIPPETS -->
       <div id="design-panel" class="universal-view">
         <div class="panel-card">
           <h4>Boîte à Composants Multi-Formats & UI</h4>
@@ -168,7 +163,6 @@
         </div>
       </div>
 
-      <!-- PRÉVIEW / RUNTIME (Web & Python Pyodide) -->
       <div id="preview-container">
         <div class="preview-toolbar">
           <span style="color:var(--accent);" id="preview-status-indicator">🟢 Sandbox Active & Moteur Universel Prêt</span>
@@ -181,7 +175,6 @@
         <iframe id="app-preview-frame"></iframe>
       </div>
 
-      <!-- STUDIO VIDÉO TIKTOK / SHORTS (NOUVEAU) -->
       <div id="video-studio-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--video-purple);">
           <h3 style="color:var(--video-purple);">🎬 Studio IA Vidéo - Formats Shorts & Mini-Séries TikTok</h3>
@@ -221,7 +214,6 @@
         </div>
       </div>
 
-      <!-- DÉPLOIEMENT & EXPORTS AVANCÉS -->
       <div id="deploy-view" class="universal-view">
         <div class="deploy-card panel-card" id="install-container" style="display:none; border: 1px dashed var(--accent);">
           <h3>📲 Installation Rapide PWA</h3>
@@ -248,7 +240,6 @@
         </div>
       </div>
 
-      <!-- CONFIGURATION CYBER & VPN -->
       <div id="cyber-config-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--cyber-green);">
           <h3 style="color:var(--cyber-green);">🛡️ Centre de Contrôle du Bouclier Cyber & VPN</h3>
@@ -282,7 +273,6 @@
         </div>
       </div>
 
-      <!-- CONSOLE LOGS -->
       <div id="console-bar">
         <div class="console-header">
           <span>TERMINAL / MULTI-RUNTIME & CONSOLE IA</span>
@@ -294,7 +284,6 @@
       </div>
     </div>
 
-    <!-- PANNEAU CHAT IA -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>NEXUS AI MEGA-MIND</span>
