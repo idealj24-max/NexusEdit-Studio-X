@@ -36,8 +36,8 @@ jobs:
 
       - name: ⚙️ Initialisation et Build Android avec Bubblewrap
         run: |
-          # Configuration non interactive pour éviter le blocage du terminal
-          npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --skip-sdk-check --unattended
+          # Envoi automatique de "N" pour refuser l'installation du JDK par Bubblewrap et utiliser le JDK 17 existant
+          echo "N" | npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --skip-sdk-check --unattended
           
           # Se placer dans le dossier généré et compiler l'application
           cd android-app
