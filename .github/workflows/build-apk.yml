@@ -36,12 +36,12 @@ jobs:
 
       - name: ⚙️ Initialisation et Build Android avec Bubblewrap
         run: |
-          # Configuration non interactive en utilisant le manifest.json à la racine
-          bubblewrap init --manifest=./manifest.json --directory=android-app --skip-sdk-check || true
+          # Configuration non interactive pour éviter le blocage du terminal
+          npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --skip-sdk-check --unattended
           
-          # Se placer dans le dossier généré et compiler l'APK
+          # Se placer dans le dossier généré et compiler l'application
           cd android-app
-          bubblewrap build
+          npx @bubblewrap/cli build
 
       - name: 📦 Sauvegarde et Export de l'APK
         uses: actions/upload-artifact@v4
