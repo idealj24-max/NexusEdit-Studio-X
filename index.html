@@ -77,7 +77,7 @@
     .msg.ai { align-self: flex-start; background: #030712; color: #34d399; border-left: 3px solid #8b5cf6; }
     .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
     
-    textarea, input[type="text"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
+    textarea, input[type="text"], input[type="password"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
     textarea { height: 50px; }
     .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.72rem; }
     .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; }
@@ -132,7 +132,8 @@
     
     <div class="menu-section-title">Cybersécurité & Déploiement PWA</div>
     <div class="file-item" onclick="switchMainView('cyber-config'); closeMenu();" style="color:var(--cyber-green);">🛡️ Bouclier VPN & Entreprise</div>
-    <div class="file-item" onclick="switchMainView('deploy'); closeMenu();" style="color:var(--accent);">⚡ Installer PWA sur Téléphone</div>
+    <div class="file-item" onclick="openSuperAppLauncher(); closeMenu();" style="color:var(--accent);">📦 Super App Launcher (Option 3)</div>
+    <div class="file-item" onclick="switchMainView('deploy'); closeMenu();" style="color:#34d399;">⚡ Pipeline APK Cloud (Option 1)</div>
   </div>
 
   <div id="main-layout">
@@ -169,6 +170,20 @@
           <h3>📲 Installation Rapide Détectée</h3>
           <p style="font-size: 0.72rem; color: #9ca3af;">Ton navigateur est prêt à installer cette application directement sur ton écran d'accueil en un seul clic.</p>
           <button id="btn-install-app" class="btn-nexus">Installer l'app sur le téléphone</button>
+        </div>
+
+        <div class="deploy-card" style="border: 1px solid var(--accent);">
+          <h3>🤖 Option 1 : Générateur Cloud d'APK (GitHub Actions)</h3>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Transforme ta PWA actuelle en un véritable fichier .apk Android via compilation cloud automatisée.</p>
+          <div style="margin-top: 8px;">
+            <label style="font-size:0.7rem; color:var(--accent);">Nom du dépôt GitHub (ex: utilisateur/repo) :</label>
+            <input type="text" id="github-repo-input" placeholder="ex: mon-compte/mon-projet-apk" style="margin-top:4px;">
+          </div>
+          <div style="margin-top: 8px;">
+            <label style="font-size:0.7rem; color:var(--accent);">Token Personnel GitHub (PAT) :</label>
+            <input type="password" id="github-token-input" placeholder="ghp_xxxxxxxxxxxx" style="margin-top:4px;">
+          </div>
+          <button class="btn-nexus" style="margin-top: 10px;" onclick="triggerCloudApkBuild()">Lancer le Pipeline de Build APK</button>
         </div>
 
         <div class="deploy-card">
@@ -463,6 +478,99 @@
         a.click();
         logConsole("Sauvegarde IndexedDB exportée avec succès.");
       };
+    }
+
+    // --- OPTION 3 : SUPER APP LAUNCHER INTERNE ---
+    function openSuperAppLauncher() {
+      if (!db) return alert("Base de données non initialisée.");
+      const transaction = db.transaction(["projects"], "readonly");
+      const request = transaction.objectStore("projects").getAll();
+      
+      request.onsuccess = () => {
+        const projects = request.result;
+        let launcherHtml = `
+          <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:#070913; z-index:200; padding:20px; overflow-y:auto; font-family:monospace;">
+            <h2 style="color:#00ffcc; margin-bottom:15px;">📦 Nexus Super App Launcher</h2>
+            <p style="color:#9ca3af; font-size:0.8rem; margin-bottom:20px;">Exécute instantanément n'importe quelle mini-application enregistrée dans ton runtime local :</p>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px;">
+        `;
+        
+        projects.forEach(p => {
+          launcherHtml += `
+            <div onclick="loadAndRunMiniApp('${p.name}')" style="background:#0d1322; border:1px solid #1f2937; border-radius:8px; padding:15px; cursor:pointer; text-align:center;">
+              <div style="font-size:2rem; margin-bottom:8px;">📱</div>
+              <div style="color:#e5e7eb; font-size:0.8rem; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</div>
+            </div>
+          `;
+        });
+        
+        launcherHtml += `
+            </div>
+            <button onclick="closeSuperAppLauncher()" style="margin-top:30px; background:#ef4444; color:#fff; border:none; padding:10px 20px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">Fermer le Launcher</button>
+          </div>
+        `;
+        
+        const launcherDiv = document.createElement('div');
+        launcherDiv.id = 'super-app-modal';
+        launcherDiv.innerHTML = launcherHtml;
+        document.body.appendChild(launcherDiv);
+      };
+    }
+
+    function loadAndRunMiniApp(projName) {
+      loadProjectFromDB(projName).then(() => {
+        closeSuperAppLauncher();
+        switchMainView('preview');
+        executeCode();
+        logConsole("Mini-app '" + projName + "' chargée dans le runtime Super App.");
+      });
+    }
+
+    function closeSuperAppLauncher() {
+      const modal = document.getElementById('super-app-modal');
+      if (modal) modal.remove();
+    }
+
+    // --- OPTION 1 : COMPILATION CLOUD APK VIA GITHUB ACTIONS ---
+    async function triggerCloudApkBuild() {
+      const repo = document.getElementById('github-repo-input').value.trim();
+      const token = document.getElementById('github-token-input').value.trim();
+      
+      if (!repo || !token) {
+        alert("Veuillez renseigner le nom du dépôt GitHub et votre Token personnel (PAT).");
+        return;
+      }
+
+      if(editor) files[activeFile] = editor.getValue();
+      logConsole("Transmission du code source au pipeline cloud GitHub Actions pour build APK...");
+
+      const endpoint = `https://api.github.com/repos/${repo}/actions/workflows/build-apk.yml/dispatches`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ref: 'main',
+            inputs: { project_name: currentProjectName }
+          })
+        });
+
+        if (response.ok || response.status === 204) {
+          logConsole("Pipeline de build APK déclenché avec succès sur le cloud !");
+          alert("🚀 Compilation APK lancée !\n\nLe workflow GitHub Actions s'exécute. Rendez-vous dans l'onglet 'Actions' de votre dépôt GitHub pour récupérer votre fichier .apk une fois la compilation terminée.");
+        } else {
+          const errData = await response.json();
+          throw new Error(errData.message || "Erreur lors de l'appel à l'API GitHub");
+        }
+      } catch (err) {
+        logConsole("Erreur Cloud Build : " + err.message, true);
+        alert("Échec du déclenchement distant : " + err.message + "\n\nAssurez-vous que le fichier .github/workflows/build-apk.yml est bien configuré sur votre dépôt.");
+      }
     }
 
     function saveCyberConfig() {
