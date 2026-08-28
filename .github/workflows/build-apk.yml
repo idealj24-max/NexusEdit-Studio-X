@@ -35,8 +35,8 @@ jobs:
 
       - name: ⚙️ Build Android Automatisé
         run: |
-          # Lancement direct du build à partir du fichier twa-manifest.json à la racine
-          npx @bubblewrap/cli build
+          # On envoie "N" automatiquement pour répondre à la question interactive de Bubblewrap
+          echo "N" | npx @bubblewrap/cli build --unattended || npx @bubblewrap/cli build
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
 
