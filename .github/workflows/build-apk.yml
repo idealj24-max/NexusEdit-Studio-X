@@ -9,19 +9,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Récupération du code source
+      - name: 📥 Récupération du code source
         uses: actions/checkout@v4
 
-      - name: Configuration de Node.js
+      - name: ☕ Configuration de Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🟢 Configuration de Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Validation du Manifeste et des fichiers PWA
+      - name: 🛠️ Installation de Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: 📱 Validation et préparation de la PWA
         run: |
-          echo "Vérification de la présence de index.html, manifest.json et sw.js..."
-          ls -la
+          echo "Vérification des fichiers essentiels..."
           test -f index.html
           test -f manifest.json
           test -f sw.js
-          echo "Structure PWA validée avec succès pour le déploiement."
+          echo "📦 Structure PWA validée avec succès."
