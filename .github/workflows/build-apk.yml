@@ -17,6 +17,12 @@ jobs:
         with:
           node-version: '18'
 
+      - name: ☕ Configuration de Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
@@ -28,9 +34,8 @@ jobs:
 
       - name: ⚙️ Build Android Automatisé
         run: |
-          # Commande complète sans interaction pour générer le projet Android
-          npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --applicationId=com.nexus.app --name="Nexus" --launcherName="Nexus" --themeColor="#FFFFFF" --backgroundColor="#FFFFFF" --startUrl="/" --display="standalone" --orientation="portrait" || true
-          
+          # On répond "n" automatiquement pour utiliser le JDK déjà installé par l'étape précédente
+          echo "n" | npx @bubblewrap/cli init --manifest=./manifest.json --directory=android-app --unattended || true
           cd android-app
           npx @bubblewrap/cli build
 
