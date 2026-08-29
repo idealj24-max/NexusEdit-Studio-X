@@ -29,17 +29,18 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: ⚙️ Configurer les chemins dans twa-manifest.json
+      - name: 🚀 Génération automatique du projet Android
         run: |
-          jq --arg java "$JAVA_HOME" --arg sdk "$ANDROID_SDK_ROOT" '.jdkPath = $java | .androidSdkPath = $sdk' twa-manifest.json > tmp.json && mv tmp.json twa-manifest.json
+          # Utilisation de l'outil de ligne de commande de manière non interactive avec les options par défaut
+          npx @bubblewrap/cli init --manifest ./twa-manifest.json --directory . --skip-icon-validation --force || true
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: 🚀 Initialisation et Build Android Automatisé
+      - name: ⚙️ Rendre Gradle exécutable et Compiler l'APK
         run: |
-          npx @bubblewrap/cli init --manifest ./twa-manifest.json --batch --skip-icon-validation
-          npx @bubblewrap/cli build --skip-signing
+          chmod +x gradlew
+          ./gradlew assembleDebug
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
@@ -48,6 +49,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexus-edit-apk
-          path: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/*.apk
