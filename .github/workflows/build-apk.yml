@@ -30,18 +30,23 @@ jobs:
         run: npm install -g @bubblewrap/cli
 
       - name: ⚙️ Injection automatique des chemins dans le manifeste
+        env:
+          MY_JAVA_HOME: ${{ steps.setup-java.outputs.path || env.JAVA_HOME }}
+          MY_ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
         run: |
           node -e '
             const fs = require("fs");
             const file = "./twa-manifest.json";
             const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
-            manifest.jdkPath = process.env.JAVA_HOME;
-            manifest.androidSdkPath = process.env.ANDROID_SDK_ROOT;
+            
+            console.log("JAVA_HOME detecte :", process.env.MY_JAVA_HOME);
+            console.log("ANDROID_SDK_ROOT detecte :", process.env.MY_ANDROID_SDK_ROOT);
+
+            manifest.jdkPath = process.env.MY_JAVA_HOME;
+            manifest.androidSdkPath = process.env.MY_ANDROID_SDK_ROOT;
+            
             fs.writeFileSync(file, JSON.stringify(manifest, null, 2));
           '
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: 🚀 Build Android Automatisé
         run: npx @bubblewrap/cli build --unattended
