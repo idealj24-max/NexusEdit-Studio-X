@@ -26,6 +26,17 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
+      - name: ⚙️ Injection automatique du JDK dans le manifest
+        run: |
+          node -e '
+            const fs = require("fs");
+            const manifest = JSON.parse(fs.readFileSync("twa-manifest.json", "utf8"));
+            manifest.jdkPath = process.env.JAVA_HOME;
+            fs.writeFileSync("twa-manifest.json", JSON.stringify(manifest, null, 2));
+          '
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+
       - name: 📱 Validation de la PWA
         run: |
           test -f index.html
@@ -33,13 +44,8 @@ jobs:
           test -f sw.js
           test -f twa-manifest.json
 
-      - name: ⚙️ Build Android Automatisé
-        run: |
-          # On transmet directement JAVA_HOME et les réponses aux configurations attendues par Bubblewrap
-          export JDK_PATH="$JAVA_HOME"
-          printf "N\n$JAVA_HOME\n" | npx @bubblewrap/cli build --unattended || npx @bubblewrap/cli build
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
+      - name: 🚀 Build Android Automatisé
+        run: npx @bubblewrap/cli build --unattended
 
       - name: 📦 Sauvegarde et Export de l'APK
         uses: actions/upload-artifact@v4
