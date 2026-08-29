@@ -43,7 +43,7 @@ jobs:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: 🚀 Build Android Automatisé
-        run: echo "n" | npx @bubblewrap/cli build --unattended
+        run: npx @bubblewrap/cli build --unattended --jdkPath "$JAVA_HOME" --androidSdkPath "$ANDROID_HOME"
 
       - name: 📦 Sauvegarde et Export de l'APK
         uses: actions/upload-artifact@v4
