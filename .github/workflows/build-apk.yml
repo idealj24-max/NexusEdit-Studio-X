@@ -38,7 +38,7 @@ jobs:
 
       - name: 🚀 Build Android Automatisé
         run: |
-          echo "n" | npx @bubblewrap/cli build --unattended --skip-signing
+          npx @bubblewrap/cli build --jdkPath "$JAVA_HOME" --androidSdkPath "$ANDROID_SDK_ROOT" --unattended --skip-signing
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
