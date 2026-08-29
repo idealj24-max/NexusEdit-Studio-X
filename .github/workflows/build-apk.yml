@@ -29,12 +29,16 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: 🚀 Build Android Automatisé
+      - name: ⚙️ Configurer les chemins dans twa-manifest.json
         run: |
-          npx @bubblewrap/cli build --unattended --skip-signing --jdkPath "$JAVA_HOME" --sdkPath "$ANDROID_SDK_ROOT"
+          jq --arg java "$JAVA_HOME" --arg sdk "$ANDROID_SDK_ROOT" '.jdkPath = $java | .androidSdkPath = $sdk' twa-manifest.json > tmp.json && mv tmp.json twa-manifest.json
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+
+      - name: 🚀 Build Android Automatisé
+        run: |
+          npx @bubblewrap/cli build --unattended --skip-signing
 
       - name: 📦 Sauvegarde et Export de l'APK
         uses: actions/upload-artifact@v4
