@@ -29,25 +29,9 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: ⚙️ Injection automatique des chemins dans le manifeste
+      - name: 🚀 Build Android Automatisé
         run: |
-          node -e '
-            const fs = require("fs");
-            const file = "./twa-manifest.json";
-            if (fs.existsSync(file)) {
-              const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
-              manifest.jdkPath = process.env.JAVA_HOME;
-              manifest.androidSdkPath = process.env.ANDROID_SDK_ROOT;
-              fs.writeFileSync(file, JSON.stringify(manifest, null, 2));
-            }
-          '
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-
-      - name: 🚀 Build Android Non-Interactif
-        run: |
-          npx @bubblewrap/cli build --unattended --skip-signing
+          npx @bubblewrap/cli build --unattended --skip-signing --jdkPath "$JAVA_HOME" --sdkPath "$ANDROID_SDK_ROOT"
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
