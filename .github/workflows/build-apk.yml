@@ -50,7 +50,7 @@ jobs:
           test -f twa-manifest.json
 
       - name: 🚀 Build Android Automatisé
-        run: npx @bubblewrap/cli build --unattended
+        run: echo "n" | npx @bubblewrap/cli build --unattended
 
       - name: 📦 Sauvegarde et Export de l'APK
         uses: actions/upload-artifact@v4
