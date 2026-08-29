@@ -43,7 +43,7 @@ jobs:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: 🚀 Build Android Automatisé
-        run: npx @bubblewrap/cli build --unattended
+        run: echo "n" | npx @bubblewrap/cli build --unattended
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
