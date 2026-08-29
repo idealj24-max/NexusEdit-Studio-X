@@ -29,7 +29,7 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: ⚙️ Injection des chemins JDK et SDK dans le manifest
+      - name: ⚙️ Injection complète des chemins JDK et SDK dans le manifest
         run: |
           node -e '
             const fs = require("fs");
@@ -43,7 +43,7 @@ jobs:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: 🚀 Build Android Automatisé
-        run: echo "n" | npx @bubblewrap/cli build --unattended
+        run: npx @bubblewrap/cli build --unattended
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
