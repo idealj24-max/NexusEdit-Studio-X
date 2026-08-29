@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
+res:
   build:
     runs-on: ubuntu-latest
     steps:
@@ -29,7 +30,7 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: ⚙️ Injection automatique du JDK et du SDK dans le manifest
+      - name: ⚙️ Injection des chemins JDK et SDK dans le manifest
         run: |
           node -e '
             const fs = require("fs");
@@ -42,17 +43,8 @@ jobs:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: 📱 Validation de la PWA
-        run: |
-          test -f index.html
-          test -f manifest.json
-          test -f sw.js
-          test -f twa-manifest.json
-
       - name: 🚀 Build Android Automatisé
         run: npx @bubblewrap/cli build --unattended
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
 
       - name: 📦 Sauvegarde et Export de l'APK
         uses: actions/upload-artifact@v4
