@@ -50,7 +50,7 @@ jobs:
           test -f twa-manifest.json
 
       - name: 🚀 Build Android Automatisé
-        run: printf "n\n%s\n" "$JAVA_HOME" | npx @bubblewrap/cli build --unattended
+        run: printf "n\n%s\n\n" "$JAVA_HOME" | npx @bubblewrap/cli build --unattended
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
 
