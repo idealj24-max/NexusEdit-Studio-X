@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
- _build:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Récupération du code source
@@ -34,21 +34,20 @@ jobs:
           node -e '
             const fs = require("fs");
             const file = "./twa-manifest.json";
-            const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
-            
-            manifest.jdkPath = process.env.JAVA_HOME;
-            manifest.androidSdkPath = process.env.ANDROID_SDK_ROOT;
-            
-            fs.writeFileSync(file, JSON.stringify(manifest, null, 2));
+            if (fs.existsSync(file)) {
+              const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
+              manifest.jdkPath = process.env.JAVA_HOME;
+              manifest.androidSdkPath = process.env.ANDROID_SDK_ROOT;
+              fs.writeFileSync(file, JSON.stringify(manifest, null, 2));
+            }
           '
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: 🚀 Build Android Automatisé (Non-interactif)
+      - name: 🚀 Build Android Non-Interactif
         run: |
-          # Utilisation de yes pour répondre automatiquement aux éventuelles invites de configuration de Bubblewrap
-          yes "" | npx @bubblewrap/cli build --unattended || npx @bubblewrap/cli update --manifest ./twa-manifest.json && npx @bubblewrap/cli build --unattended
+          npx @bubblewrap/cli build --unattended --skip-signing
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
