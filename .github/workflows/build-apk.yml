@@ -23,19 +23,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: 📱 Configuration du SDK Android
+        uses: android-actions/setup-android@v3
+
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: ⚙️ Injection automatique du JDK dans le manifest
+      - name: ⚙️ Injection automatique du JDK et du SDK dans le manifest
         run: |
           node -e '
             const fs = require("fs");
             const manifest = JSON.parse(fs.readFileSync("twa-manifest.json", "utf8"));
             manifest.jdkPath = process.env.JAVA_HOME;
+            manifest.androidSdkPath = process.env.ANDROID_SDK_ROOT;
             fs.writeFileSync("twa-manifest.json", JSON.stringify(manifest, null, 2));
           '
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: 📱 Validation de la PWA
         run: |
