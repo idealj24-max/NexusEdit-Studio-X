@@ -36,9 +36,10 @@ jobs:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: 🚀 Build Android Automatisé
+      - name: 🚀 Initialisation et Build Android Automatisé
         run: |
-          npx @bubblewrap/cli build --jdkPath "$JAVA_HOME" --androidSdkPath "$ANDROID_SDK_ROOT" --unattended --skip-signing
+          npx @bubblewrap/cli init --manifest ./twa-manifest.json --batch --skip-icon-validation
+          npx @bubblewrap/cli build --skip-signing
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
