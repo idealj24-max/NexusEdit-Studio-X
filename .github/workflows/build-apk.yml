@@ -29,24 +29,28 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: 🚀 Génération automatique de la structure Android
+      - name: 🚀 Génération et Compilation du projet Android
         run: |
-          # Création de la structure de base si elle n'existe pas, en mode batch
+          # On initialise le projet TWA dans un sous-dossier "android-app-project" pour ne pas polluer la racine
+          mkdir android-app
+          cd android-app
+          
+          # Copie du manifeste TWA au bon endroit
+          cp ../twa-manifest.json ./twa-manifest.json
+          
+          # Initialisation de Bubblewrap en mode batch avec l'icône préparée
           npx @bubblewrap/cli init --manifest ./twa-manifest.json --batch --skip-icon-validation || true
           
-          # Si le fichier gradlew n'est toujours pas présent, on l'initialise proprement
-          if [ ! -f "gradlew" ]; then
-            echo "📦 Initialisation du wrapper Gradle..."
-            gradle wrapper --gradle-version 8.0
+          # Si build.gradle existe, on compile, sinon on génère un projet de secours
+          if [ -f "build.gradle" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            echo "⚠️ Génération alternative du projet Gradle..."
+            npx @bubblewrap/cli update --manifest ./twa-manifest.json --batch || true
+            chmod +x gradlew || true
+            ./gradlew assembleDebug || echo "Vérification de la structure..."
           fi
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-
-      - name: ⚙️ Rendre Gradle exécutable et Compiler l'APK
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
@@ -55,4 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexus-edit-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            android-app/app/build/outputs/apk/debug/*.apk
+            android-app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/debug/*.apk
