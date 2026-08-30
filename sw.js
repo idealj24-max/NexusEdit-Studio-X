@@ -1,15 +1,17 @@
-const CACHE_NAME = 'nexus-studio-v5';
+const CACHE_NAME = 'nexus-studio-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js)',
-  '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.css](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.css)',
-  '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.nls.js](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.nls.js)',
-  '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.js](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.js)'
+  'https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.nls.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+  'https://cdn.jsdelivr.net/npm/marked/marked.min.js'
 ];
 
-// Installation et mise en cache initiale
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -20,23 +22,23 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Interception et stratégie hybride (Network First pour les CDNs externes, Cache First pour le local)
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   if (url.origin !== location.origin) {
-    // Stratégie Network First pour les scripts distants / CDN
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(event.request).then((response) => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
           return response;
-        })
-        .catch(() => caches.match(event.request))
+        }).catch(() => new Response("Erreur de connexion et ressource non mise en cache."));
+      })
     );
   } else {
-    // Stratégie Cache First pour les fichiers locaux du projet
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         return cachedResponse || fetch(event.request);
@@ -45,14 +47,12 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Nettoyage des anciens caches lors d'une mise à jour
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Suppression de l\'ancien cache', cache);
             return caches.delete(cache);
           }
         })
