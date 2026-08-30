@@ -27,11 +27,14 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Initialize and Build APK
+      - name: Initialize TWA Project
         run: |
-          bubblewrap init --manifest="https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json" --directory="./twa-project"
+          bubblewrap init --manifest="https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json" --directory="./twa-project" --skipDependenciesCheck
+
+      - name: Build Android APK
+        run: |
           cd twa-project
-          bubblewrap build
+          bubblewrap build --skipDependenciesCheck
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
