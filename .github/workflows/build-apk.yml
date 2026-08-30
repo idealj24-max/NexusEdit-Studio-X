@@ -29,7 +29,10 @@ jobs:
 
       - name: Initialize TWA Project
         run: |
-          bubblewrap init --manifest="https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json" --directory="./twa-project" --skipDependenciesCheck
+          mkdir -p twa-project
+          cd twa-project
+          # Utilisation de yes "n" pour répondre automatiquement "No" à l'installation du JDK par Bubblewrap
+          yes "n" | bubblewrap init --manifest="https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json" --skipDependenciesCheck || true
 
       - name: Build Android APK
         run: |
