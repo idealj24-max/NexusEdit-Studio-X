@@ -29,28 +29,24 @@ jobs:
       - name: 🛠️ Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: 🚀 Génération et Compilation du projet Android
+      - name: 🚀 Génération et Compilation de l'APK TWA
         run: |
-          # On initialise le projet TWA dans un sous-dossier "android-app-project" pour ne pas polluer la racine
-          mkdir android-app
-          cd android-app
+          # Affichage de la configuration pour diagnostic
+          npx @bubblewrap/cli --version
           
-          # Copie du manifeste TWA au bon endroit
-          cp ../twa-manifest.json ./twa-manifest.json
+          # Initialisation directe et construction non interactive sécurisée
+          npx @bubblewrap/cli init --manifest ./twa-manifest.json --directory ./twa-output --batch || true
           
-          # Initialisation de Bubblewrap en mode batch avec l'icône préparée
-          npx @bubblewrap/cli init --manifest ./twa-manifest.json --batch --skip-icon-validation || true
+          cd twa-output
           
-          # Si build.gradle existe, on compile, sinon on génère un projet de secours
-          if [ -f "build.gradle" ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            echo "⚠️ Génération alternative du projet Gradle..."
+          # Si le fichier build.gradle n'est pas présent, on force la mise à jour
+          if [ ! -f "build.gradle" ]; then
             npx @bubblewrap/cli update --manifest ./twa-manifest.json --batch || true
-            chmod +x gradlew || true
-            ./gradlew assembleDebug || echo "Vérification de la structure..."
           fi
+          
+          # Compilation de l'APK debug
+          chmod +x gradlew || true
+          ./gradlew assembleDebug
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
@@ -60,6 +56,6 @@ jobs:
         with:
           name: nexus-edit-apk
           path: |
-            android-app/app/build/outputs/apk/debug/*.apk
-            android-app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/debug/*.apk
+            twa-output/app/build/outputs/apk/debug/*.apk
+            twa-output/build/outputs/apk/debug/*.apk
+            **/app/build/outputs/apk/debug/*.apk
