@@ -12,26 +12,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
+      - name: Build Android APK with PWABuilder
+        uses: pwa-builder/pwabuilder-action@v1.0.0
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
-
-      - name: Build Android APK
-        run: |
-          bubblewrap build --manifest=twa-manifest.json || true
+          pwa-url: "https://idealj24-max.github.io/NexusEdit-Studio-X/"
+          output-dir: "android-apk"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NexusEditStudio-APK
-          path: '**/*.apk'
+          path: android-apk/*.apk
