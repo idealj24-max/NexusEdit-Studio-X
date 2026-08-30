@@ -27,14 +27,39 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Initialize TWA Project
+      - name: Create TWA Project Directory & Configuration
         run: |
           mkdir -p twa-project
-          cd twa-project
-          # Utilisation de yes "n" pour répondre automatiquement "No" à l'installation du JDK par Bubblewrap
-          yes "n" | bubblewrap init --manifest="https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json" --skipDependenciesCheck || true
+          cat << 'EOF' > twa-project/twa-manifest.json
+          {
+            "packageId": "com.nexuseditstudio.app",
+            "host": "idealj24-max.github.io",
+            "name": "NexusEdit Studio",
+            "launcherName": "NexusEdit",
+            "themeColor": "#000000",
+            "navigationColor": "#000000",
+            "backgroundColor": "#000000",
+            "startUrl": "/NexusEdit-Studio-X/",
+            "iconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon.png",
+            "maskableIconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon.png",
+            "appVersionName": "1.0.0",
+            "appVersionCode": 1,
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json",
+            "fallbackType": "customtabs",
+            "features": {},
+            "alphaDependencies": {
+              "enabled": false
+            },
+            "enableNotifications": false,
+            "display": "standalone",
+            "orientation": "default",
+            "fingerprints": []
+          }
+          EOF
 
-      - name: Build Android APK
+      - name: Generate Android Project
         run: |
           cd twa-project
           bubblewrap build --skipDependenciesCheck
