@@ -31,7 +31,7 @@ jobs:
 
       - name: 🚀 Génération automatique de la structure Android
         run: |
-          # Création de la structure de base si elle n'existe pas
+          # Création de la structure de base si elle n'existe pas, en mode batch
           npx @bubblewrap/cli init --manifest ./twa-manifest.json --batch --skip-icon-validation || true
           
           # Si le fichier gradlew n'est toujours pas présent, on l'initialise proprement
