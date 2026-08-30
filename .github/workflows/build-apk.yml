@@ -2,64 +2,36 @@ name: Nexus PWA to APK Builder
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Récupération du code source
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🟢 Configuration de Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: ☕ Configuration de Java
-        uses: actions/setup-java@v5
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 📱 Configuration du SDK Android
-        uses: android-actions/setup-android@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: 🛠️ Installation de Bubblewrap CLI
+      - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: 🚀 Génération et Compilation du projet Android
+      - name: Build Android APK
         run: |
-          # On initialise le projet TWA dans un sous-dossier "android-app-project" pour ne pas polluer la racine
-          mkdir android-app
-          cd android-app
-          
-          # Copie du manifeste TWA au bon endroit
-          cp ../twa-manifest.json ./twa-manifest.json
-          
-          # Initialisation de Bubblewrap en mode batch avec l'icône préparée
-          npx @bubblewrap/cli init --manifest ./twa-manifest.json --batch --skip-icon-validation || true
-          
-          # Si build.gradle existe, on compile, sinon on génère un projet de secours
-          if [ -f "build.gradle" ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            echo "⚠️ Génération alternative du projet Gradle..."
-            npx @bubblewrap/cli update --manifest ./twa-manifest.json --batch || true
-            chmod +x gradlew || true
-            ./gradlew assembleDebug || echo "Vérification de la structure..."
-          fi
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          bubblewrap build --manifest=twa-manifest.json || true
 
-      - name: 📦 Sauvegarde et Export de l'APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nexus-edit-apk
-          path: |
-            android-app/app/build/outputs/apk/debug/*.apk
-            android-app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/debug/*.apk
+          name: NexusEditStudio-APK
+          path: '**/*.apk'
