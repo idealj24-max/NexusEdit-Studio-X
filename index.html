@@ -342,7 +342,6 @@
     let pyodideReady = false;
     let pyodideInstance = null;
 
-    // Initialisation sécurisée de Pyodide pour éviter le conflit Require.js
     async function initPyodideRuntime() {
       try {
         logConsole("Chargement du moteur Python Pyodide dans le navigateur...");
@@ -762,22 +761,6 @@ Format : ${format}. Ton : ${tone}.`;
       if(window.innerWidth <= 900) switchMainView('ai-mobile');
     }
 
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
-    require(['vs/editor/editor.main'], function() {
-      editor = monaco.editor.create(document.getElementById('editor-container'), {
-        value: files[activeFile],
-        language: 'html',
-        theme: 'vs-dark',
-        automaticLayout: true,
-        fontSize: 13,
-        minimap: { enabled: false }
-      });
-      editor.onDidChangeModelContent(() => {
-        files[activeFile] = editor.getValue();
-        saveProjectToDB();
-      });
-    });
-
     function toggleMenu() {
       const m = document.getElementById('side-menu');
       const o = document.getElementById('overlay');
@@ -909,12 +892,30 @@ Format : ${format}. Ton : ${tone}.`;
       if(editor) { navigator.clipboard.writeText(editor.getValue()); alert("Code copié !"); }
     }
 
+    // Configuration et initialisation sécurisée dans le DOMContentLoaded
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+
     window.addEventListener('DOMContentLoaded', async () => {
       await initIndexedDB();
       const savedKey = localStorage.getItem('nexus_user_ai_key');
       if (savedKey) document.getElementById('ai-api-key').value = savedKey;
       document.getElementById('ai-api-key').addEventListener('input', (e) => {
         localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
+      });
+
+      require(['vs/editor/editor.main'], function() {
+        editor = monaco.editor.create(document.getElementById('editor-container'), {
+          value: files[activeFile],
+          language: 'html',
+          theme: 'vs-dark',
+          automaticLayout: true,
+          fontSize: 13,
+          minimap: { enabled: false }
+        });
+        editor.onDidChangeModelContent(() => {
+          files[activeFile] = editor.getValue();
+          saveProjectToDB();
+        });
       });
     });
   </script>
