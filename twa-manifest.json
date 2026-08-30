@@ -17,7 +17,5 @@
   "iconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon-512.png",
   "maskableIconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon-512.png",
   "shortcuts": [],
-  "generatorApp": "bubblewrap-cli",
-  "jdkPath": "/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64",
-  "androidSdkPath": "/usr/local/lib/android/sdk"
+  "generatorApp": "bubblewrap-cli"
 }
