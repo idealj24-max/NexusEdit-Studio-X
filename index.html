@@ -6,14 +6,14 @@
   <title>NexusEdit Studio 4.0 - Universal Mega-Studio & Video AI</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- 1. Charger Pyodide EN PREMIER (avant Require.js pour éviter le conflit d'erreur) -->
+  <!-- 1. Charger Pyodide EN PREMIER -->
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
-  <!-- Monaco Editor (charge Require.js) -->
+  <!-- Monaco Editor -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
   
-  <!-- Autres utilitaires -->
+  <!-- Utilitaires -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -98,7 +98,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: center; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -234,7 +234,7 @@
         </div>
 
         <div class="panel-card">
-          <h3>📦 Packages d'Export Universels (Nouveau)</h3>
+          <h3>📦 Packages d'Export Universels</h3>
           <p style="font-size: 0.72rem; color: #9ca3af;">Télécharge ton projet sous différents formats d'exécutables et extensions :</p>
           <div style="display:flex; flex-direction:column; gap:6px; margin-top:5px;">
             <button class="btn-nexus btn-secondary" onclick="exportPackage('zip')">Télécharger le code source (ZIP complet)</button>
@@ -569,7 +569,8 @@
 Rédige un scénario complet, structuré avec des accroches puissantes, les dialogues, les indications visuelles (cadrage, texte à l'écran) pour le sujet suivant : "${topic}".
 Format : ${format}. Ton : ${tone}.`;
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      // Utilisation du modèle gemini-3.6-flash à jour
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -857,7 +858,9 @@ Format : ${format}. Ton : ${tone}.`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
       const currentCode = editor ? editor.getValue() : files[activeFile];
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      
+      // Utilisation du modèle gemini-3.6-flash à jour
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       
       try {
         const response = await fetch(endpoint, {
@@ -892,7 +895,6 @@ Format : ${format}. Ton : ${tone}.`;
       if(editor) { navigator.clipboard.writeText(editor.getValue()); alert("Code copié !"); }
     }
 
-    // Configuration et initialisation sécurisée dans le DOMContentLoaded
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
 
     window.addEventListener('DOMContentLoaded', async () => {
