@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 4.0 - Universal Mega-Studio & Video AI</title>
+  <title>NexusEdit Studio 4.0 - Universal Mega-Studio & Vision AI</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- 1. Charger Pyodide EN PREMIER -->
+  <!-- Pyodide -->
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
   <!-- Monaco Editor -->
@@ -91,6 +91,10 @@
     .btn-secondary { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); margin-top: 5px; }
     .btn-video { background: var(--video-purple); color: #fff; }
 
+    /* Styles pour la Caméra et Scanner */
+    video, canvas { width: 100%; max-height: 220px; border-radius: 6px; background: #000; object-fit: cover; }
+    #diag-output { background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #34d399; white-space: pre-wrap; word-break: break-word; min-height: 80px; max-height: 200px; overflow-y: auto; }
+
     #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.65rem; padding: 6px; overflow-y: auto; color: #10b981; flex-shrink: 0; display: flex; flex-direction: column; }
     .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed var(--border); padding-bottom: 2px; color: #6b7280; font-size: 0.6rem; }
     .clear-console-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-family: monospace; font-size: 0.6rem; }
@@ -98,7 +102,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: center; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -138,6 +142,7 @@
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
     <div class="menu-section-title">Studios Avancés & IA</div>
+    <div class="file-item" onclick="switchMainView('scan-studio'); closeMenu();" style="color:var(--accent);">🔧 Scanner Engins & Détection Pannes</div>
     <div class="file-item" onclick="switchMainView('video-studio'); closeMenu();" style="color:var(--video-purple);">🎬 Studio Vidéo & Mini-Séries TikTok</div>
     <div class="file-item" onclick="switchMainView('cyber-config'); closeMenu();" style="color:var(--cyber-green);">🛡️ Bouclier VPN & Entreprise</div>
     <div class="file-item" onclick="openSuperAppLauncher(); closeMenu();" style="color:var(--accent);">📦 Super App Launcher</div>
@@ -148,6 +153,7 @@
     <div id="workspace">
       <div class="mode-tabs">
         <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code / Texte</div>
+        <div class="tab" id="tab-scan" onclick="switchMainView('scan-studio')">🔧 Scan Caméra</div>
         <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI</div>
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu & Run</div>
         <div class="tab" id="tab-video" onclick="switchMainView('video-studio')">🎬 Vidéos TikTok</div>
@@ -157,6 +163,27 @@
       
       <div id="editor-container"></div>
       
+      <!-- Module Caméra & Scanner Détection de Pannes -->
+      <div id="scan-studio-view" class="universal-view">
+        <div class="panel-card" style="border: 1px solid var(--accent);">
+          <h3>🔧 Scanner de Détection de Pannes sur Engins & Moteurs</h3>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Filmez ou prenez en photo un moteur, un circuit hydraulique ou une pièce d'engin lourd pour générer un diagnostic IA instantané.</p>
+          
+          <video id="scanner-video" autoplay playsinline></video>
+          <canvas id="scanner-canvas" style="display:none;"></canvas>
+          
+          <div style="display:flex; gap:8px; margin-top:6px;">
+            <button class="btn-nexus" style="flex:1;" onclick="startCamera()">📷 Activer Caméra</button>
+            <button class="btn-nexus" style="flex:1; background:#00e699;" onclick="captureAndAnalyzeFault()">🔍 Scanner & Analyser</button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h4>📋 Diagnostic Technique & Solutions :</h4>
+          <div id="diag-output">En attente de capture... Cliquez sur "Activer Caméra" puis "Scanner & Analyser".</div>
+        </div>
+      </div>
+
       <div id="design-panel" class="universal-view">
         <div class="panel-card">
           <h4>Boîte à Composants Multi-Formats & UI</h4>
@@ -283,7 +310,7 @@
           <button class="clear-console-btn" onclick="clearConsoleLogs()">[Effacer]</button>
         </div>
         <div class="console-logs-content" id="console-logs-body">
-          [System] Moteur universel initialisé. Prêt pour PWA, Python, Markdown et Vidéos IA.<br>
+          [System] Moteur universel initialisé. Prêt pour PWA, Python, Markdown et Scanner IA.<br>
         </div>
       </div>
     </div>
@@ -298,10 +325,10 @@
         <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
       </div>
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Prêt à créer des PWA, coder en Python, rédiger des rapports ou scénariser vos mini-séries TikTok !</div>
+        <div class="msg ai">Prêt à créer des PWA, coder en Python, scanner vos pièces d'engins ou scénariser vos vidéos !</div>
       </div>
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Écris un script Python ou un scénario vidéo..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Écris un script Python ou une analyse technique..."></textarea>
         <div style="display: flex; gap: 5px;">
           <button class="btn-nexus" style="flex: 2;" onclick="sendAIPromptReal()">🚀 Exécuter</button>
           <button class="btn-nexus btn-secondary" style="flex: 1; margin-top: 0;" onclick="startVoiceRecognition()">🎙️ Vocal</button>
@@ -312,12 +339,12 @@
   </div>
 
   <div class="ad-banner">
-      NexusEdit Studio 4.0 <span>• PWA, Python, Markdown, Scripts Vidéo TikTok & Cloud Builds Intégrés</span>
+      NexusEdit Studio 4.0 <span>• PWA, Scanner Engins IA, Python, Markdown & Cloud Builds</span>
   </div>
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
-    <button onclick="switchMainView('design'); closeMenu();" id="nav-des">🎨 <span>UI</span></button>
+    <button onclick="switchMainView('scan-studio'); closeMenu();" id="nav-scan">🔧 <span>Scan</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Run</span></button>
     <button onclick="switchMainView('video-studio'); closeMenu();" id="nav-video">🎬 <span>Vidéos</span></button>
     <button onclick="switchMainView('deploy'); closeMenu();" id="nav-deploy">⚡ <span>Exports</span></button>
@@ -331,7 +358,7 @@
       'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }\n  </style>\n</head>\n<body>\n  <h1>⚡ Nexus Universal Studio</h1>\n  <p>Prêt pour le multi-format !</p>\n</body>\n</html>`,
       'style.css': `body { margin: 0; padding: 0; }`,
       'script.py': `# Script Python exécuté en navigateur via Pyodide\nimport math\n\ndef calculer_acceleration(v_ini, v_fin, t):\n    return (v_fin - v_ini) / t\n\nprint("Calcul Python réussi :", calculer_acceleration(0, 100, 5), "m/s^2")`,
-      'document.md': `# Rapport Technique & Cahier des Charges\n\n## 1. Introduction\nCe document répertorie les spécifications de notre application multi-formats.\n\n- Sécurité AES-256\n- Export Multi-plateforme\n- IA Générative Vidéo`,
+      'document.md': `# Rapport Technique & Cahier des Charges\n\n## 1. Introduction\nCe document répertorie les spécifications de notre application multi-formats.\n\n- Sécurité AES-256\n- Export Multi-plateforme\n- Scanner Diagnostic IA`,
       'config.json': `{\n  "version": "4.0",\n  "environment": "production",\n  "database": "IndexedDB_Local"\n}`,
       'manifest.json': `{\n  "name": "App Universelle",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
     };
@@ -341,6 +368,7 @@
     let currentBlobUrl = null;
     let pyodideReady = false;
     let pyodideInstance = null;
+    let cameraStream = null;
 
     async function initPyodideRuntime() {
       try {
@@ -425,7 +453,7 @@
 
     function renderChatHistoryUI() {
       const chatBox = document.getElementById('chat-box');
-      let html = `<div class="msg ai">Prêt à créer des PWA, coder en Python, rédiger des rapports ou scénariser vos mini-séries TikTok !</div>`;
+      let html = `<div class="msg ai">Prêt à créer des PWA, coder en Python, scanner vos pièces d'engins ou scénariser vos vidéos !</div>`;
       chatHistory.forEach(msg => {
         let cls = msg.role === 'user' ? 'user' : 'ai';
         html += `<div class="msg ${cls}">${escapeHtml(msg.text)}</div>`;
@@ -553,6 +581,71 @@
     function closeSuperAppLauncher() {
       const m = document.getElementById('super-app-modal');
       if (m) m.remove();
+    }
+
+    /* --- FONCTIONS NATIVES CAMERA & SCANNER IA --- */
+    async function startCamera() {
+      const video = document.getElementById('scanner-video');
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: "environment" } 
+        });
+        video.srcObject = cameraStream;
+        logConsole("Caméra d'inspection activée.");
+      } catch (err) {
+        logConsole("Erreur caméra : " + err.message, true);
+        alert("Impossible d'accéder à la caméra : " + err.message);
+      }
+    }
+
+    async function captureAndAnalyzeFault() {
+      const video = document.getElementById('scanner-video');
+      const canvas = document.getElementById('scanner-canvas');
+      const output = document.getElementById('diag-output');
+      const apiKey = document.getElementById('ai-api-key').value.trim();
+
+      if (!apiKey) return alert("Veuillez renseigner votre clé API Gemini dans le panneau latéral IA.");
+      if (!video.srcObject) await startCamera();
+
+      output.innerText = "⏳ Capture d'image et transmission à Gemini-3.6-Flash...";
+      logConsole("Analyse visuelle de la pièce / panne en cours...");
+
+      // Capture de l'image de la vidéo sur le canvas
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
+
+      // Requête Multimodale à Gemini-3.6-Flash
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+      const promptText = "Tu es un expert en mécanique engins lourds, hydraulique et électromécanique. Analyse cette image capturée en direct : 1. Identifie l'équipement, le moteur ou le composant visible. 2. Détecte toute anomalie visuelle (fuite d'huile, usure, surchauffe, fissure, câble ou flexible déconnecté). 3. Indique la cause probable de la panne. 4. Propose une procédure de réparation claire et sécurisée.";
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+              ]
+            }]
+          })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const diagResult = data.candidates[0].content.parts[0].text;
+        output.innerText = diagResult;
+        logConsole("Diagnostic visuel terminé avec succès.");
+      } catch (err) {
+        output.innerText = "❌ Erreur de diagnostic : " + err.message;
+        logConsole("Erreur détection panne : " + err.message, true);
+      }
     }
 
     async function generateAIVideoScript() {
@@ -753,7 +846,7 @@ Format : ${format}. Ton : ${tone}.`;
       const ideas = [
         "💡 Idée : Crée un mini-jeu Python interactif !",
         "💡 Idée : Rédige un script de mini-série TikTok en 3 parties sur la tech.",
-        "💡 Idée : Ajoute un fichier de configuration JSON."
+        "💡 Idée : Scanne la pompe hydraulique d'un engin pour tester le module Vision !"
       ];
       let idea = ideas[Math.floor(Math.random() * ideas.length)];
       chatHistory.push({ role: 'ai', text: idea });
@@ -776,6 +869,7 @@ Format : ${format}. Ton : ${tone}.`;
 
     function switchMainView(view) {
       const ed = document.getElementById('editor-container');
+      const scan = document.getElementById('scan-studio-view');
       const des = document.getElementById('design-panel');
       const prev = document.getElementById('preview-container');
       const video = document.getElementById('video-studio-view');
@@ -784,6 +878,7 @@ Format : ${format}. Ton : ${tone}.`;
       const ai = document.getElementById('ai-panel');
 
       ed.style.display = 'none';
+      scan.classList.remove('active-panel');
       des.style.display = 'none';
       prev.style.display = 'none';
       video.classList.remove('active-panel');
@@ -792,21 +887,54 @@ Format : ${format}. Ton : ${tone}.`;
       ai.classList.remove('mobile-active');
 
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
-      if (view === 'editor') { ed.style.display = 'block'; if(editor) editor.layout(); document.getElementById('nav-code').classList.add('active'); }
-      else if (view === 'design') { des.style.display = 'flex'; }
-      else if (view === 'preview') { prev.style.display = 'flex'; executeCode(); document.getElementById('nav-prev').classList.add('active'); }
-      else if (view === 'video-studio') { video.classList.add('active-panel'); document.getElementById('nav-video').classList.add('active'); }
-      else if (view === 'deploy') { deploy.classList.add('active-panel'); document.getElementById('nav-deploy').classList.add('active'); }
+      if (view === 'editor') { 
+        ed.style.display = 'block'; 
+        if(editor) editor.layout(); 
+        document.getElementById('nav-code').classList.add('active'); 
+        document.getElementById('tab-editor').classList.add('active');
+      }
+      else if (view === 'scan-studio') { 
+        scan.classList.add('active-panel'); 
+        document.getElementById('nav-scan').classList.add('active'); 
+        document.getElementById('tab-scan').classList.add('active');
+        startCamera();
+      }
+      else if (view === 'design') { 
+        des.style.display = 'flex'; 
+        document.getElementById('tab-design').classList.add('active');
+      }
+      else if (view === 'preview') { 
+        prev.style.display = 'flex'; 
+        executeCode(); 
+        document.getElementById('nav-prev').classList.add('active'); 
+        document.getElementById('tab-preview').classList.add('active');
+      }
+      else if (view === 'video-studio') { 
+        video.classList.add('active-panel'); 
+        document.getElementById('nav-video').classList.add('active'); 
+        document.getElementById('tab-video').classList.add('active');
+      }
+      else if (view === 'deploy') { 
+        deploy.classList.add('active-panel'); 
+        document.getElementById('nav-deploy').classList.add('active'); 
+        document.getElementById('tab-deploy').classList.add('active');
+      }
       else if (view === 'cyber-config') { cyber.classList.add('active-panel'); }
-      else if (view === 'ai-mobile') { ed.style.display = 'block'; ai.classList.add('mobile-active'); if(editor) editor.layout(); }
+      else if (view === 'ai-mobile') { 
+        ed.style.display = 'block'; 
+        ai.classList.add('mobile-active'); 
+        if(editor) editor.layout(); 
+        document.getElementById('tab-ai').classList.add('active');
+      }
     }
 
     function openFile(filename) {
       if(editor) files[activeFile] = editor.getValue();
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
       
       let lang = 'html';
       if (filename.endsWith('.css')) lang = 'css';
@@ -866,7 +994,7 @@ Format : ${format}. Ton : ${tone}.`;
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: `Tu es Nexus AI Mega-Mind, assistant expert multi-formats (Web, Python, Markdown, Scénarios Vidéo). Fichier actif : ${activeFile}\nCode/Contenu actuel :\n${currentCode}\n\nRequête : ${promptText}` }] }] })
+          body: JSON.stringify({ contents: [{ parts: [{ text: `Tu es Nexus AI Mega-Mind, assistant expert multi-formats (Web, Python, Markdown, Diagnostic Engins, Scénarios Vidéo). Fichier actif : ${activeFile}\nCode/Contenu actuel :\n${currentCode}\n\nRequête : ${promptText}` }] }] })
         });
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
