@@ -27,42 +27,17 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Create TWA Project Directory & Configuration
+      - name: Initialize and Build TWA APK
         run: |
           mkdir -p twa-project
-          cat << 'EOF' > twa-project/twa-manifest.json
-          {
-            "packageId": "com.nexuseditstudio.app",
-            "host": "idealj24-max.github.io",
-            "name": "NexusEdit Studio",
-            "launcherName": "NexusEdit",
-            "themeColor": "#000000",
-            "navigationColor": "#000000",
-            "backgroundColor": "#000000",
-            "startUrl": "/NexusEdit-Studio-X/",
-            "iconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon.png",
-            "maskableIconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon.png",
-            "appVersionName": "1.0.0",
-            "appVersionCode": 1,
-            "shortcuts": [],
-            "generatorApp": "bubblewrap-cli",
-            "webManifestUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json",
-            "fallbackType": "customtabs",
-            "features": {},
-            "alphaDependencies": {
-              "enabled": false
-            },
-            "enableNotifications": false,
-            "display": "standalone",
-            "orientation": "default",
-            "fingerprints": []
-          }
-          EOF
-
-      - name: Generate Android Project
-        run: |
           cd twa-project
-          bubblewrap build --skipDependenciesCheck
+          
+          # Initialiser le projet TWA directement depuis le Web Manifest public
+          # 'yes "n"' répond "n" à l'installation du JDK par Bubblewrap pour utiliser Java 17 configuré au-dessus
+          yes "n" | bubblewrap init --manifest="https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json" --skipDependenciesCheck || true
+          
+          # Compiler l'APK Android
+          yes "n" | bubblewrap build --skipDependenciesCheck
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
