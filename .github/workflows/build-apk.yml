@@ -1,46 +1,42 @@
-name: Nexus PWA to APK Builder
+name: Build Android APK (NexusEdit Studio)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout du code source
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Configuration de Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
-      - name: Setup Java JDK
+      - name: Installation du JDK 17 (Requis pour la compilation Android)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Bubblewrap CLI
+      - name: Installation de Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Initialize and Build TWA APK
+      - name: Génération et compilation PWA vers APK
         run: |
-          mkdir -p twa-project
-          cd twa-project
-          
-          # Initialiser le projet TWA directement depuis le Web Manifest public
-          # 'yes "n"' répond "n" à l'installation du JDK par Bubblewrap pour utiliser Java 17 configuré au-dessus
-          yes "n" | bubblewrap init --manifest="https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json" --skipDependenciesCheck || true
-          
-          # Compiler l'APK Android
-          yes "n" | bubblewrap build --skipDependenciesCheck
+          mkdir -p build-android
+          cd build-android
+          bubblewrap init --manifest="https://idealj4-max.github.io/manifest.json"
+          bubblewrap build
 
-      - name: Upload APK Artifact
+      - name: Sauvegarde de l'APK comme Artifact GitHub Actions
         uses: actions/upload-artifact@v4
         with:
-          name: NexusEditStudio-APK
-          path: twa-project/*.apk
+          name: NexusEditStudio-Release-APK
+          path: build-android/*.apk
+          retention-days: 30
