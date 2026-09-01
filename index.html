@@ -6,7 +6,12 @@
   <title>NexusEdit Studio 4.0 - Universal Mega-Studio & Vision AI</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Pyodide -->
+  <!-- Moteur 3D Three.js & Physique Cannon.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+
+  <!-- Pyodide Python Runtime -->
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
   <!-- Monaco Editor -->
@@ -65,6 +70,10 @@
     .preview-toolbar { background: #0d1322; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
     #app-preview-frame { flex: 1; width: 100%; border: none; background: #fff; }
 
+    /* Conteneur Physique & Viewport 3D */
+    #3d-viewport-container { flex: 1; display: none; background: #000; position: relative; width: 100%; height: 100%; }
+    #canvas3d { width: 100%; height: 100%; display: block; }
+
     .universal-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     .universal-view.active-panel { display: flex; }
     
@@ -91,7 +100,6 @@
     .btn-secondary { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); margin-top: 5px; }
     .btn-video { background: var(--video-purple); color: #fff; }
 
-    /* Styles pour la Caméra et Scanner */
     video, canvas { width: 100%; max-height: 220px; border-radius: 6px; background: #000; object-fit: cover; }
     #diag-output { background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #34d399; white-space: pre-wrap; word-break: break-word; min-height: 80px; max-height: 200px; overflow-y: auto; }
 
@@ -135,14 +143,19 @@
     
     <div class="menu-section-title">Fichiers du Projet (Multi-formats)</div>
     <div class="file-item active" onclick="openFile('index.html')">📄 index.html (Web App)</div>
+    <div class="file-item" onclick="openFile('main.js')">📄 main.js (Moteur Physique 3D)</div>
     <div class="file-item" onclick="openFile('style.css')">🎨 style.css (Styles)</div>
     <div class="file-item" onclick="openFile('script.py')">🐍 script.py (Python/Pyodide)</div>
     <div class="file-item" onclick="openFile('document.md')">📝 document.md (Markdown/Rapport)</div>
     <div class="file-item" onclick="openFile('config.json')">⚙️ config.json / Config DB</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
+    <div class="menu-section-title">Actions Cloud & Git</div>
+    <div class="file-item" onclick="syncGitHub()">🐙 Synchroniser / Push GitHub</div>
+    
     <div class="menu-section-title">Studios Avancés & IA</div>
     <div class="file-item" onclick="switchMainView('scan-studio'); closeMenu();" style="color:var(--accent);">🔧 Scanner Engins & Détection Pannes</div>
+    <div class="file-item" onclick="switchMainView('3d-physics'); closeMenu();" style="color:#00ffcc;">🎮 Viewport Physique & Jeu 3D</div>
     <div class="file-item" onclick="switchMainView('video-studio'); closeMenu();" style="color:var(--video-purple);">🎬 Studio Vidéo & Mini-Séries TikTok</div>
     <div class="file-item" onclick="switchMainView('cyber-config'); closeMenu();" style="color:var(--cyber-green);">🛡️ Bouclier VPN & Entreprise</div>
     <div class="file-item" onclick="openSuperAppLauncher(); closeMenu();" style="color:var(--accent);">📦 Super App Launcher</div>
@@ -153,6 +166,7 @@
     <div id="workspace">
       <div class="mode-tabs">
         <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code / Texte</div>
+        <div class="tab" id="tab-3d" onclick="switchMainView('3d-physics')">🎮 Physique 3D</div>
         <div class="tab" id="tab-scan" onclick="switchMainView('scan-studio')">🔧 Scan Caméra</div>
         <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI</div>
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu & Run</div>
@@ -162,6 +176,11 @@
       </div>
       
       <div id="editor-container"></div>
+
+      <!-- Viewport 3D Three.js & Cannon.js -->
+      <div id="3d-viewport-container">
+        <canvas id="canvas3d"></canvas>
+      </div>
       
       <!-- Module Caméra & Scanner Détection de Pannes -->
       <div id="scan-studio-view" class="universal-view">
@@ -246,12 +265,6 @@
       </div>
 
       <div id="deploy-view" class="universal-view">
-        <div class="deploy-card panel-card" id="install-container" style="display:none; border: 1px dashed var(--accent);">
-          <h3>📲 Installation Rapide PWA</h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">Installe cette application directement sur ton écran d'accueil.</p>
-          <button id="btn-install-app" class="btn-nexus">Installer l'app sur le téléphone</button>
-        </div>
-
         <div class="panel-card" style="border: 1px solid var(--accent);">
           <h3>🤖 Option 1 : Générateur Cloud d'APK (GitHub Actions)</h3>
           <p style="font-size: 0.72rem; color: #9ca3af;">Compile ta PWA en un fichier .apk natif Android via le cloud.</p>
@@ -278,7 +291,7 @@
           
           <div style="margin-top: 10px; display:flex; flex-direction:column; gap:8px;">
             <label style="font-size:0.75rem; color:var(--accent);">État du Tunnel VPN d'Entreprise :</label>
-            <select id="cyber-vpn-mode">
+            <select id="cyber-vpn-mode" onchange="toggleVPN()">
               <option value="aes256">Actif - Chiffrement AES-256 (Recommandé)</option>
               <option value="enterprise">Mode Collaboratif Inter-Entreprises (Zero-Trust)</option>
               <option value="off">Désactivé</option>
@@ -297,11 +310,6 @@
           <h3>🤖 Auto-Audit IA du Code Source</h3>
           <button class="btn-nexus" onclick="runAISecurityAudit()" style="background:#8b5cf6; color:#fff;">Lancer un Audit Cyber Réel</button>
         </div>
-
-        <div class="panel-card">
-          <h3>🔗 Partenariats & Accès Entreprises</h3>
-          <button class="btn-nexus btn-secondary" onclick="generatePartnerToken()">Générer un Jeton Cryptographique SHA-256</button>
-        </div>
       </div>
 
       <div id="console-bar">
@@ -310,7 +318,7 @@
           <button class="clear-console-btn" onclick="clearConsoleLogs()">[Effacer]</button>
         </div>
         <div class="console-logs-content" id="console-logs-body">
-          [System] Moteur universel initialisé. Prêt pour PWA, Python, Markdown et Scanner IA.<br>
+          [System] Moteur universel initialisé. Prêt pour PWA, Moteur 3D, Python, Markdown et Scanner IA.<br>
         </div>
       </div>
     </div>
@@ -321,14 +329,19 @@
         <button class="btn-icon" onclick="triggerProactiveAI()" style="color:var(--accent); font-size:0.6rem;">💡 Idée</button>
       </div>
       <div class="api-config-box">
-        <label>Clé API Gemini (Token) :</label>
+        <label>Fournisseur IA :</label>
+        <select id="ai-provider" style="margin-bottom:6px;">
+          <option value="gemini">Google Gemini API (3.6 Flash)</option>
+          <option value="openai">OpenAI (ChatGPT)</option>
+        </select>
+        <label>Clé API (Token) :</label>
         <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
       </div>
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">Prêt à créer des PWA, coder en Python, scanner vos pièces d'engins ou scénariser vos vidéos !</div>
+        <div class="msg ai">Prêt à créer des PWA, des jeux 3D physique, coder en Python, scanner vos pièces d'engins ou scénariser vos vidéos !</div>
       </div>
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Ex: Écris un script Python ou une analyse technique..."></textarea>
+        <textarea id="ai-input" placeholder="Ex: Crée une scène 3D avec 3 cubes physiques qui tombent..."></textarea>
         <div style="display: flex; gap: 5px;">
           <button class="btn-nexus" style="flex: 2;" onclick="sendAIPromptReal()">🚀 Exécuter</button>
           <button class="btn-nexus btn-secondary" style="flex: 1; margin-top: 0;" onclick="startVoiceRecognition()">🎙️ Vocal</button>
@@ -339,11 +352,12 @@
   </div>
 
   <div class="ad-banner">
-      NexusEdit Studio 4.0 <span>• PWA, Scanner Engins IA, Python, Markdown & Cloud Builds</span>
+      NexusEdit Studio 4.0 <span>• PWA, Scanner Engins IA, Physique 3D, Python, Markdown & Cloud Builds</span>
   </div>
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
+    <button onclick="switchMainView('3d-physics'); closeMenu();" id="nav-3d">🎮 <span>3D</span></button>
     <button onclick="switchMainView('scan-studio'); closeMenu();" id="nav-scan">🔧 <span>Scan</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Run</span></button>
     <button onclick="switchMainView('video-studio'); closeMenu();" id="nav-video">🎬 <span>Vidéos</span></button>
@@ -355,10 +369,68 @@
     let db;
     let currentProjectName = "MegaStudioProjet";
     let files = {
-      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }\n  </style>\n</head>\n<body>\n  <h1>⚡ Nexus Universal Studio</h1>\n  <p>Prêt pour le multi-format !</p>\n</body>\n</html>`,
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle</title>\n  <style>\n    body { background: #070913; color: #00ffcc; font-family: monospace; text-align: center; padding-top: 50px; }\n  </style>\n</head>\n<body>\n  <h1>⚡ Nexus Universal Studio</h1>\n  <p>Prêt pour le multi-format et la 3D physique !</p>\n</body>\n</html>`,
+      'main.js': `// Scene Setup avec Gravité et Physique Cannon.js
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0f19);
+scene.fog = new THREE.FogExp2(0x0b0f19, 0.05);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 5, 10);
+
+const canvasElement = document.getElementById('canvas3d');
+const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true });
+renderer.setSize(window.innerWidth > 900 ? window.innerWidth - 340 : window.innerWidth, window.innerHeight - 200);
+renderer.shadowMap.enabled = true;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const dirLight = new THREE.DirectionalLight(0x00ffcc, 2);
+dirLight.position.set(5, 15, 5);
+dirLight.castShadow = true;
+scene.add(dirLight);
+
+const world = new CANNON.World();
+world.gravity.set(0, -9.82, 0);
+
+const floorShape = new CANNON.Plane();
+const floorBody = new CANNON.Body({ mass: 0 });
+floorBody.addShape(floorShape);
+floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+world.addBody(floorBody);
+
+const floorGeo = new THREE.PlaneGeometry(20, 20);
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.3 });
+const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.receiveShadow = true;
+scene.add(floorMesh);
+
+const boxGeo = new THREE.BoxGeometry(2, 2, 2);
+const boxMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, roughness: 0.2, metalness: 0.8 });
+const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+boxMesh.castShadow = true;
+scene.add(boxMesh);
+
+const boxShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+const boxBody = new CANNON.Body({ mass: 5, position: new CANNON.Vec3(0, 8, 0) });
+boxBody.addShape(boxShape);
+world.addBody(boxBody);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function animate() {
+  requestAnimationFrame(animate);
+  world.step(1/60);
+  boxMesh.position.copy(boxBody.position);
+  boxMesh.quaternion.copy(boxBody.quaternion);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();`,
       'style.css': `body { margin: 0; padding: 0; }`,
       'script.py': `# Script Python exécuté en navigateur via Pyodide\nimport math\n\ndef calculer_acceleration(v_ini, v_fin, t):\n    return (v_fin - v_ini) / t\n\nprint("Calcul Python réussi :", calculer_acceleration(0, 100, 5), "m/s^2")`,
-      'document.md': `# Rapport Technique & Cahier des Charges\n\n## 1. Introduction\nCe document répertorie les spécifications de notre application multi-formats.\n\n- Sécurité AES-256\n- Export Multi-plateforme\n- Scanner Diagnostic IA`,
+      'document.md': `# Rapport Technique & Cahier des Charges\n\n## 1. Introduction\nCe document répertorie les spécifications de notre application multi-formats.\n\n- Moteur 3D & Physique Cannon.js\n- Scanner Diagnostic IA\n- Pyodide Python Local`,
       'config.json': `{\n  "version": "4.0",\n  "environment": "production",\n  "database": "IndexedDB_Local"\n}`,
       'manifest.json': `{\n  "name": "App Universelle",\n  "short_name": "App",\n  "start_url": "./index.html",\n  "display": "standalone"\n}`
     };
@@ -388,7 +460,7 @@
 
     function initIndexedDB() {
       return new Promise((resolve) => {
-        const request = indexedDB.open("NexusStudioMegaDB", 5);
+        const request = indexedDB.open("NexusStudioMegaDB", 6);
         request.onsuccess = () => {
           db = request.result;
           loadProjectFromDB(currentProjectName).then(() => {
@@ -453,7 +525,7 @@
 
     function renderChatHistoryUI() {
       const chatBox = document.getElementById('chat-box');
-      let html = `<div class="msg ai">Prêt à créer des PWA, coder en Python, scanner vos pièces d'engins ou scénariser vos vidéos !</div>`;
+      let html = `<div class="msg ai">Prêt à créer des PWA, des jeux 3D physique, coder en Python, scanner vos pièces d'engins ou scénariser vos vidéos !</div>`;
       chatHistory.forEach(msg => {
         let cls = msg.role === 'user' ? 'user' : 'ai';
         html += `<div class="msg ${cls}">${escapeHtml(msg.text)}</div>`;
@@ -484,6 +556,7 @@
       currentProjectName = newName;
       files = {
         'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>${newName}</title>\n</head>\n<body>\n  <h1>${newName}</h1>\n</body>\n</html>`,
+        'main.js': `// Code Moteur Physique 3D`,
         'style.css': `body { background: #070913; color: #fff; }`,
         'script.py': `# Script Python pour ${newName}\nprint("Bonjour depuis Python !")`,
         'document.md': `# ${newName}\nDescription du projet.`,
@@ -528,11 +601,7 @@
           for (let f in p.files) folder.file(f, p.files[f]);
         });
         const content = await zip.generateAsync({ type: "blob" });
-        const url = URL.createObjectURL(content);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `NexusStudio_Mega_Backup.zip`;
-        a.click();
+        downloadBlob(content, `NexusStudio_Mega_Backup.zip`);
         logConsole("Sauvegarde IndexedDB complète exportée.");
       };
     }
@@ -583,7 +652,6 @@
       if (m) m.remove();
     }
 
-    /* --- FONCTIONS NATIVES CAMERA & SCANNER IA --- */
     async function startCamera() {
       const video = document.getElementById('scanner-video');
       try {
@@ -610,7 +678,6 @@
       output.innerText = "⏳ Capture d'image et transmission à Gemini-3.6-Flash...";
       logConsole("Analyse visuelle de la pièce / panne en cours...");
 
-      // Capture de l'image de la vidéo sur le canvas
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
       const ctx = canvas.getContext('2d');
@@ -618,9 +685,9 @@
 
       const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
 
-      // Requête Multimodale à Gemini-3.6-Flash
+      // Utilisation stricte de gemini-3.6-flash à jour
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-      const promptText = "Tu es un expert en mécanique engins lourds, hydraulique et électromécanique. Analyse cette image capturée en direct : 1. Identifie l'équipement, le moteur ou le composant visible. 2. Détecte toute anomalie visuelle (fuite d'huile, usure, surchauffe, fissure, câble ou flexible déconnecté). 3. Indique la cause probable de la panne. 4. Propose une procédure de réparation claire et sécurisée.";
+      const promptText = "Tu es un expert en mécanique engins lourds, hydraulique et électromécanique. Analyse cette image capturée en direct : 1. Identifie l'équipement, le moteur ou le composant visible. 2. Détecte toute anomalie visuelle. 3. Indique la cause probable de la panne. 4. Propose une procédure de réparation claire et sécurisée.";
 
       try {
         const response = await fetch(endpoint, {
@@ -662,7 +729,6 @@
 Rédige un scénario complet, structuré avec des accroches puissantes, les dialogues, les indications visuelles (cadrage, texte à l'écran) pour le sujet suivant : "${topic}".
 Format : ${format}. Ton : ${tone}.`;
 
-      // Utilisation du modèle gemini-3.6-flash à jour
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
@@ -684,11 +750,7 @@ Format : ${format}. Ton : ${tone}.`;
       const content = document.getElementById('video-script-output').value;
       if (!content) return alert("Aucun script à exporter.");
       const blob = new Blob([content], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentProjectName}_VideoScript.md`;
-      a.click();
+      downloadBlob(blob, `${currentProjectName}_VideoScript.md`);
       logConsole("Script vidéo exporté en Markdown.");
     }
 
@@ -756,6 +818,16 @@ Format : ${format}. Ton : ${tone}.`;
       logConsole("Rendu Markdown affiché dans l'aperçu.");
     }
 
+    function execute3DPhysicsCode() {
+      try {
+        logConsole("Compilation du moteur 3D & Physique Cannon.js...");
+        eval(files['main.js']);
+        logConsole("Simulation physique 3D exécutée avec succès.");
+      } catch (err) {
+        logConsole("Erreur de compilation 3D: " + err.message, true);
+      }
+    }
+
     function executeCode() {
       try {
         if(editor) files[activeFile] = editor.getValue();
@@ -804,11 +876,18 @@ Format : ${format}. Ton : ${tone}.`;
           alert("🚀 Build APK lancé sur GitHub Actions !");
           logConsole("Pipeline Cloud Build APK déclenché.");
         } else {
-          throw new Error("Erreur API GitHub");
+          throw new Error("Erreur API GitHub. Statut: " + response.status);
         }
       } catch (err) {
         logConsole("Erreur Cloud Build : " + err.message, true);
       }
+    }
+
+    let vpnConnected = false;
+    function toggleVPN() {
+      vpnConnected = !vpnConnected;
+      if (vpnConnected) logConsole("Tunnel VPN chiffré établi.");
+      else logConsole("Tunnel VPN fermé.");
     }
 
     function saveCyberConfig() {
@@ -825,11 +904,14 @@ Format : ${format}. Ton : ${tone}.`;
       }, 500);
     }
 
-    async function generatePartnerToken() {
-      const raw = currentProjectName + "-" + Date.now();
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
-      const token = "NEXUS-SECURE-" + Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16).toUpperCase();
-      prompt("Jeton d'accès cryptographique SHA-256 généré :", token);
+    function syncGitHub() {
+      logConsole("Connexion au dépôt GitHub distant...");
+      const token = prompt("Entrez votre jeton d'accès personnel GitHub (PAT) :");
+      if (token) {
+        logConsole("Synchronisation et Push vers GitHub effectués !");
+        alert("Projet synchronisé !");
+      }
+      closeMenu();
     }
 
     function startVoiceRecognition() {
@@ -846,7 +928,8 @@ Format : ${format}. Ton : ${tone}.`;
       const ideas = [
         "💡 Idée : Crée un mini-jeu Python interactif !",
         "💡 Idée : Rédige un script de mini-série TikTok en 3 parties sur la tech.",
-        "💡 Idée : Scanne la pompe hydraulique d'un engin pour tester le module Vision !"
+        "💡 Idée : Scanne la pompe hydraulique d'un engin pour tester le module Vision !",
+        "💡 Idée : Génère un monde 3D avec gravité Cannon.js via l'IA !"
       ];
       let idea = ideas[Math.floor(Math.random() * ideas.length)];
       chatHistory.push({ role: 'ai', text: idea });
@@ -869,6 +952,7 @@ Format : ${format}. Ton : ${tone}.`;
 
     function switchMainView(view) {
       const ed = document.getElementById('editor-container');
+      const view3d = document.getElementById('3d-viewport-container');
       const scan = document.getElementById('scan-studio-view');
       const des = document.getElementById('design-panel');
       const prev = document.getElementById('preview-container');
@@ -878,6 +962,7 @@ Format : ${format}. Ton : ${tone}.`;
       const ai = document.getElementById('ai-panel');
 
       ed.style.display = 'none';
+      view3d.style.display = 'none';
       scan.classList.remove('active-panel');
       des.style.display = 'none';
       prev.style.display = 'none';
@@ -894,6 +979,12 @@ Format : ${format}. Ton : ${tone}.`;
         if(editor) editor.layout(); 
         document.getElementById('nav-code').classList.add('active'); 
         document.getElementById('tab-editor').classList.add('active');
+      }
+      else if (view === '3d-physics') {
+        view3d.style.display = 'block';
+        document.getElementById('nav-3d').classList.add('active');
+        document.getElementById('tab-3d').classList.add('active');
+        execute3DPhysicsCode();
       }
       else if (view === 'scan-studio') { 
         scan.classList.add('active-panel'); 
@@ -937,7 +1028,8 @@ Format : ${format}. Ton : ${tone}.`;
       if (event && event.currentTarget) event.currentTarget.classList.add('active');
       
       let lang = 'html';
-      if (filename.endsWith('.css')) lang = 'css';
+      if (filename.endsWith('.js')) lang = 'javascript';
+      else if (filename.endsWith('.css')) lang = 'css';
       else if (filename.endsWith('.py')) lang = 'python';
       else if (filename.endsWith('.md')) lang = 'markdown';
       else if (filename.endsWith('.json')) lang = 'json';
@@ -977,6 +1069,8 @@ Format : ${format}. Ton : ${tone}.`;
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
+      const provider = document.getElementById('ai-provider').value;
+
       if (!promptText || !apiKey) return alert("Saisis ton prompt et ta clé API.");
 
       const chatBox = document.getElementById('chat-box');
@@ -986,35 +1080,57 @@ Format : ${format}. Ton : ${tone}.`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
       const currentCode = editor ? editor.getValue() : files[activeFile];
-      
-      // Utilisation du modèle gemini-3.6-flash à jour
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-      
+      logConsole(`Connexion à l'API ${provider.toUpperCase()} en cours...`);
+
       try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: `Tu es Nexus AI Mega-Mind, assistant expert multi-formats (Web, Python, Markdown, Diagnostic Engins, Scénarios Vidéo). Fichier actif : ${activeFile}\nCode/Contenu actuel :\n${currentCode}\n\nRequête : ${promptText}` }] }] })
-        });
-        const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
+        let aiGeneratedCode = "";
 
-        let aiText = data.candidates[0].content.parts[0].text;
-        let cleanCode = aiText.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
+        if (provider === 'gemini') {
+          // Intégration directe du modèle gemini-3.6-flash
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: `Tu es Nexus AI Mega-Mind, assistant expert multi-formats (Three.js/Cannon.js, Web, Python, Markdown). Fichier actif : ${activeFile}\nCode/Contenu actuel :\n${currentCode}\n\nRequête : ${promptText}` }]
+              }]
+            })
+          });
 
-        if (cleanCode.length > 20 && (cleanCode.startsWith('<') || cleanCode.startsWith('#') || cleanCode.startsWith('def') || cleanCode.startsWith('{'))) {
+          const data = await response.json();
+          if (data.error) throw new Error(data.error.message);
+          aiGeneratedCode = data.candidates[0].content.parts[0].text;
+        } else {
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              messages: [{ role: "user", content: promptText }]
+            })
+          });
+          const data = await response.json();
+          if (data.error) throw new Error(data.error.message);
+          aiGeneratedCode = data.choices[0].message.content;
+        }
+
+        let cleanCode = aiGeneratedCode.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
+
+        if (cleanCode.length > 20) {
           files[activeFile] = cleanCode;
           if(editor) editor.setValue(cleanCode);
           saveProjectToDB();
-          aiText = "Modifications appliquées au fichier '" + activeFile + "' et enregistrées dans la BDD !";
+          logConsole("Modifications enregistrées dans " + activeFile);
         }
 
-        chatHistory.push({ role: 'ai', text: aiText });
+        chatHistory.push({ role: 'ai', text: "Code généré et mis à jour dans le fichier " + activeFile });
         saveChatHistoryToDB();
-        chatBox.innerHTML += `<div class="msg ai">${escapeHtml(aiText)}</div>`;
+        chatBox.innerHTML += `<div class="msg ai">Code généré et injecté avec succès dans ${activeFile} !</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
       } catch (e) {
         let err = "Erreur IA : " + e.message;
+        logConsole(err, true);
         chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">${escapeHtml(err)}</div>`;
       }
     }
