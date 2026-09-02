@@ -3,10 +3,9 @@ name: Build Android APK (NexusEdit Studio)
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +17,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Installation du JDK 17 (Requis pour la compilation Android)
+      - name: Configuration du JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -31,12 +30,11 @@ jobs:
         run: |
           mkdir -p build-android
           cd build-android
-          bubblewrap init --manifest="https://idealj4-max.github.io/manifest.json"
-          bubblewrap build
+          bubblewrap init --manifest="https://idealj4-max.github.io/manifest.json" --yes
+          bubblewrap build --yes
 
-      - name: Sauvegarde de l'APK comme Artifact GitHub Actions
+      - name: Sauvegarde de l'APK comme Artifact GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: NexusEditStudio-Release-APK
+          name: app-release-apk
           path: build-android/*.apk
-          retention-days: 30
