@@ -110,7 +110,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -436,7 +436,7 @@ animate();`,
     };
     let chatHistory = []; 
     let activeFile = 'index.html';
-    let editor;
+    let editor = null;
     let currentBlobUrl = null;
     let pyodideReady = false;
     let pyodideInstance = null;
@@ -478,7 +478,12 @@ animate();`,
 
     function saveProjectToDB() {
       if (!db) return;
-      if(editor) files[activeFile] = editor.getValue();
+      if (editor) {
+        const val = editor.getValue();
+        if (val !== undefined && val !== null) {
+          files[activeFile] = val;
+        }
+      }
       const transaction = db.transaction(["projects"], "readwrite");
       transaction.objectStore("projects").put({ name: currentProjectName, files: files });
     }
@@ -493,7 +498,9 @@ animate();`,
             files = request.result.files;
             currentProjectName = request.result.name;
             document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
-            if(editor) editor.setValue(files[activeFile] || files['index.html']);
+            if (editor && files[activeFile] !== undefined) {
+              editor.setValue(files[activeFile]);
+            }
           }
           resolve();
         };
@@ -685,7 +692,6 @@ animate();`,
 
       const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
 
-      // Utilisation stricte de gemini-3.6-flash à jour
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       const promptText = "Tu es un expert en mécanique engins lourds, hydraulique et électromécanique. Analyse cette image capturée en direct : 1. Identifie l'équipement, le moteur ou le composant visible. 2. Détecte toute anomalie visuelle. 3. Indique la cause probable de la panne. 4. Propose une procédure de réparation claire et sécurisée.";
 
@@ -1086,7 +1092,6 @@ Format : ${format}. Ton : ${tone}.`;
         let aiGeneratedCode = "";
 
         if (provider === 'gemini') {
-          // Intégration directe du modèle gemini-3.6-flash
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
           const response = await fetch(endpoint, {
             method: 'POST',
@@ -1143,6 +1148,7 @@ Format : ${format}. Ton : ${tone}.`;
 
     window.addEventListener('DOMContentLoaded', async () => {
       await initIndexedDB();
+
       const savedKey = localStorage.getItem('nexus_user_ai_key');
       if (savedKey) document.getElementById('ai-api-key').value = savedKey;
       document.getElementById('ai-api-key').addEventListener('input', (e) => {
@@ -1151,13 +1157,14 @@ Format : ${format}. Ton : ${tone}.`;
 
       require(['vs/editor/editor.main'], function() {
         editor = monaco.editor.create(document.getElementById('editor-container'), {
-          value: files[activeFile],
+          value: files[activeFile] || '',
           language: 'html',
           theme: 'vs-dark',
           automaticLayout: true,
           fontSize: 13,
           minimap: { enabled: false }
         });
+
         editor.onDidChangeModelContent(() => {
           files[activeFile] = editor.getValue();
           saveProjectToDB();
