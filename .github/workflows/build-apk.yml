@@ -24,8 +24,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 🤖 Installer l'outil Bubblewrap de Google
-        run: npm install -g @bubblewrap/cli
+      - name: 🤖 Installer l'outil Bubblewrap et un serveur HTTP local
+        run: npm install -g @bubblewrap/cli http-server
 
       - name: 🛠 Compiler la PWA en APK Android Natif
         run: |
@@ -33,14 +33,14 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo '{"jdkPath":"'"$JAVA_HOME"'","androidSdkPath":"/usr/local/lib/android/sdk"}' > ~/.bubblewrap/config.json
           
-          # 2. Nettoyage complet des anciens fichiers d'initialisation conflictuels s'ils existent
-          rm -rf android-project
+          # 2. Démarrage du micro-serveur en arrière-plan pour exposer le manifest proprement
+          http-server . -p 8080 &
+          sleep 3 # On attend 3 secondes que le serveur s'initialise
           
-          # 3. Initialisation en local à partir du fichier manifest.json du dépôt
-          # L'option --host spécifie explicitement votre nom de domaine de production
-          yes | bubblewrap init --manifest=./manifest.json --host=https://github.io --meta --yes
+          # 3. Initialisation de Bubblewrap via l'URL locale du serveur HTTP
+          yes | bubblewrap init --manifest=http://localhost:8080/manifest.json --meta --yes
           
-          # 4. Génération finale de l'APK
+          # 4. Génération finale du package APK Android
           yes | bubblewrap build --yes
 
       - name: 📦 Sauvegarder l'APK généré dans les artefacts GitHub
