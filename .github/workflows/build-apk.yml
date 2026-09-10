@@ -27,16 +27,15 @@ jobs:
       - name: 🤖 Installer l'outil Bubblewrap de Google
         run: npm install -g @bubblewrap/cli
 
-      - name: 🛠 Charger le SDK système & Compiler l'APK
+      - name: 🛠 Lier les environnements système & Compiler l'APK
         run: |
-          # 1. Configuration des chemins en utilisant les variables systèmes de GitHub ($JAVA_HOME et $ANDROID_HOME)
-          mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          # 1. On utilise la commande officielle pour injecter dynamiquement Java et le SDK Android
+          bubblewrap doctor --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
           
-          # 2. Création de la clé de signature automatique
+          # 2. Création transparente de la clé de signature pour Android
           keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=NexusEdit, OU=Dev, O=Nexus, L=Paris, S=France, C=FR"
           
-          # 3. Lancement de la compilation
+          # 3. Lancement direct du processus de compilation
           yes | bubblewrap build --yes
 
       - name: 📦 Sauvegarder l'APK généré dans les artefacts GitHub
