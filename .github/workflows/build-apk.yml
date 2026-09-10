@@ -19,7 +19,7 @@ jobs:
           node-version: 24
 
       - name: ☕ Configurer Java JDK 17 (Obligatoire pour Android)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -27,16 +27,16 @@ jobs:
       - name: 🤖 Installer l'outil Bubblewrap de Google
         run: npm install -g @bubblewrap/cli
 
-      - name: 🛠 Générer le keystore temporaire & Compiler l'APK
+      - name: 🛠 Charger le SDK système & Compiler l'APK
         run: |
-          # 1. Configuration des chemins Java pour Bubblewrap
+          # 1. Configuration des chemins en utilisant les variables systèmes de GitHub ($JAVA_HOME et $ANDROID_HOME)
           mkdir -p ~/.bubblewrap
-          echo '{"jdkPath":"'"$JAVA_HOME"'","androidSdkPath":"/usr/local/lib/android/sdk"}' > ~/.bubblewrap/config.json
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Création d'une clé de signature (keystore) factice pour que le build automatique de GitHub ne bloque pas
+          # 2. Création de la clé de signature automatique
           keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=NexusEdit, OU=Dev, O=Nexus, L=Paris, S=France, C=FR"
           
-          # 3. Lancement direct de la compilation à partir de votre twa-manifest.json
+          # 3. Lancement de la compilation
           yes | bubblewrap build --yes
 
       - name: 📦 Sauvegarder l'APK généré dans les artefacts GitHub
