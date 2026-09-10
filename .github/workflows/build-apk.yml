@@ -3,7 +3,8 @@ name: 🚀 Build NexusEdit Studio APK (PWA TWA)
 on:
   push:
     branches:
-      - main # Se déclenche dès que vous mettez à jour votre branche principale
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,19 +17,26 @@ jobs:
       - name: 🟢 Configurer Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+
+      - name: ☕ Configurer Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: 🤖 Installer l'outil Bubblewrap de Google
         run: npm install -g @bubblewrap/cli
 
       - name: 🛠 Compiler la PWA en APK Android Natif
         run: |
-          # Initialise et génère le projet Android à partir de votre twa-manifest.json
-          bubblewrap init --manifest=https://github.io --meta --yes
-          bubblewrap build --yes
+          bubblewrap init --manifest=https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json
+          bubblewrap build
+        env:
+          CI: true
 
-      - name: 📦 Sauvegarder l'APK généré dans les artefacts GitHub
+      - name: 📦 Sauvegarder l'APK généré
         uses: actions/upload-artifact@v4
         with:
-          name: NexusEdit-Studio-Digital-APK
+          name: NexusEdit-Studio-APK
           path: ./*.apk
