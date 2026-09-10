@@ -104,6 +104,13 @@
     #zoneRapportIA { background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #34d399; word-break: break-word; min-height: 80px; max-height: 250px; overflow-y: auto; line-height: 1.4; }
     #zoneRapportIA ul, #zoneRapportIA ol { margin-left: 15px; }
 
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+    .blink { animation: blink 1.2s infinite; color: var(--accent); }
+
     #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.65rem; padding: 6px; overflow-y: auto; color: #10b981; flex-shrink: 0; display: flex; flex-direction: column; }
     .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed var(--border); padding-bottom: 2px; color: #6b7280; font-size: 0.6rem; }
     .clear-console-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-family: monospace; font-size: 0.6rem; }
@@ -111,7 +118,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -186,20 +193,20 @@
       <!-- Module Caméra & Scanner Détection de Pannes -->
       <div id="scan-studio-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--accent);">
-          <h3>🔧 Scanner Vision AI (Intégration Gemini)</h3>
+          <h3>🔧 Scanner Vision AI (Nexus Vision Artificielle)</h3>
           <p style="font-size: 0.72rem; color: #9ca3af;">Filmez ou prenez en photo un moteur, un circuit hydraulique ou une pièce d'engin lourd pour générer un diagnostic IA instantané.</p>
           
           <video id="scannerVideo" autoplay playsinline></video>
           
-          <div style="display:flex; gap:8px; margin-top:6px;">
-            <button class="btn-nexus" style="flex:1;" onclick="demarrerScannerCam()">📷 Activer Caméra</button>
-            <button class="btn-nexus" style="flex:1; background:#00e699;" onclick="analyserPanneMoteurWrapper()">🔍 Scanner & Analyser</button>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+            <button class="btn-nexus" onclick="lancerScannerCam()">📷 Activer Caméra</button>
+            <button class="btn-nexus btn-secondary" onclick="executerDiagnosticIA()">Lancer le Diagnostic IA</button>
           </div>
         </div>
 
         <div class="panel-card">
           <h4>📋 Diagnostic Technique & Solutions :</h4>
-          <div id="zoneRapportIA">En attente de capture... Cliquez sur "Activer Caméra" puis "Scanner & Analyser".</div>
+          <div id="zoneRapportIA">En attente de capture... Cliquez sur "Activer Caméra" puis "Lancer le Diagnostic IA".</div>
         </div>
       </div>
 
@@ -270,7 +277,7 @@
           <p style="font-size: 0.72rem; color: #9ca3af;">Compile ta PWA en un fichier .apk natif Android via le cloud.</p>
           <input type="text" id="github-repo-input" placeholder="ex: mon-compte/mon-projet-apk" style="margin-top:4px;">
           <input type="password" id="github-token-input" placeholder="Token personnel GitHub (PAT)" style="margin-top:4px;">
-          <button class="btn-nexus" style="margin-top: 10px;" onclick="triggerCloudApkBuild()">Lancer le Pipeline Build APK</button>
+          <button class="btn-nexus" style="margin-top: 10px;" onclick="declencherPipelineAPK()">Lancer le Pipeline Build APK</button>
         </div>
 
         <div class="panel-card">
@@ -366,82 +373,75 @@
   </footer>
 
   <script>
-    // Variable globale pour couper la caméra après utilisation
-    let localStream = null;
+    // === MODULE SCANNER DE DÉTECTION IA (NEXUS VISION ARTIFICIELLE) ===
+    let nexusMediaStream = null;
 
-    // 1. Activer la caméra dans une balise <video id="scannerVideo">
-    async function demarrerScannerCam() {
-        const videoElement = document.getElementById('scannerVideo');
-        
+    async function lancerScannerCam() {
+        const video = document.querySelector('video') || document.getElementById('scannerVideo');
+        if (!video) {
+            alert("Composant vidéo introuvable dans l'interface NexusEdit.");
+            return;
+        }
         try {
-            // Demande l'accès à la caméra arrière (environment) idéale pour scanner des engins
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment" }, 
-                audio: false 
+            // Activation de la caméra arrière optimisée pour inspecter les engins
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
             });
-            
-            localStream = stream;
-            videoElement.srcObject = stream;
-            videoElement.play();
-            logConsole("Caméra de détection activée avec succès.");
-        } catch (error) {
-            alert("Erreur d'accès à la caméra : " + error.message);
-            logConsole("Erreur accès caméra : " + error.message, true);
+            nexusMediaStream = stream;
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true); // Requis pour iOS
+            video.play();
+            logConsole("[Nexus System] Scanner vidéo activé.");
+        } catch (err) {
+            console.error("Erreur caméra:", err);
+            alert("Impossible d'accéder à la caméra : " + err.message);
+            logConsole("Erreur caméra: " + err.message, true);
         }
     }
 
-    // Fonction d'enrobage pour extraire la clé API saisie par l'utilisateur
-    function analyserPanneMoteurWrapper() {
-        const apiKey = document.getElementById('ai-api-key').value.trim();
-        if (!apiKey) {
-            alert("Veuillez d'abord saisir votre clé API Gemini dans le panneau IA latéral.");
-            return;
-        }
-        analyserPanneMoteur(apiKey);
-    }
-
-    // 2. Capturer le frame actuel et l'envoyer à l'IA Gemini
-    async function analyserPanneMoteur(apiKey) {
-        const videoElement = document.getElementById('scannerVideo');
-        
-        if (!videoElement.videoWidth) {
-            alert("Veuillez d'abord activer la caméra et patienter un instant.");
-            return;
-        }
-
-        // Création d'un canvas invisible pour convertir la vidéo en image JPEG
-        const canvas = document.createElement('canvas');
-        canvas.width = videoElement.videoWidth;
-        canvas.height = videoElement.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        
-        // Extraction des données de l'image en Base64 (sans le header mime-type)
-        const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
-
-        // Arrêt propre de la caméra pour économiser la batterie du téléphone
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-        }
-
-        // Affichage d'un état de chargement dans l'interface
+    async function executerDiagnosticIA() {
+        const video = document.querySelector('video') || document.getElementById('scannerVideo');
         const zoneRapport = document.getElementById('zoneRapportIA');
-        zoneRapport.innerHTML = "<p>🔄 Analyse de la vision artificielle en cours par Nexus AI...</p>";
-        logConsole("Transmission de la capture à l'API Vision Gemini...");
+        
+        // Récupération dynamique de votre clé API configurée dans l'interface
+        const apiKeyInput = document.getElementById('ai-api-key');
+        const apiKey = apiKeyInput ? apiKeyInput.value.trim() : "";
 
-        // Requête HTTP directe vers l'API Google Gemini 1.5 Flash (le modèle Vision ultra-rapide)
+        if (!apiKey) {
+            if (zoneRapport) zoneRapport.innerHTML = "<p style='color:var(--cyber-red)'>⚠️ Clé API Google Gemini manquante dans le panneau latéral IA.</p>";
+            return;
+        }
+        if (!video || !video.videoWidth) {
+            alert("La caméra doit être active et afficher un flux pour lancer l'analyse.");
+            return;
+        }
+
+        if (zoneRapport) zoneRapport.innerHTML = "<p class='blink'>🔄 Analyse spectrographique et diagnostic IA en cours...</p>";
+        logConsole("Lancement de l'analyse spectrographique Gemini Vision...");
+
+        // Capture de l'image via un canvas en arrière-plan
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Encodage propre en Base64 conforme pour l'API Gemini
+        const base64Data = canvas.toDataURL('image/jpeg').split(',')[1];
+
+        // Arrêt de la caméra pour préserver l'autonomie de l'appareil
+        if (nexusMediaStream) {
+            nexusMediaStream.getTracks().forEach(track => track.stop());
+        }
+
+        // Appel API vers le modèle de Vision Rapide Gemini 1.5 Flash
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
         const payload = {
             contents: [{
                 parts: [
-                    { text: "Tu es l'ingénieur expert en maintenance industrielle de NexusEdit Studio. Analyse cette image d'un composant, moteur ou circuit. Identifie les pannes visibles ou risques de défaillance structurelle et fournis un rapport de diagnostic technique court, structuré et des actions de réparation correctives." },
-                    {
-                        inlineData: {
-                            mimeType: "image/jpeg",
-                            data: base64Image
-                        }
-                    }
+                    { text: "Tu es l'ingénieur expert en maintenance industrielle intégré à NexusEdit Studio. Analyse précisément cette image technique (moteur, circuit, code, carte électronique). Fournis un rapport de diagnostic court, structuré (Panne détectée, Gravité, Actions correctives immédiates)." },
+                    { inlineData: { mimeType: "image/jpeg", data: base64Data } }
                 ]
             }]
         };
@@ -452,27 +452,31 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-
             const data = await response.json();
             
-            if (data.error) {
-                throw new Error(data.error.message);
-            }
-
-            // Extraction du texte de la réponse de Gemini
-            if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
-                const texteRapport = data.candidates[0].content.parts[0].text;
-                // Utilisation de Marked.js pour le rendu propre des titres et puces Markdown
-                const htmlFormatte = typeof marked !== 'undefined' ? marked.parse(texteRapport) : texteRapport;
-                zoneRapport.innerHTML = `<div class="rapport-style">${htmlFormatte}</div>`;
-                logConsole("Diagnostic visuel Gemini complété.");
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                let markdownTexte = data.candidates[0].content.parts[0].text;
+                // Rendu dynamique du rapport (utilise marked.js chargé dans l'en-tête)
+                if (typeof marked !== 'undefined' && marked.parse) {
+                    zoneRapport.innerHTML = marked.parse(markdownTexte);
+                } else {
+                    zoneRapport.innerHTML = `<pre style="white-space:pre-wrap">${markdownTexte}</pre>`;
+                }
+                logConsole("Diagnostic IA généré avec succès.");
+            } else if (data.error) {
+                zoneRapport.innerHTML = `<p style="color:var(--cyber-red)">❌ Erreur API : ${data.error.message}</p>`;
             } else {
-                zoneRapport.innerHTML = "<p>⚠️ L'IA n'a pas pu générer de rapport clair pour cette image.</p>";
+                zoneRapport.innerHTML = "<p>⚠️ Aucun retour exploitable de l'analyse Vision IA.</p>";
             }
         } catch (error) {
-            zoneRapport.innerHTML = `<p style="color:red;">❌ Erreur lors de l'analyse : ${error.message}</p>`;
-            logConsole("Erreur lors de l'analyse Gemini Vision: " + error.message, true);
+            if (zoneRapport) zoneRapport.innerHTML = `<p style="color:var(--cyber-red)">❌ Échec de la liaison Nexus AI : ${error.message}</p>`;
+            logConsole("Erreur liaison Nexus AI : " + error.message, true);
         }
+    }
+
+    // Alias de la fonction d'exportation d'APK
+    function declencherPipelineAPK() {
+        triggerCloudApkBuild();
     }
 
     let db;
@@ -1042,7 +1046,7 @@ Format : ${format}. Ton : ${tone}.`;
         scan.classList.add('active-panel'); 
         document.getElementById('nav-scan').classList.add('active'); 
         document.getElementById('tab-scan').classList.add('active');
-        demarrerScannerCam();
+        lancerScannerCam();
       }
       else if (view === 'design') { 
         des.style.display = 'flex'; 
