@@ -29,15 +29,14 @@ jobs:
 
       - name: 🛠 Compiler la PWA en APK Android Natif
         run: |
-          # On crée un fichier de configuration pour dire à Bubblewrap où se trouve Java
-          # Cela évite qu'il pose des questions dans le terminal de GitHub
+          # Configuration du chemin Java pour Bubblewrap
           mkdir -p ~/.bubblewrap
           echo '{"jdkPath":"'"$JAVA_HOME"'","androidSdkPath":"/usr/local/lib/android/sdk"}' > ~/.bubblewrap/config.json
           
-          # Initialisation automatique en validant toutes les invites par défaut
+          # Initialisation avec l'URL exacte et absolue de votre manifest.json déployé
           yes | bubblewrap init --manifest=https://github.io --meta --yes
           
-          # Build final de l'APK
+          # Build final pour générer le package APK
           yes | bubblewrap build --yes
 
       - name: 📦 Sauvegarder l'APK généré dans les artefacts GitHub
