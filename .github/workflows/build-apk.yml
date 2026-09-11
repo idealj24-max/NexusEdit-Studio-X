@@ -20,7 +20,7 @@ jobs:
           node-version: 20
 
       - name: ☕ Configurer Java JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -47,7 +47,8 @@ jobs:
           }
           EOF
 
-          bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass=android --keystorePass=android
+          # Injection automatique de la réponse "n" si Bubblewrap pose la question de régénération
+          echo "n" | bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass=android --keystorePass=android --skip-update-check
 
       - name: 📦 Sauvegarder l'APK généré
         uses: actions/upload-artifact@v4
