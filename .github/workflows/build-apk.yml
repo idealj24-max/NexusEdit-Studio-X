@@ -25,7 +25,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 🤖 Installer Bubblewrap CLI
+      - name: 🤖 Configurer Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 📦 Installer Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
       - name: 🔑 Générer Keystore de signature Android
@@ -34,22 +37,8 @@ jobs:
             keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=NexusEdit, OU=Dev, O=Nexus, L=Paris, S=France, C=FR"
           fi
 
-      - name: 🛠️ Installer Android SDK Command-Line Tools
-        run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
-          curl -s https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          mv cmdline-tools latest
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          yes | sdkmanager --licenses || true
-
       - name: ⚙️ Configurer Bubblewrap & Builder l'APK
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          
-          # Pré-configurer les chemins Java et Android SDK dans Bubblewrap pour éviter toute question interactive
           mkdir -p ~/.bubblewrap
           cat <<EOF > ~/.bubblewrap/config.json
           {
@@ -58,8 +47,7 @@ jobs:
           }
           EOF
 
-          # Exécution du build automatisé avec transmission de réponse automatique si besoin
-          yes | bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass=android --keystorePass=android
+          bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass=android --keystorePass=android
 
       - name: 📦 Sauvegarder l'APK généré
         uses: actions/upload-artifact@v4
