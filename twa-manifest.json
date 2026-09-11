@@ -5,17 +5,25 @@
   "display": "standalone",
   "backgroundColor": "#0f172a",
   "themeColor": "#3b82f6",
-  "orientation": "portrait",
-  "host": "idealj24-max.github.io",
-  "packageId": "com.ideals.nexusedit",
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "enableNotifications": false,
+  "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",
     "alias": "android"
   },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "appVersion": "1.0.0",
+  "host": "idealj24-max.github.io",
+  "packageId": "com.ideals.nexusedit",
   "iconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon-512.png",
   "maskableIconUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/icon-512.png",
-  "shortcuts": [],
-  "generatorApp": "bubblewrap-cli"
+  "shortcutInfo": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://idealj24-max.github.io/NexusEdit-Studio-X/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  }
 }
