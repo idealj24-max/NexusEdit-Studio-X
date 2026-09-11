@@ -30,7 +30,9 @@ jobs:
 
       - name: 🔑 Générer Keystore de signature Android
         run: |
-          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=NexusEdit, OU=Dev, O=Nexus, L=Paris, S=France, C=FR"
+          if [ ! -f android.keystore ]; then
+            keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=NexusEdit, OU=Dev, O=Nexus, L=Paris, S=France, C=FR"
+          fi
 
       - name: 🛠️ Installer Android SDK Command-Line Tools
         run: |
@@ -43,10 +45,21 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           yes | sdkmanager --licenses || true
 
-      - name: ⚙️ Compilation APK
+      - name: ⚙️ Configurer Bubblewrap & Builder l'APK
         run: |
           export ANDROID_HOME=$HOME/android-sdk
-          bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass=android --keystorePass=android
+          
+          # Pré-configurer les chemins Java et Android SDK dans Bubblewrap pour éviter toute question interactive
+          mkdir -p ~/.bubblewrap
+          cat <<EOF > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          EOF
+
+          # Exécution du build automatisé avec transmission de réponse automatique si besoin
+          yes | bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass=android --keystorePass=android
 
       - name: 📦 Sauvegarder l'APK généré
         uses: actions/upload-artifact@v4
