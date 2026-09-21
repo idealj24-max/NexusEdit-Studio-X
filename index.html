@@ -117,7 +117,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -319,13 +319,12 @@
         <button class="btn-icon" onclick="triggerProactiveAI()" style="color:var(--accent); font-size:0.6rem;">💡 Idée</button>
       </div>
       <div class="api-config-box">
-        <label>Fournisseur IA :</label>
+        <label>Moteur IA :</label>
         <select id="ai-provider" style="margin-bottom:6px;">
-          <option value="gemini">Google Gemini API (2.5 Flash)</option>
-          <option value="openai">OpenAI (ChatGPT)</option>
+          <option value="gemini-2.5-flash">Google Gemini 2.5 Flash Engine</option>
         </select>
-        <label>Clé API :</label>
-        <input type="text" id="ai-api-key" placeholder="Colle ta clé API ici...">
+        <label>Clé API Google Gemini :</label>
+        <input type="password" id="ai-api-key" placeholder="Colle ta clé API Google AI Studio...">
       </div>
       <div class="chat-messages" id="chat-box">
         <div class="msg ai">Prêt à coder, simuler en 3D ou lancer vos diagnostics !</div>
@@ -546,7 +545,8 @@
       let html = `<div class="msg ai">Prêt à coder ou simuler en 3D !</div>`;
       chatHistory.forEach(msg => {
         let cls = msg.role === 'user' ? 'user' : 'ai';
-        html += `<div class="msg ${cls}">${escapeHtml(msg.text)}</div>`;
+        let formattedText = typeof marked !== 'undefined' ? marked.parse(msg.text) : escapeHtml(msg.text);
+        html += `<div class="msg ${cls}">${formattedText}</div>`;
       });
       chatBox.innerHTML = html;
       chatBox.scrollTop = chatBox.scrollHeight;
@@ -643,15 +643,20 @@
     async function generateAIVideoScript() {
       const topic = document.getElementById('video-topic-input').value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
+      const format = document.getElementById('video-format-select').value;
+      const tone = document.getElementById('video-tone-select').value;
+
       if (!topic || !apiKey) return alert("Renseignez le sujet et la clé API.");
 
-      logConsole("Génération du script vidéo...");
+      logConsole("Génération du script vidéo avec Gemini...");
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const promptText = `Rédige un script court optimisé pour format ${format} avec un ton ${tone} sur le sujet : ${topic}. Inclut la voix off et le storyboard visuel.`;
+
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: `Rédige un script court TikTok sur: ${topic}` }] }] })
+          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
         });
         const data = await response.json();
         if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
@@ -924,30 +929,40 @@
       chatHistory.push({ role: 'user', text: promptText });
       input.value = '';
 
-      logConsole("Envoi du prompt à Gemini...");
+      logConsole("Envoi de la requête à Gemini...");
       try {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
+        const systemContext = `Tu es l'assistant de code de NexusEdit Studio. Tu travailles actuellement sur le fichier "${activeFile}". Si tu génères du code destinées à remplacer le fichier, renvoie uniquement le code brut.`;
+
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+          body: JSON.stringify({ 
+            contents: [{ 
+              parts: [{ text: `${systemContext}\n\nCommande utilisateur: ${promptText}` }] 
+            }] 
+          })
         });
 
         const data = await response.json();
         
         if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
-          let aiGeneratedCode = data.candidates[0].content.parts[0].text;
-          let cleanCode = aiGeneratedCode.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
-
-          if (cleanCode.length > 0) {
+          let aiResponse = data.candidates[0].content.parts[0].text;
+          
+          if (aiResponse.includes("```")) {
+            let cleanCode = aiResponse.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
             files[activeFile] = cleanCode;
             if(editor) editor.setValue(cleanCode);
             saveProjectToDB();
+            
+            chatHistory.push({ role: 'ai', text: `Fichier **${activeFile}** mis à jour avec succès !` });
+          } else {
+            chatHistory.push({ role: 'ai', text: aiResponse });
           }
-
-          chatHistory.push({ role: 'ai', text: "Mis à jour " + activeFile });
+          
           saveChatHistoryToDB();
-          chatBox.innerHTML += `<div class="msg ai">Contenu mis à jour dans ${activeFile} !</div>`;
+          renderChatHistoryUI();
         } else {
           let errMessage = data.error ? data.error.message : "Erreur lors du traitement de la réponse.";
           chatBox.innerHTML += `<div class="msg ai" style="color: var(--cyber-red);">⚠️ Erreur : ${escapeHtml(errMessage)}</div>`;
@@ -963,7 +978,7 @@
       if(editor) { navigator.clipboard.writeText(editor.getValue()); alert("Code copié !"); }
     }
 
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require.config({ paths: { 'vs': '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs)' }});
 
     window.addEventListener('DOMContentLoaded', async () => {
       await initIndexedDB();
