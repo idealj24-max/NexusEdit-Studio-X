@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 4.0 - Universal Mega-Studio & Vision AI</title>
+  <title>NexusEdit Studio 4.5 - Universal Mega-Studio & Core AI Platform</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Moteur 3D Three.js & Physique Cannon.js -->
@@ -25,28 +25,36 @@
   <style>
     :root {
       --bg-dark: #070913;
-      --bg-panel: #0d1322;
+      --bg-panel: rgba(13, 19, 34, 0.85);
+      --bg-secondary: #12161f;
       --accent: #00ffcc;
+      --accent-cyan: #00f3ff;
       --accent-hover: #059669;
+      --accent-magenta: #ff0055;
+      --accent-purple: #8a2be2;
+      --accent-green: #00ff88;
       --text: #e5e7eb;
+      --text-muted: #8b949e;
       --border: #1f2937;
+      --border-color: rgba(0, 243, 255, 0.25);
       --cyber-red: #ef4444;
       --cyber-green: #10b981;
       --video-purple: #a855f7;
+      --font-code: 'Courier New', Courier, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Courier New', Courier, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
     
-    header { height: 48px; background: var(--bg-panel); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
-    #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent); padding: 6px; }
-    .project-badge { font-size: 0.7rem; background: #1f2937; padding: 4px 8px; border-radius: 4px; color: #9ca3af; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    header { height: 48px; background: var(--bg-secondary); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; }
+    #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent-cyan); padding: 6px; text-shadow: 0 0 8px rgba(0,243,255,0.4); }
+    .project-badge { font-size: 0.75rem; background: rgba(0, 243, 255, 0.1); border: 1px solid var(--accent-cyan); padding: 3px 8px; border-radius: 12px; color: var(--accent-cyan); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; }
     
     .header-actions { display: flex; gap: 8px; }
     .btn-icon { background: #1f2937; color: var(--accent); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
 
     #side-menu { 
         position: fixed; left: -300px; top: 0; width: 280px; 
-        height: 100%; height: 100dvh; background: var(--bg-panel); border-right: 1px solid var(--accent); 
+        height: 100%; height: 100dvh; background: var(--bg-panel); backdrop-filter: blur(10px); border-right: 1px solid var(--accent-cyan); 
         transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 25px rgba(0,0,0,0.9);
         display: flex; flex-direction: column; overflow-y: auto;
     }
@@ -57,12 +65,12 @@
 
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; z-index: 110; }
 
-    #main-layout { display: flex; flex: 1; height: calc(100dvh - 108px); position: relative; overflow: hidden; }
+    #main-layout { display: flex; flex: 1; height: calc(100dvh - 128px); position: relative; overflow: hidden; }
     #workspace { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; }
     
-    .mode-tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; }
+    .mode-tabs { display: flex; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); overflow-x: auto; flex-shrink: 0; }
     .tab { padding: 10px 12px; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
-    .tab.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.03); font-weight: bold; }
+    .tab.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(255,255,255,0.03); font-weight: bold; }
 
     #editor-wrapper { flex: 1; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
     #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
@@ -94,7 +102,6 @@
     .touch-btn:active { background: var(--accent); color: #000; }
 
     #preview-container { flex: 1; display: none; background: #030712; position: relative; flex-direction: column; width: 100%; overflow: hidden; }
-    
     .preview-toolbar { background: #0d1322; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
     #app-preview-frame { flex: 1; width: 100%; border: none; background: #fff; }
 
@@ -104,31 +111,73 @@
     .universal-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     .universal-view.active-panel { display: flex; }
     
-    .panel-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-    .panel-card h3 { color: var(--accent); font-size: 0.85rem; }
-    .panel-card h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 6px; }
+    .panel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(10px); }
+    .panel-card h3 { color: var(--accent-cyan); font-size: 0.85rem; }
+    .panel-card h4 { color: var(--accent-cyan); font-size: 0.8rem; margin-bottom: 6px; }
 
-    .ui-snippet-btn { background: #1f2937; color: var(--text); border: 1px solid var(--border); padding: 6px 10px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin: 3px; display: inline-block; }
+    .ui-snippet-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 3px;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .ui-snippet-btn:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+      background: rgba(0, 243, 255, 0.05);
+    }
 
-    #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; }
+    /* Core Stage Element pour la vue Design / Dynamic Stage */
+    .preview-stage {
+      width: 100%;
+      min-height: 250px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border: 1px dashed var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-y: auto;
+      gap: 15px;
+    }
+    .dynamic-node {
+      animation: fadeIn 0.3s ease-out;
+      width: 100%;
+      max-width: 700px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; backdrop-filter: blur(10px); }
     .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
     .msg { padding: 9px 12px; border-radius: 6px; font-size: 0.78rem; max-width: 95%; line-height: 1.4; word-break: break-word; }
-    .msg.user { align-self: flex-end; background: #1f2937; color: #f3f4f6; border-left: 3px solid var(--accent); }
+    .msg.user { align-self: flex-end; background: #1f2937; color: #f3f4f6; border-left: 3px solid var(--accent-cyan); }
     .msg.ai { align-self: flex-start; background: #030712; color: #34d399; border-left: 3px solid #8b5cf6; }
-    .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
+    .chat-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
     
-    textarea, input[type="text"], input[type="password"], select { width: 100%; background: #030712; border: 1px solid var(--border); color: var(--accent); padding: 8px; border-radius: 4px; font-family: monospace; resize: none; font-size: 0.8rem; outline: none; }
+    textarea, input[type="text"], input[type="password"], select { width: 100%; background: #030712; border: 1px solid var(--border-color); color: var(--accent-cyan); padding: 8px; border-radius: 4px; font-family: var(--font-code); resize: none; font-size: 0.8rem; outline: none; }
     textarea { height: 50px; }
-    .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border); font-size: 0.72rem; }
+    .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border-color); font-size: 0.72rem; }
     .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; }
     
-    .btn-nexus { background: var(--accent); color: #030712; border: none; padding: 9px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; width: 100%; text-align: center; }
-    .btn-nexus:active { transform: scale(0.97); background: var(--accent-hover); color: #fff; }
-    .btn-secondary { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); margin-top: 5px; }
+    .btn-nexus { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #000; border: none; padding: 9px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; width: 100%; text-align: center; }
+    .btn-nexus:active { transform: scale(0.97); }
+    .btn-secondary { background: #1f2937; color: var(--accent-cyan); border: 1px solid var(--accent-cyan); margin-top: 5px; }
     .btn-video { background: var(--video-purple); color: #fff; }
 
     video, canvas { width: 100%; max-height: 220px; border-radius: 6px; background: #000; object-fit: cover; }
-    #zoneRapportIA { background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #34d399; word-break: break-word; min-height: 80px; max-height: 250px; overflow-y: auto; line-height: 1.4; }
+    #zoneRapportIA { background: #030712; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #34d399; word-break: break-word; min-height: 80px; max-height: 250px; overflow-y: auto; line-height: 1.4; }
     #zoneRapportIA ul, #zoneRapportIA ol { margin-left: 15px; }
 
     @keyframes blink {
@@ -136,18 +185,80 @@
       50% { opacity: 0.4; }
       100% { opacity: 1; }
     }
-    .blink { animation: blink 1.2s infinite; color: var(--accent); }
+    .blink { animation: blink 1.2s infinite; color: var(--accent-cyan); }
 
-    #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.65rem; padding: 6px; overflow-y: auto; color: #10b981; flex-shrink: 0; display: flex; flex-direction: column; }
-    .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed var(--border); padding-bottom: 2px; color: #6b7280; font-size: 0.6rem; }
+    /* Console Terminal Engine */
+    #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border-color); font-family: var(--font-code); font-size: 0.7rem; padding: 6px 10px; overflow-y: auto; color: var(--accent-cyan); flex-shrink: 0; display: flex; flex-direction: column; }
+    .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed var(--border-color); padding-bottom: 2px; color: #6b7280; font-size: 0.6rem; }
     .clear-console-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-family: monospace; font-size: 0.6rem; }
+    
+    .log-entry { line-height: 1.4; word-break: break-word; }
+    .log-entry.system { color: var(--text-muted); }
+    .log-entry.success { color: var(--accent-green); }
+    .log-entry.error { color: var(--accent-magenta); }
+    .log-entry.ai { color: var(--accent-cyan); }
 
-    .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
-    .ad-banner span { color: var(--accent); font-weight: bold; }
+    /* Bottom Command Engine Bar */
+    .prompt-container {
+        height: 50px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+        padding: 6px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        z-index: 100;
+    }
+    .prompt-input-wrapper {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .prompt-input {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px 12px 8px 32px;
+        color: #fff;
+        font-size: 0.85rem;
+        outline: none;
+        transition: all 0.3s;
+    }
+    .prompt-input:focus {
+        border-color: var(--accent-cyan);
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+    }
+    .prompt-icon {
+        position: absolute;
+        left: 10px;
+        color: var(--accent-cyan);
+        font-size: 0.85rem;
+    }
+    .execute-btn {
+        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+        border: none;
+        color: #000;
+        font-weight: 700;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    .execute-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 12px rgba(0, 243, 255, 0.4);
+    }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-space: around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 45px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
-    footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
+    footer button.active { color: var(--accent-cyan); text-shadow: 0 0 8px rgba(0,243,255,0.4); }
 
     @media (max-width: 900px) {
       #ai-panel { display: none; }
@@ -157,10 +268,11 @@
 </head>
 <body>
 
+  <!-- Header Navigation -->
   <header>
-    <div style="display: flex; align-items: center; gap: 8px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
       <div id="menu-btn" onclick="toggleMenu()">≡ STUDIO</div>
-      <div class="project-badge" id="current-project-name">Projet: NexusEdit-Studio-X</div>
+      <div class="project-badge" id="current-project-name">⚡ NEXUSEDIT-STUDIO-X (v4.5)</div>
     </div>
     <div class="header-actions">
       <button class="btn-icon" onclick="clearChatHistory()">🗑️ Chat</button>
@@ -170,9 +282,10 @@
 
   <div id="overlay" onclick="closeMenu()"></div>
 
+  <!-- Side Menu Navigation -->
   <div id="side-menu">
     <div class="menu-section-title">Gestionnaire IndexedDB</div>
-    <div class="file-item" onclick="promptCreateNewProject()" style="color:var(--accent);">➕ Créer un projet universel</div>
+    <div class="file-item" onclick="promptCreateNewProject()" style="color:var(--accent-cyan);">➕ Créer un projet universel</div>
     <div class="file-item" onclick="openProjectsListModal()">📂 Mes projets enregistrés</div>
     <div class="file-item" onclick="exportProjectsBackup()">💾 Sauvegarde DB complète</div>
     
@@ -186,27 +299,29 @@
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
     <div class="menu-section-title">Studios Avancés & IA</div>
-    <div class="file-item" onclick="switchMainView('scan-studio'); closeMenu();" style="color:var(--accent);">🔧 Scanner Engins & Pannes</div>
+    <div class="file-item" onclick="switchMainView('scan-studio'); closeMenu();" style="color:var(--accent-cyan);">🔧 Scanner Engins & Pannes</div>
     <div class="file-item" onclick="switchMainView('3d-physics'); closeMenu();" style="color:#00ffcc;">🎮 Viewport Physique 3D</div>
     <div class="file-item" onclick="switchMainView('video-studio'); closeMenu();" style="color:var(--video-purple);">🎬 Studio Vidéo Autonomous</div>
     <div class="file-item" onclick="switchMainView('cyber-config'); closeMenu();" style="color:var(--cyber-green);">🛡️ Bouclier VPN & Sécurité</div>
-    <div class="file-item" onclick="openSuperAppLauncher(); closeMenu();" style="color:var(--accent);">📦 Super App Launcher</div>
+    <div class="file-item" onclick="openSuperAppLauncher(); closeMenu();" style="color:var(--accent-cyan);">📦 Super App Launcher</div>
     <div class="file-item" onclick="switchMainView('deploy'); closeMenu();" style="color:#34d399;">⚡ Pipeline Builds & Exports</div>
   </div>
 
   <div id="main-layout">
     <div id="workspace">
+      <!-- Mode Tabs -->
       <div class="mode-tabs">
         <div class="tab active" id="tab-editor" onclick="switchMainView('editor')">Code / Texte</div>
         <div class="tab" id="tab-3d" onclick="switchMainView('3d-physics')">🎮 Physique 3D</div>
         <div class="tab" id="tab-scan" onclick="switchMainView('scan-studio')">🔧 Scan Caméra</div>
-        <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI</div>
+        <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI Stage</div>
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu & Run</div>
         <div class="tab" id="tab-video" onclick="switchMainView('video-studio')">🎬 Vidéos Studio</div>
         <div class="tab" id="tab-deploy" onclick="switchMainView('deploy')">⚡ Exports & Cloud</div>
         <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
       </div>
       
+      <!-- Editor View -->
       <div id="editor-wrapper">
         <div id="editor-container"></div>
         <div id="touch-bar">
@@ -222,12 +337,14 @@
         </div>
       </div>
 
+      <!-- 3D Viewport View -->
       <div id="3d-viewport-container">
         <canvas id="canvas3d"></canvas>
       </div>
       
+      <!-- Scan Studio View -->
       <div id="scan-studio-view" class="universal-view">
-        <div class="panel-card" style="border: 1px solid var(--accent);">
+        <div class="panel-card" style="border: 1px solid var(--accent-cyan);">
           <h3>🔧 Scanner Vision AI (Nexus Vision Artificielle)</h3>
           <p style="font-size: 0.72rem; color: #9ca3af;">Inspectez une pièce ou un circuit d'engin pour générer un diagnostic IA instantané (Support Hors-Ligne).</p>
           
@@ -245,41 +362,60 @@
         </div>
       </div>
 
+      <!-- Design UI & Presets View -->
       <div id="design-panel" class="universal-view">
         <div class="panel-card">
-          <h4>Boîte à Composants Multi-Formats & UI</h4>
-          <button class="ui-snippet-btn" onclick="insertSnippet('card')">+ Carte UI Web</button>
-          <button class="ui-snippet-btn" onclick="insertSnippet('python-script')">+ Modèle Script Python</button>
-          <button class="ui-snippet-btn" onclick="insertSnippet('markdown-doc')">+ Template Rapport Markdown</button>
-          <button class="ui-snippet-btn" onclick="insertSnippet('sql-query')">+ Requête SQL / Config</button>
+          <h4>Presets Core AI & Snippets UI</h4>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+            <button class="ui-snippet-btn" onclick="quickAction('landing')">🌐 Full Landing Page</button>
+            <button class="ui-snippet-btn" onclick="quickAction('form')">📝 Formulaire Intelligent</button>
+            <button class="ui-snippet-btn" onclick="quickAction('dashboard')">📊 Dashboard Data</button>
+            <button class="ui-snippet-btn" onclick="quickAction('terminal')">💻 Terminal Émulé</button>
+            <button class="ui-snippet-btn" onclick="insertSnippet('card')">+ Carte UI Web</button>
+            <button class="ui-snippet-btn" onclick="insertSnippet('python-script')">+ Script Python</button>
+            <button class="ui-snippet-btn" onclick="insertSnippet('markdown-doc')">+ Template MD</button>
+            <button class="ui-snippet-btn" onclick="quickAction('clear')">🗑️ Réinitialiser Canevas</button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h4>Canevas Dynamic Stage (Preview Directe) :</h4>
+          <div class="preview-stage" id="stage">
+            <h1 style="font-weight: 300; color: var(--text); font-size: 1.4rem;">⚡ Studio Omnipotent Prêt</h1>
+            <p style="color: var(--text-muted); max-width: 450px; text-align: center; font-size: 0.8rem;">
+                Saisissez n'importe quelle commande : génération d'éléments Web, injection de code HTML/CSS brut, exécution de scripts JS ou demandes textuelles via le moteur en bas.
+            </p>
+          </div>
         </div>
       </div>
 
+      <!-- Live Preview Sandbox -->
       <div id="preview-container">
         <div class="preview-toolbar">
-          <span style="color:var(--accent);" id="preview-status-indicator">🟢 Sandbox Active & Moteur Prêt</span>
+          <span style="color:var(--accent-cyan);" id="preview-status-indicator">🟢 Sandbox Active & Moteur Prêt</span>
           <div style="display:flex; gap:6px;">
             <button class="btn-icon" onclick="runPythonCodeInConsole()" style="background:#8b5cf6; color:#fff; display:none;" id="btn-run-python">▶️ Exec Python</button>
             <button class="btn-icon" onclick="renderMarkdownPreview()" style="background:#3b82f6; color:#fff; display:none;" id="btn-render-md">📖 Rendu MD</button>
-            <button class="btn-icon" onclick="popOutAppInNewTab()" style="background:var(--accent); color:#030712; font-weight:bold;">🚀 Plein écran</button>
+            <button class="btn-icon" onclick="popOutAppInNewTab()" style="background:var(--accent-cyan); color:#030712; font-weight:bold;">🚀 Plein écran</button>
           </div>
         </div>
         <iframe id="app-preview-frame"></iframe>
       </div>
 
+      <!-- Video Studio View -->
       <div id="video-studio-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--video-purple);">
           <h3 style="color:var(--video-purple);">🎬 Studio Vidéo Multimodal (Local & Cloud)</h3>
           <p style="font-size: 0.72rem; color: #9ca3af;">Générez des scripts puis produisez la vidéo localement via Canvas/WebAudio ou via votre backend GPU / API privée.</p>
           
           <div style="margin-top: 8px;">
-            <label style="font-size:0.7rem; color:var(--accent);">Sujet de la Vidéo :</label>
+            <label style="font-size:0.7rem; color:var(--accent-cyan);">Sujet de la Vidéo :</label>
             <input type="text" id="video-topic-input" placeholder="ex: Diagnostic pompe hydraulique..." style="margin-top:4px;">
           </div>
           
           <div style="margin-top: 8px; display:flex; gap:10px;">
             <div style="flex:1;">
-              <label style="font-size:0.7rem; color:var(--accent);">Mode de Rendu :</label>
+              <label style="font-size:0.7rem; color:var(--accent-cyan);">Mode de Rendu :</label>
               <select id="video-render-mode" style="margin-top:4px;">
                 <option value="local-canvas">Mode Autonome Local (Canvas + Audio)</option>
                 <option value="cloud-replicate">API Distante (Replicate / Wan 2.1)</option>
@@ -287,7 +423,7 @@
               </select>
             </div>
             <div style="flex:1;">
-              <label style="font-size:0.7rem; color:var(--accent);">Format :</label>
+              <label style="font-size:0.7rem; color:var(--accent-cyan);">Format :</label>
               <select id="video-format-select" style="margin-top:4px;">
                 <option value="tiktok">TikTok / Short (9:16)</option>
                 <option value="miniseries">Mini-Série (3 épisodes)</option>
@@ -297,7 +433,7 @@
           </div>
 
           <div style="margin-top: 8px;">
-            <label style="font-size:0.7rem; color:var(--accent);">Clé API Vidéo / Server URL (Si Cloud/Backend) :</label>
+            <label style="font-size:0.7rem; color:var(--accent-cyan);">Clé API Vidéo / Server URL (Si Cloud/Backend) :</label>
             <input type="password" id="video-api-key-input" placeholder="Token API ou URL (ex: http://127.0.0.1:8188)" style="margin-top:4px;">
           </div>
 
@@ -318,13 +454,14 @@
           <div id="video-preview-container" style="display: none; margin-top: 15px; text-align: center;">
             <p style="color: #00ffcc; font-size: 0.9em; margin-bottom: 6px;">Aperçu de la vidéo générée :</p>
             <video id="generated-video" controls width="100%" style="border-radius: 8px; border: 1px solid #00ffcc; max-height: 300px;"></video>
-            <a id="download-video-btn" download="Nexus_Video.webm" style="display:inline-block; margin-top:8px; color:var(--accent); text-decoration:underline; font-size:0.8rem; cursor:pointer;">💾 Télécharger la Vidéo</a>
+            <a id="download-video-btn" download="Nexus_Video.webm" style="display:inline-block; margin-top:8px; color:var(--accent-cyan); text-decoration:underline; font-size:0.8rem; cursor:pointer;">💾 Télécharger la Vidéo</a>
           </div>
         </div>
       </div>
 
+      <!-- Deploy & Cloud View -->
       <div id="deploy-view" class="universal-view">
-        <div class="panel-card" style="border: 1px solid var(--accent);">
+        <div class="panel-card" style="border: 1px solid var(--accent-cyan);">
           <h3>🤖 Générateur Cloud d'APK (GitHub Actions)</h3>
           <p style="font-size: 0.72rem; color: #9ca3af;">Compilez votre PWA en fichier .apk Android via le Cloud GitHub Actions.</p>
           <input type="text" id="github-repo-input" value="idealj24-max/NexusEdit-Studio-X" placeholder="utilisateur/depot" style="margin-top:4px;">
@@ -342,11 +479,12 @@
         </div>
       </div>
 
+      <!-- Security / Cyber View -->
       <div id="cyber-config-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--cyber-green);">
           <h3 style="color:var(--cyber-green);">🛡️ Bouclier Cyber & VPN</h3>
           <div style="margin-top: 10px; display:flex; flex-direction:column; gap:8px;">
-            <label style="font-size:0.75rem; color:var(--accent);">Mode VPN :</label>
+            <label style="font-size:0.75rem; color:var(--accent-cyan);">Mode VPN :</label>
             <select id="cyber-vpn-mode">
               <option value="aes256">Actif - AES-256</option>
               <option value="enterprise">Zero-Trust Enterprise</option>
@@ -357,21 +495,24 @@
         </div>
       </div>
 
+      <!-- Console / Terminal Bar -->
       <div id="console-bar">
         <div class="console-header">
-          <span>TERMINAL / CONSOLE MULTI-RUNTIME</span>
+          <span>TERMINAL / CONSOLE NEXUS ENGINE</span>
           <button class="clear-console-btn" onclick="clearConsoleLogs()">[Effacer]</button>
         </div>
-        <div class="console-logs-content" id="console-logs-body">
-          [System] Moteur NexusEdit Studio 4.0 prêt.<br>
+        <div class="console-logs-content" id="console">
+          <div class="log-entry system">[SYSTEM] Core initialisé. Moteur d'interprétation actif.</div>
+          <div class="log-entry system">[SYSTEM] Prêt pour exécution autonome.</div>
         </div>
       </div>
     </div>
 
+    <!-- AI Side Panel -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>NEXUS AI MEGA-MIND</span>
-        <button class="btn-icon" onclick="triggerProactiveAI()" style="color:var(--accent); font-size:0.6rem;">💡 Idée</button>
+        <button class="btn-icon" onclick="triggerProactiveAI()" style="color:var(--accent-cyan); font-size:0.6rem;">💡 Idée</button>
       </div>
       <div class="api-config-box">
         <label>Moteur IA :</label>
@@ -395,14 +536,20 @@
     </div>
   </div>
 
-  <div class="ad-banner">
-      NexusEdit Studio 4.0 <span>• PWA & Mobile APK Deployment Ready</span>
+  <!-- Bottom Command Prompt Engine Bar -->
+  <div class="prompt-container">
+    <div class="prompt-input-wrapper">
+      <span class="prompt-icon">⚡</span>
+      <input type="text" id="promptInput" class="prompt-input" placeholder="Demandez n'importe quoi... (ex: 'Bouton violet', 'Injecter <button>Test</button>', 'Dashboard', 'Calculer 45*12')" onkeydown="if(event.key==='Enter') executePrompt()">
+    </div>
+    <button class="execute-btn" onclick="executePrompt()">Exécuter</button>
   </div>
 
   <footer>
     <button onclick="switchMainView('editor'); closeMenu();" id="nav-code" class="active">💻 <span>Code</span></button>
     <button onclick="switchMainView('3d-physics'); closeMenu();" id="nav-3d">🎮 <span>3D</span></button>
     <button onclick="switchMainView('scan-studio'); closeMenu();" id="nav-scan">🔧 <span>Scan</span></button>
+    <button onclick="switchMainView('design'); closeMenu();" id="nav-design">🎨 <span>Stage</span></button>
     <button onclick="switchMainView('preview'); executeCode(); closeMenu();" id="nav-prev">📱 <span>Run</span></button>
     <button onclick="switchMainView('video-studio'); closeMenu();" id="nav-video">🎬 <span>Vidéos</span></button>
     <button onclick="switchMainView('deploy'); closeMenu();" id="nav-deploy">⚡ <span>Exports</span></button>
@@ -414,7 +561,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swCode = `
-          const CACHE_NAME = 'nexus-studio-v4';
+          const CACHE_NAME = 'nexus-studio-v4.5';
           const ASSETS = [
             './',
             'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
@@ -430,7 +577,7 @@
             e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
           });
           self.addEventListener('activate', e => {
-            e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.clients.claim()));
+            e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.skipWaiting()));
           });
           self.addEventListener('fetch', e => {
             e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./'))));
@@ -463,6 +610,200 @@
     let pyodideReady = false;
     let pyodideInstance = null;
 
+    // Console Logging unifié
+    function log(message, type = 'system') {
+        const consoleLog = document.getElementById('console');
+        if (!consoleLog) return;
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        consoleLog.appendChild(entry);
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
+
+    function logConsole(msg, isErr = false) {
+        log(msg, isErr ? 'error' : 'success');
+    }
+
+    function clearConsoleLogs() {
+      const c = document.getElementById('console');
+      if (c) c.innerHTML = `<div class="log-entry system">[SYSTEM] Console réinitialisée.</div>`;
+    }
+
+    // --- MOTEUR INTERPRÉTEUR DE COMMANDES CORE AI (Prompt Bas de Page) ---
+    function executePrompt() {
+        const input = document.getElementById('promptInput');
+        if (!input) return;
+        const prompt = input.value.trim();
+        if (!prompt) return;
+
+        log(`Ordre reçu : "${prompt}"`, 'system');
+        input.value = '';
+
+        const stage = document.getElementById('stage');
+        if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent Prêt')) {
+            stage.innerHTML = '';
+        }
+
+        parseAndExecute(prompt);
+    }
+
+    function parseAndExecute(prompt) {
+        const p = prompt.toLowerCase();
+        const stage = document.getElementById('stage');
+
+        // 1. Direct HTML Code Injection Check
+        if (prompt.startsWith('<') && prompt.endsWith('>')) {
+            createNode(prompt);
+            log('Code HTML brut injecté avec succès.', 'success');
+            switchMainView('design');
+            return;
+        }
+
+        // 2. Global Clear / Reset Command
+        if (p === 'effacer' || p === 'clear' || p === 'reset' || p === 'nettoyer') {
+            if (stage) stage.innerHTML = '';
+            log('Canevas entièrement vidé.', 'success');
+            return;
+        }
+
+        // 3. Mathematical Evaluation Engine
+        if (/^[0-9\+\-\*\/\(\)\.\s]+$/.test(prompt) && prompt.length > 1) {
+            try {
+                const result = Function(`'use strict'; return (${prompt})`)();
+                createNode(`
+                    <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid var(--accent-cyan); padding: 15px; border-radius: 8px;">
+                        <small style="color: var(--text-muted);">Calcul Mathématique</small>
+                        <h2 style="color: var(--accent-cyan); margin-top: 5px;">${prompt} = ${result}</h2>
+                    </div>
+                `);
+                log(`Calcul exécuté : ${result}`, 'success');
+                switchMainView('design');
+                return;
+            } catch(e) {
+                log(`Erreur de calcul : ${e.message}`, 'error');
+            }
+        }
+
+        // 4. UI Component Generation Engine
+        if (p.includes('bouton') || p.includes('button')) {
+            const isPurple = p.includes('violet') || p.includes('purple');
+            const isMagenta = p.includes('magenta') || p.includes('rouge');
+            const color = isPurple ? 'var(--accent-purple)' : (isMagenta ? 'var(--accent-magenta)' : 'var(--accent-cyan)');
+            const textColor = isPurple || isMagenta ? '#fff' : '#000';
+
+            createNode(`
+                <button style="background: ${color}; color: ${textColor}; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px ${color}; transition: transform 0.2s;" onclick="this.style.transform='scale(0.95)'; setTimeout(()=>this.style.transform='scale(1)',150)">
+                    ${prompt.replace(/créer|ajouter|un|bouton/gi, '').trim() || 'Action Nexus'}
+                </button>
+            `);
+            log('Composant [Bouton] généré.', 'success');
+            switchMainView('design');
+        } 
+        else if (p.includes('carte') || p.includes('card')) {
+            createNode(`
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; width: 100%;">
+                    <h3 style="color: var(--accent-cyan); margin-bottom: 8px;">🚀 Module Intelligent</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Généré à la volée par le moteur NexusEdit-Studio-X.</p>
+                    <button style="background: transparent; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 6px 12px; border-radius: 4px; cursor: pointer;">Interagir</button>
+                </div>
+            `);
+            log('Composant [Carte Dynamic] créé.', 'success');
+            switchMainView('design');
+        }
+        else if (p.includes('titre') || p.includes('title')) {
+            const titleText = prompt.replace(/créer|ajouter|un|titre/gi, '').trim() || 'Titre Cyberpunk';
+            createNode(`
+                <h1 style="color: var(--accent-cyan); font-size: 2.2rem; text-shadow: 0 0 12px rgba(0,243,255,0.4); font-weight: 700;">
+                    ${titleText}
+                </h1>
+            `);
+            log('Élément [Titre Stylisé] injecté.', 'success');
+            switchMainView('design');
+        }
+        else {
+            // 5. Universal Text & Query Fallback Processor
+            createNode(`
+                <div style="background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent-cyan); padding: 15px 20px; border-radius: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <span style="color: var(--accent-cyan); font-size: 1.1rem;">⚡</span>
+                        <strong style="color: var(--text); font-size: 0.95rem;">Exécution Réussie</strong>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">${escapeHtml(prompt)}</p>
+                </div>
+            `);
+            log('Traitement universel appliqué.', 'ai');
+            switchMainView('design');
+        }
+    }
+
+    function createNode(htmlContent) {
+        const stage = document.getElementById('stage');
+        if (!stage) return;
+        const node = document.createElement('div');
+        node.className = 'dynamic-node';
+        node.innerHTML = htmlContent;
+        stage.appendChild(node);
+    }
+
+    function quickAction(type) {
+        const stage = document.getElementById('stage');
+        if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent Prêt')) {
+            stage.innerHTML = '';
+        }
+
+        switchMainView('design');
+
+        if (type === 'clear') {
+            if (stage) stage.innerHTML = '';
+            log('Canevas réinitialisé.', 'system');
+        } else if (type === 'landing') {
+            stage.innerHTML = `
+                <div style="text-align:center; padding: 40px 20px;" class="dynamic-node">
+                    <h1 style="font-size: 2.5rem; color: var(--accent-cyan); margin-bottom: 15px; text-shadow: 0 0 15px rgba(0,243,255,0.3);">L'Avenir de la Création AI</h1>
+                    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 20px auto; font-size: 0.95rem;">Déployez des applications complexes en une fraction de seconde grâce au moteur Nexus AI Universal Core.</p>
+                    <button style="background: var(--accent-cyan); color:#000; border:none; padding:12px 25px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow: 0 0 15px var(--accent-cyan);">Commencer Maintenant</button>
+                </div>
+            `;
+            log('Template [Landing Page] chargée.', 'success');
+        } else if (type === 'form') {
+            stage.innerHTML = `
+                <form style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:380px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);" class="dynamic-node" onsubmit="event.preventDefault(); alert('Formulaire soumis !');">
+                    <h3 style="color:var(--accent-cyan); margin-bottom: 5px;">Connexion Sécurisée</h3>
+                    <input type="email" placeholder="Adresse Email" required style="padding:10px; background:rgba(0,0,0,0.6); border:1px solid var(--border-color); color:#fff; border-radius:4px; outline:none;">
+                    <input type="password" placeholder="Mot de passe" required style="padding:10px; background:rgba(0,0,0,0.6); border:1px solid var(--border-color); color:#fff; border-radius:4px; outline:none;">
+                    <button type="submit" style="background:var(--accent-purple); color:#fff; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; margin-top: 5px;">Accéder au Studio</button>
+                </form>
+            `;
+            log('Module [Formulaire UI] généré.', 'success');
+        } else if (type === 'dashboard') {
+            stage.innerHTML = `
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; width:100%; max-width:550px;" class="dynamic-node">
+                    <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:8px; border:1px solid var(--accent-cyan);">
+                        <small style="color:var(--text-muted);">Charge CPU</small>
+                        <h2 style="color:var(--accent-cyan); font-size: 1.8rem; margin-top: 5px;">98.4%</h2>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:8px; border:1px solid var(--accent-magenta);">
+                        <small style="color:var(--text-muted);">Réseau Neural</small>
+                        <h2 style="color:var(--accent-magenta); font-size: 1.8rem; margin-top: 5px;">Opérationnel</h2>
+                    </div>
+                </div>
+            `;
+            log('Module [Dashboard Data] déployé.', 'success');
+        } else if (type === 'terminal') {
+            stage.innerHTML = `
+                <div style="background: #000; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; width: 100%; max-width: 600px; font-family: var(--font-code); font-size: 0.85rem;" class="dynamic-node">
+                    <div style="color: var(--accent-green); margin-bottom: 5px;">root@nexus-studio-x:~# systemctl status engine</div>
+                    <div style="color: var(--text-muted);">● nexus-engine.service - Universal AI Kernel</div>
+                    <div style="color: var(--text-muted);">   Loaded: loaded (/etc/systemd/system/nexus.service)</div>
+                    <div style="color: var(--accent-cyan);">   Active: active (running) since Mon 2026-09-21 06:00:00 GMT</div>
+                </div>
+            `;
+            log('Émulateur Terminal généré.', 'success');
+        }
+    }
+
+    // --- FONCTIONS SCANNER VISION AI & MOTEUR GRAPHIQUE ---
     async function lancerScannerCam() {
         const video = document.getElementById('scannerVideo');
         if (!video) return alert("Composant vidéo introuvable.");
@@ -506,12 +847,11 @@
             nexusMediaStream.getTracks().forEach(track => track.stop());
         }
 
-        // Fallback local hors-ligne ou si pas de clé API Gemini
         if (!navigator.onLine || !apiKey) {
             logConsole("Moteur Hors-Ligne/Fallback actif : diagnostic local généré.");
             setTimeout(() => {
                 const offlineRapport = `
-                  <h4 style="color:var(--accent);">📡 Diagnostic Local (Mode Hors-Ligne)</h4>
+                  <h4 style="color:var(--accent-cyan);">📡 Diagnostic Local (Mode Hors-Ligne)</h4>
                   <ul>
                     <li><b>Statut Réseau :</b> Non connecté / API Gemini Indisponible</li>
                     <li><b>Analyse Visuelle Heuristique :</b> Structure de composant détectée (Moteur / Circuit).</li>
@@ -561,7 +901,7 @@
             }
         } catch (error) {
             logConsole("Échec réseau API Gemini. Basculement sur diagnostic local : " + error.message, true);
-            const fallbackRapport = `<p style="color:var(--accent);">⚠️ Mode Fallback Actif : Impossible de joindre l'API. Vérification des pannes standards d'engin mécanique effectuée localement.</p>`;
+            const fallbackRapport = `<p style="color:var(--accent-cyan);">⚠️ Mode Fallback Actif : Impossible de joindre l'API. Vérification des pannes standards d'engin mécanique effectuée localement.</p>`;
             zoneRapport.innerHTML = fallbackRapport;
             saveDiagnosticToDB(base64Data, fallbackRapport);
         }
@@ -627,7 +967,7 @@
           if (request.result) {
             files = request.result.files;
             currentProjectName = request.result.name;
-            document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
+            document.getElementById('current-project-name').innerText = "⚡ " + currentProjectName;
             if (editor && files[activeFile] !== undefined) editor.setValue(files[activeFile]);
           }
           resolve();
@@ -690,7 +1030,7 @@
       currentProjectName = newName;
       files = { 'index.html': `<h1>${newName}</h1>`, 'main.js': '', 'style.css': '' };
       saveProjectToDB();
-      document.getElementById('current-project-name').innerText = "Projet: " + currentProjectName;
+      document.getElementById('current-project-name').innerText = "⚡ " + currentProjectName;
       if(editor) editor.setValue(files['index.html']);
       switchMainView('editor');
     }
@@ -837,7 +1177,6 @@
 
           recorder.start();
 
-          // Animation 100% Locale Canvas sur 4 secondes
           let frame = 0;
           const maxFrames = 120;
           const lines = scriptText.substring(0, 200).split('\n');
@@ -847,27 +1186,23 @@
             ctx.fillStyle = "#070913";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Grille Futuriste Dynamique
             ctx.strokeStyle = "rgba(0, 255, 204, 0.15)";
             ctx.lineWidth = 2;
             for(let x = 0; x < canvas.width; x += 40) {
               ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
             }
 
-            // Titre Principal
             ctx.fillStyle = "#00ffcc";
             ctx.font = "bold 36px monospace";
             ctx.textAlign = "center";
             ctx.fillText("NEXUS STUDIO AUTONOMOUS", canvas.width / 2, 180);
 
-            // Cercle Tech Animé
             ctx.beginPath();
             ctx.arc(canvas.width / 2, 360, (frame % 60) + 40, 0, Math.PI * 2);
             ctx.strokeStyle = "#8b5cf6";
             ctx.lineWidth = 4;
             ctx.stroke();
 
-            // Rendu des lignes de texte du script
             ctx.fillStyle = "#ffffff";
             ctx.font = "22px monospace";
             let y = 520;
@@ -1079,7 +1414,7 @@
       ed.style.display = 'none';
       view3d.style.display = 'none';
       scan.classList.remove('active-panel');
-      des.style.display = 'none';
+      des.classList.remove('active-panel');
       prev.style.display = 'none';
       video.classList.remove('active-panel');
       deploy.classList.remove('active-panel');
@@ -1087,38 +1422,48 @@
       ai.classList.remove('mobile-active');
 
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
       if (view === 'editor') {
         ed.style.display = 'flex';
         if (editor) editor.layout();
         document.getElementById('nav-code').classList.add('active');
+        document.getElementById('tab-editor')?.classList.add('active');
       } else if (view === '3d-physics') {
         view3d.style.display = 'block';
         document.getElementById('nav-3d').classList.add('active');
+        document.getElementById('tab-3d')?.classList.add('active');
         if (files['main.js']) {
           try { eval(files['main.js']); } catch(e) { logConsole("Erreur 3D: " + e.message, true); }
         }
       } else if (view === 'scan-studio') {
         scan.classList.add('active-panel');
         document.getElementById('nav-scan').classList.add('active');
+        document.getElementById('tab-scan')?.classList.add('active');
       } else if (view === 'design') {
-        des.style.display = 'flex';
+        des.classList.add('active-panel');
+        document.getElementById('nav-design')?.classList.add('active');
+        document.getElementById('tab-design')?.classList.add('active');
       } else if (view === 'preview') {
         prev.style.display = 'flex';
         executeCode();
         document.getElementById('nav-prev').classList.add('active');
+        document.getElementById('tab-preview')?.classList.add('active');
       } else if (view === 'video-studio') {
         video.classList.add('active-panel');
         document.getElementById('nav-video').classList.add('active');
+        document.getElementById('tab-video')?.classList.add('active');
       } else if (view === 'deploy') {
         deploy.classList.add('active-panel');
         document.getElementById('nav-deploy').classList.add('active');
+        document.getElementById('tab-deploy')?.classList.add('active');
       } else if (view === 'cyber-config') {
         cyber.classList.remove('active-panel');
       } else if (view === 'ai-mobile') {
         ed.style.display = 'flex';
         ai.classList.add('mobile-active');
         if (editor) editor.layout();
+        document.getElementById('tab-ai')?.classList.add('active');
       }
     }
 
@@ -1141,17 +1486,6 @@
       }
       closeMenu();
       switchMainView('editor');
-    }
-
-    function logConsole(msg, isErr = false) {
-      const c = document.getElementById('console-logs-body');
-      const color = isErr ? '#ef4444' : '#10b981';
-      c.innerHTML += `<span style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
-      c.scrollTop = c.scrollHeight;
-    }
-
-    function clearConsoleLogs() {
-      document.getElementById('console-logs-body').innerHTML = `<span style="color:#6b7280">[System] Console réinitialisée.</span><br>`;
     }
 
     function insertSnippet(type) {
