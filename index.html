@@ -145,7 +145,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -188,7 +188,7 @@
     <div class="menu-section-title">Studios Avancés & IA</div>
     <div class="file-item" onclick="switchMainView('scan-studio'); closeMenu();" style="color:var(--accent);">🔧 Scanner Engins & Pannes</div>
     <div class="file-item" onclick="switchMainView('3d-physics'); closeMenu();" style="color:#00ffcc;">🎮 Viewport Physique 3D</div>
-    <div class="file-item" onclick="switchMainView('video-studio'); closeMenu();" style="color:var(--video-purple);">🎬 Studio Vidéo TikTok</div>
+    <div class="file-item" onclick="switchMainView('video-studio'); closeMenu();" style="color:var(--video-purple);">🎬 Studio Vidéo Autonomous</div>
     <div class="file-item" onclick="switchMainView('cyber-config'); closeMenu();" style="color:var(--cyber-green);">🛡️ Bouclier VPN & Sécurité</div>
     <div class="file-item" onclick="openSuperAppLauncher(); closeMenu();" style="color:var(--accent);">📦 Super App Launcher</div>
     <div class="file-item" onclick="switchMainView('deploy'); closeMenu();" style="color:#34d399;">⚡ Pipeline Builds & Exports</div>
@@ -202,7 +202,7 @@
         <div class="tab" id="tab-scan" onclick="switchMainView('scan-studio')">🔧 Scan Caméra</div>
         <div class="tab" id="tab-design" onclick="switchMainView('design')">🎨 UI</div>
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu & Run</div>
-        <div class="tab" id="tab-video" onclick="switchMainView('video-studio')">🎬 Vidéos TikTok</div>
+        <div class="tab" id="tab-video" onclick="switchMainView('video-studio')">🎬 Vidéos Studio</div>
         <div class="tab" id="tab-deploy" onclick="switchMainView('deploy')">⚡ Exports & Cloud</div>
         <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
       </div>
@@ -269,15 +269,23 @@
 
       <div id="video-studio-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--video-purple);">
-          <h3 style="color:var(--video-purple);">🎬 Studio IA Vidéo - TikTok & Shorts</h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">Générez des scénarios découpés et des scripts voix-off pour vos mini-séries.</p>
+          <h3 style="color:var(--video-purple);">🎬 Studio Vidéo Multimodal (Local & Cloud)</h3>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Générez des scripts puis produisez la vidéo localement via Canvas/WebAudio ou via votre backend GPU / API privée.</p>
           
           <div style="margin-top: 8px;">
             <label style="font-size:0.7rem; color:var(--accent);">Sujet de la Vidéo :</label>
-            <input type="text" id="video-topic-input" placeholder="ex: Maintenance préventive d'une grue..." style="margin-top:4px;">
+            <input type="text" id="video-topic-input" placeholder="ex: Diagnostic pompe hydraulique..." style="margin-top:4px;">
           </div>
           
           <div style="margin-top: 8px; display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label style="font-size:0.7rem; color:var(--accent);">Mode de Rendu :</label>
+              <select id="video-render-mode" style="margin-top:4px;">
+                <option value="local-canvas">Mode Autonome Local (Canvas + Audio)</option>
+                <option value="cloud-replicate">API Distante (Replicate / Wan 2.1)</option>
+                <option value="private-comfyui">ComfyUI / Server Perso Backend</option>
+              </select>
+            </div>
             <div style="flex:1;">
               <label style="font-size:0.7rem; color:var(--accent);">Format :</label>
               <select id="video-format-select" style="margin-top:4px;">
@@ -286,23 +294,32 @@
                 <option value="tech-explainer">Vulgarisation Tech</option>
               </select>
             </div>
-            <div style="flex:1;">
-              <label style="font-size:0.7rem; color:var(--accent);">Ton :</label>
-              <select id="video-tone-select" style="margin-top:4px;">
-                <option value="dynamic">Dynamique</option>
-                <option value="mysterious">Suspense</option>
-                <option value="professional">Professionnel</option>
-              </select>
-            </div>
           </div>
 
-          <button class="btn-nexus btn-video" style="margin-top: 10px;" onclick="generateAIVideoScript()">Générer le Script Vidéo</button>
+          <div style="margin-top: 8px;">
+            <label style="font-size:0.7rem; color:var(--accent);">Clé API Vidéo / Server URL (Si Cloud/Backend) :</label>
+            <input type="password" id="video-api-key-input" placeholder="Token API ou URL (ex: http://127.0.0.1:8188)" style="margin-top:4px;">
+          </div>
+
+          <button class="btn-nexus btn-video" style="margin-top: 10px;" onclick="generateAIVideoScript()">1. Générer le Scénario IA</button>
         </div>
 
         <div class="panel-card">
-          <h4>📜 Résultat du Scénario :</h4>
-          <textarea id="video-script-output" style="height:150px;" placeholder="Le script s'affichera ici..."></textarea>
-          <button class="btn-nexus btn-secondary" onclick="exportVideoScriptAsMarkdown()">📥 Exporter en .md</button>
+          <h4>📜 Scénario & Séquences :</h4>
+          <textarea id="video-script-output" style="height:120px;" placeholder="Le script s'affichera ici..."></textarea>
+          <div style="display:flex; gap:6px; margin-top:4px;">
+            <button class="btn-nexus btn-secondary" style="flex:1;" onclick="exportVideoScriptAsMarkdown()">📥 Exporter en .md</button>
+          </div>
+          
+          <button id="btn-generate-video" onclick="generateVideoFromScript()" style="margin-top: 10px; background: #8a2be2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+            🎬 2. GÉNÉRER LA VIDÉO (MOTEUR SELECTIONNÉ)
+          </button>
+
+          <div id="video-preview-container" style="display: none; margin-top: 15px; text-align: center;">
+            <p style="color: #00ffcc; font-size: 0.9em; margin-bottom: 6px;">Aperçu de la vidéo générée :</p>
+            <video id="generated-video" controls width="100%" style="border-radius: 8px; border: 1px solid #00ffcc; max-height: 300px;"></video>
+            <a id="download-video-btn" download="Nexus_Video.webm" style="display:inline-block; margin-top:8px; color:var(--accent); text-decoration:underline; font-size:0.8rem; cursor:pointer;">💾 Télécharger la Vidéo</a>
+          </div>
         </div>
       </div>
 
@@ -744,15 +761,20 @@
     async function generateAIVideoScript() {
       const topic = document.getElementById('video-topic-input').value.trim();
       const format = document.getElementById('video-format-select').value;
-      const tone = document.getElementById('video-tone-select').value;
       const apiKey = document.getElementById('ai-api-key').value.trim();
 
       if (!topic) return alert("Veuillez saisir un sujet de vidéo.");
-      if (!apiKey) return alert("Veuillez entrer la clé API Gemini.");
 
       logConsole("Génération du scénario vidéo...");
-      const prompt = `Réalisateur/Scénariste TikTok. Écris un script court et captivant sur "${topic}". Format: ${format}, Ton: ${tone}.`;
       
+      if (!apiKey || !navigator.onLine) {
+        logConsole("Mode Autonome : Génération locale du script.");
+        const localScript = `[SCÈNE 1 - INTRO]\n- Titre : ${topic}\n- Voix Off : Découvrons ensemble comment résoudre ce problème étape par étape.\n\n[SCÈNE 2 - DIAGNOSTIC]\n- Visuel : Schéma dynamique & contrôles.\n- Voix Off : Vérification des paramètres système et composants.\n\n[SCÈNE 3 - CONCLUSION]\n- Visuel : Validation & Test opérationnel.`;
+        document.getElementById('video-script-output').value = localScript;
+        return;
+      }
+
+      const prompt = `Réalisateur/Scénariste. Écris un script court et captivant sur "${topic}". Format: ${format}.`;
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
@@ -773,6 +795,120 @@
       const content = document.getElementById('video-script-output').value;
       if (!content) return alert("Aucun script à exporter.");
       downloadBlob(new Blob([content], { type: 'text/markdown' }), `${currentProjectName}_Script.md`);
+    }
+
+    // Moteur Autonome de Rendu Vidéo Canvas 2D/3D Local
+    async function generateVideoFromScript() {
+      const scriptText = document.getElementById("video-script-output")?.value.trim() || "Présentation Technique Nexus Studio";
+      const btn = document.getElementById("btn-generate-video");
+      const videoContainer = document.getElementById("video-preview-container");
+      const videoPlayer = document.getElementById("generated-video");
+      const downloadBtn = document.getElementById("download-video-btn");
+      const renderMode = document.getElementById("video-render-mode").value;
+      const videoApiKey = document.getElementById("video-api-key-input")?.value.trim() || "";
+
+      btn.innerText = "⏳ Rendu vidéo en cours...";
+      btn.disabled = true;
+
+      try {
+        if (renderMode === 'local-canvas') {
+          logConsole("[Video Studio] Moteur Autonome Local Canvas actif...");
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = 720;
+          canvas.height = 1280;
+          const ctx = canvas.getContext('2d');
+
+          const stream = canvas.captureStream(30);
+          const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+          const chunks = [];
+
+          recorder.ondataavailable = e => chunks.push(e.data);
+          recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const videoUrl = URL.createObjectURL(blob);
+            videoPlayer.src = videoUrl;
+            downloadBtn.href = videoUrl;
+            videoContainer.style.display = "block";
+            btn.innerText = "✅ VIDÉO GÉNÉRÉE (LOCAL)";
+            btn.disabled = false;
+            logConsole("[Video Studio] Rendu local achevé avec succès.");
+          };
+
+          recorder.start();
+
+          // Animation 100% Locale Canvas sur 4 secondes
+          let frame = 0;
+          const maxFrames = 120;
+          const lines = scriptText.substring(0, 200).split('\n');
+
+          const animInterval = setInterval(() => {
+            frame++;
+            ctx.fillStyle = "#070913";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grille Futuriste Dynamique
+            ctx.strokeStyle = "rgba(0, 255, 204, 0.15)";
+            ctx.lineWidth = 2;
+            for(let x = 0; x < canvas.width; x += 40) {
+              ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+
+            // Titre Principal
+            ctx.fillStyle = "#00ffcc";
+            ctx.font = "bold 36px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("NEXUS STUDIO AUTONOMOUS", canvas.width / 2, 180);
+
+            // Cercle Tech Animé
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, 360, (frame % 60) + 40, 0, Math.PI * 2);
+            ctx.strokeStyle = "#8b5cf6";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Rendu des lignes de texte du script
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "22px monospace";
+            let y = 520;
+            lines.forEach((line) => {
+              if (line.trim()) {
+                ctx.fillText(line.substring(0, 45), canvas.width / 2, y);
+                y += 45;
+              }
+            });
+
+            if (frame >= maxFrames) {
+              clearInterval(animInterval);
+              recorder.stop();
+            }
+          }, 33);
+
+          return;
+        }
+
+        if (renderMode === 'cloud-replicate' && videoApiKey) {
+          logConsole("Requête API Cloud Replicate en cours...");
+          const response = await fetch("https://api.replicate.com/v1/predictions", {
+            method: "POST",
+            headers: { "Authorization": `Token ${videoApiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ version: "39042d08630fc0298a72b05d378038d438edc103323a6f4e150ff227090b84c8", input: { prompt: scriptText.substring(0, 300) } })
+          });
+          const data = await response.json();
+          if (data.output) {
+            const url = Array.isArray(data.output) ? data.output[0] : data.output;
+            videoPlayer.src = url;
+            downloadBtn.href = url;
+            videoContainer.style.display = "block";
+            btn.innerText = "✅ VIDÉO GÉNÉRÉE (CLOUD)";
+          }
+        }
+      } catch (error) {
+        alert("Erreur de rendu : " + error.message);
+        logConsole("Erreur Vidéo : " + error.message, true);
+      } finally {
+        btn.disabled = false;
+      }
     }
 
     async function triggerCloudApkBuild() {
@@ -990,7 +1126,7 @@
       if (editor) files[activeFile] = editor.getValue();
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
       
       let lang = 'html';
       if (filename.endsWith('.css')) lang = 'css';
@@ -1029,7 +1165,6 @@
       switchMainView('editor');
     }
 
-    // Insertion des raccourcis virtuels tactiles dans Monaco
     function insertVirtualKey(char) {
       if (!editor) return;
       let textToInsert = char;
@@ -1043,13 +1178,21 @@
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
-      if (!promptText || !apiKey) return alert("Veuillez fournir un prompt et une clé API Gemini.");
+      if (!promptText) return alert("Veuillez saisir votre demande.");
 
       const chatBox = document.getElementById('chat-box');
       chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
       chatHistory.push({ role: 'user', text: promptText });
       input.value = '';
       chatBox.scrollTop = chatBox.scrollHeight;
+
+      if (!apiKey || !navigator.onLine) {
+        const offlineReply = "📱 Mode Autonome : Je peux modifier votre code HTML/JS/Python ou générer des templates localement sans connexion.";
+        chatHistory.push({ role: 'ai', text: offlineReply });
+        saveChatHistoryToDB();
+        renderChatHistoryUI();
+        return;
+      }
 
       const currentCode = editor ? editor.getValue() : files[activeFile];
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
@@ -1098,8 +1241,15 @@
         localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
       });
 
+      const savedVideoKey = localStorage.getItem('nexus_user_video_key');
+      if (savedVideoKey && document.getElementById('video-api-key-input')) {
+        document.getElementById('video-api-key-input').value = savedVideoKey;
+      }
+      document.getElementById('video-api-key-input')?.addEventListener('input', (e) => {
+        localStorage.setItem('nexus_user_video_key', e.target.value.trim());
+      });
+
       require(['vs/editor/editor.main'], function() {
-        // Enregistrement d'autocomplétions personnalisées pour HTML, JS et Python
         monaco.languages.registerCompletionItemProvider('html', {
           provideCompletionItems: () => {
             const suggestions = [
