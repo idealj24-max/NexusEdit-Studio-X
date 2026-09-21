@@ -679,14 +679,9 @@
   </footer>
 
   <script>
-    // Helper sécurisé pour le rendu Markdown (évite 'marked is not defined')
     function renderMarkdownSafe(text) {
       if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
-        try {
-          return marked.parse(text);
-        } catch(e) {
-          console.warn("Erreur de parsing Marked:", e);
-        }
+        try { return marked.parse(text); } catch(e) { console.warn("Erreur de parsing Marked:", e); }
       }
       return escapeHtml(text).replace(/\n/g, '<br>');
     }
@@ -710,46 +705,11 @@
     let db;
     let currentProjectName = "NexusEdit-Studio-X";
     let files = {
-      'index.html': `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>App Universelle - Nexus Studio</title>
-  <script src="https://cdn.tailwindcss.com"><\/script>
-</head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">
-  <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">
-    <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">⚡ Nexus Studio X v10.0</h1>
-    <p class="text-slate-400">Le système Mega-Mind est opérationnel & connecté au Web mondial.</p>
-  </div>
-</body>
-</html>`,
-      'main.js': `// Moteur Physique 3D Three.js & Cannon.js
-const canvas = document.getElementById('canvas3d');
-if(canvas) {
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-  camera.position.z = 5;
-  function animate() {
-    requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-    renderer.render(scene, camera);
-  }
-  animate();
-}`,
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle - Nexus Studio</title>\n  <script src="https://cdn.tailwindcss.com"><\\/script>\n</head>\n<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">\n  <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">\n    <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">⚡ Nexus Studio X v10.0</h1>\n    <p class="text-slate-400">Le système Mega-Mind est opérationnel & connecté au Web mondial.</p>\n  </div>\n</body>\n</html>`,
+      'main.js': `const canvas = document.getElementById('canvas3d');\nif(canvas) {\n  const scene = new THREE.Scene();\n  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n  renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n  const geometry = new THREE.BoxGeometry();\n  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n  const cube = new THREE.Mesh(geometry, material);\n  scene.add(cube);\n  camera.position.z = 5;\n  function animate() {\n    requestAnimationFrame(animate);\n    cube.rotation.x += 0.01;\n    cube.rotation.y += 0.01;\n    renderer.render(scene, camera);\n  }\n  animate();\n}`,
       'style.css': `body { margin: 0; background: #07090e; color: #fff; }`,
       'script.py': `print("Execution Python Pyodide Nexus Mega-Mind v10.0")`,
-      'document.md': `# Document de suivi Nexus Mega-Mind
-
-- Accès Web RAG Active
-- Multi-LLM Swarm Active`,
+      'document.md': `# Document de suivi Nexus Mega-Mind\n\n- Accès Web RAG Active\n- Multi-LLM Swarm Active`,
       'config.json': `{"project": "NexusEdit-Studio-X", "version": "10.0"}`,
       'manifest.json': `{"name": "NexusEdit Studio Mega-Mind", "start_url": "./index.html", "display": "standalone"}`
     };
@@ -1523,14 +1483,13 @@ if(canvas) {
       editor.focus();
     }
 
-    // Générateur heuristique intelligent local (Fallback / Code augmentation)
     function generateHeuristicCodeSolution(promptText, currentCode, targetFile) {
       const p = promptText.toLowerCase();
       if (targetFile.endsWith('.html')) {
         if (p.includes('contact') || p.includes('form')) {
           return currentCode.replace('</body>', `<div class="p-4 bg-slate-800 rounded m-4"><input class="w-full bg-slate-900 p-2 mb-2 rounded border border-cyan-500/30" placeholder="Nom"><button class="bg-cyan-500 text-black px-4 py-2 rounded font-bold">Envoyer</button></div></body>`);
         }
-        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"><\/script></head><body class="bg-slate-900 text-white p-8"><h1 class="text-3xl text-cyan-400 font-bold mb-4">Module Généré : ${escapeHtml(promptText)}</h1><div class="p-6 bg-slate-800 rounded-lg border border-slate-700">Composant injecté par Nexus Mega-Mind (Mode Autonome).</div></body></html>`;
+        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"><\\/script></head><body class="bg-slate-900 text-white p-8"><h1 class="text-3xl text-cyan-400 font-bold mb-4">Module Généré : ${escapeHtml(promptText)}</h1><div class="p-6 bg-slate-800 rounded-lg border border-slate-700">Composant injecté par Nexus Mega-Mind (Mode Autonome).</div></body></html>`;
       } else if (targetFile.endsWith('.css')) {
         return currentCode + `\n\n/* Gen: ${escapeHtml(promptText)} */\n.nexus-custom {\n  border: 1px solid var(--accent-cyan);\n  box-shadow: 0 0 12px rgba(0, 243, 255, 0.2);\n}\n`;
       } else if (targetFile.endsWith('.js')) {
@@ -1567,7 +1526,6 @@ if(canvas) {
 
       const currentCode = editor ? editor.getValue() : files[activeFile];
 
-      // Exécution mode local / fallback si hors-ligne ou absence de clé API
       if (!apiKey || !navigator.onLine) {
         setTimeout(() => {
           const generatedCode = generateHeuristicCodeSolution(promptText, currentCode, activeFile);
@@ -1660,26 +1618,21 @@ if(canvas) {
           provideCompletionItems: () => {
             return { suggestions: [
               { label: 'div', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<div class="$1">\n\t$0\n</div>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet div' },
-              { label: 'button', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<button class="btn-nexus" onclick="$1">$0</button>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet Bouton' }
+              { label: 'button', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<button class="$1">\n\t$0\n</button>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet button' }
             ]};
           }
         });
 
         editor = monaco.editor.create(document.getElementById('editor-container'), {
-          value: files[activeFile],
+          value: files[activeFile] || '',
           language: 'html',
           theme: 'vs-dark',
           automaticLayout: true,
           fontSize: 13,
-          minimap: { enabled: false },
-          quickSuggestions: true,
-          autoClosingBrackets: 'always',
-          autoClosingQuotes: 'always',
-          tabCompletion: 'on'
+          minimap: { enabled: false }
         });
 
         editor.onDidChangeModelContent(() => {
-          files[activeFile] = editor.getValue();
           saveProjectToDB();
         });
       });
