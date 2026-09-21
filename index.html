@@ -145,7 +145,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-space: around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -312,7 +312,7 @@
           </div>
           
           <button id="btn-generate-video" onclick="generateVideoFromScript()" style="margin-top: 10px; background: #8a2be2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-            🎬 2. GÉNÉRER LA VIDÉO (MOTEUR SELECTIONNÉ)
+            🎬 2. GÉNÉRER LA VIDÉO (MOTEUR SÉLECTIONNÉ)
           </button>
 
           <div id="video-preview-container" style="display: none; margin-top: 15px; text-align: center;">
@@ -1114,7 +1114,7 @@
         deploy.classList.add('active-panel');
         document.getElementById('nav-deploy').classList.add('active');
       } else if (view === 'cyber-config') {
-        cyber.classList.add('active-panel');
+        cyber.classList.remove('active-panel');
       } else if (view === 'ai-mobile') {
         ed.style.display = 'flex';
         ai.classList.add('mobile-active');
@@ -1126,7 +1126,7 @@
       if (editor) files[activeFile] = editor.getValue();
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-      if (event && event.currentTarget) event.currentTarget.classList.add('active');
+      if (window.event && window.event.currentTarget) window.event.currentTarget.classList.add('active');
       
       let lang = 'html';
       if (filename.endsWith('.css')) lang = 'css';
