@@ -117,7 +117,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: align-items; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -321,7 +321,7 @@
       <div class="api-config-box">
         <label>Fournisseur IA :</label>
         <select id="ai-provider" style="margin-bottom:6px;">
-          <option value="gemini">Google Gemini API (1.5 Flash)</option>
+          <option value="gemini">Google Gemini API (2.5 Flash)</option>
           <option value="openai">OpenAI (ChatGPT)</option>
         </select>
         <label>Clé API :</label>
@@ -406,7 +406,7 @@
             nexusMediaStream.getTracks().forEach(track => track.stop());
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         const payload = {
             contents: [{
                 parts: [
@@ -424,12 +424,14 @@
             });
             const data = await response.json();
             
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
+            if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
                 let text = data.candidates[0].content.parts[0].text;
                 zoneRapport.innerHTML = typeof marked !== 'undefined' ? marked.parse(text) : text;
                 logConsole("Diagnostic IA terminé.");
             } else {
-                zoneRapport.innerHTML = `<p style="color:var(--cyber-red)">❌ Erreur API : ${data.error?.message || 'Retour vide'}</p>`;
+                let errDetail = data.error ? data.error.message : "Réponse invalide de l'API Gemini";
+                zoneRapport.innerHTML = `<p style="color:var(--cyber-red)">❌ Erreur API : ${errDetail}</p>`;
+                logConsole("Erreur API Gemini : " + errDetail, true);
             }
         } catch (error) {
             zoneRapport.innerHTML = `<p style="color:var(--cyber-red)">❌ Échec réseau/IA : ${error.message}</p>`;
@@ -644,7 +646,7 @@
       if (!topic || !apiKey) return alert("Renseignez le sujet et la clé API.");
 
       logConsole("Génération du script vidéo...");
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -652,8 +654,13 @@
           body: JSON.stringify({ contents: [{ parts: [{ text: `Rédige un script court TikTok sur: ${topic}` }] }] })
         });
         const data = await response.json();
-        document.getElementById('video-script-output').value = data.candidates[0].content.parts[0].text;
-        logConsole("Script généré !");
+        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
+          document.getElementById('video-script-output').value = data.candidates[0].content.parts[0].text;
+          logConsole("Script généré !");
+        } else {
+          let errDetail = data.error ? data.error.message : "Erreur API lors de la génération";
+          logConsole("Erreur Vidéo IA : " + errDetail, true);
+        }
       } catch (e) {
         logConsole("Erreur vidéo: " + e.message, true);
       }
@@ -919,7 +926,7 @@
 
       logConsole("Envoi du prompt à Gemini...");
       try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -927,18 +934,25 @@
         });
 
         const data = await response.json();
-        let aiGeneratedCode = data.candidates[0].content.parts[0].text;
-        let cleanCode = aiGeneratedCode.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
+        
+        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
+          let aiGeneratedCode = data.candidates[0].content.parts[0].text;
+          let cleanCode = aiGeneratedCode.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
 
-        if (cleanCode.length > 20) {
-          files[activeFile] = cleanCode;
-          if(editor) editor.setValue(cleanCode);
-          saveProjectToDB();
+          if (cleanCode.length > 0) {
+            files[activeFile] = cleanCode;
+            if(editor) editor.setValue(cleanCode);
+            saveProjectToDB();
+          }
+
+          chatHistory.push({ role: 'ai', text: "Mis à jour " + activeFile });
+          saveChatHistoryToDB();
+          chatBox.innerHTML += `<div class="msg ai">Contenu mis à jour dans ${activeFile} !</div>`;
+        } else {
+          let errMessage = data.error ? data.error.message : "Erreur lors du traitement de la réponse.";
+          chatBox.innerHTML += `<div class="msg ai" style="color: var(--cyber-red);">⚠️ Erreur : ${escapeHtml(errMessage)}</div>`;
+          logConsole("Erreur IA: " + errMessage, true);
         }
-
-        chatHistory.push({ role: 'ai', text: "Mis à jour " + activeFile });
-        saveChatHistoryToDB();
-        chatBox.innerHTML += `<div class="msg ai">Contenu mis à jour dans ${activeFile} !</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
       } catch (e) {
         logConsole("Erreur IA: " + e.message, true);
