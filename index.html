@@ -117,7 +117,7 @@
     .ad-banner { background: rgba(13, 19, 34, 0.95); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; font-size: 0.63rem; color: #6b7280; flex-shrink: 0; }
     .ad-banner span { color: var(--accent); font-weight: bold; }
 
-    footer { height: 55px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
+    footer { height: 55px; background: var(--bg-panel); display: flex; justify-around: align-items; align-items: center; border-top: 1px solid var(--accent); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
     footer button.active { color: var(--accent); text-shadow: 0 0 8px rgba(0,255,204,0.4); }
 
@@ -132,7 +132,7 @@
   <header>
     <div style="display: flex; align-items: center; gap: 8px;">
       <div id="menu-btn" onclick="toggleMenu()">≡ STUDIO</div>
-      <div class="project-badge" id="current-project-name">Projet: index.html</div>
+      <div class="project-badge" id="current-project-name">Projet: NexusEdit-Studio-X</div>
     </div>
     <div class="header-actions">
       <button class="btn-icon" onclick="clearChatHistory()">🗑️ Chat</button>
@@ -445,7 +445,7 @@
     let currentProjectName = "NexusEdit-Studio-X";
     let files = {
       'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle</title>\n</head>\n<body>\n  <h1>⚡ Nexus Studio</h1>\n</body>\n</html>`,
-      'main.js': `// Code Moteur Physique 3D\nconst scene = new THREE.Scene();`,
+      'main.js': `// Moteur Physique 3D Three.js & Cannon.js\nconst canvas = document.getElementById('canvas3d');\nif(canvas) {\n  const scene = new THREE.Scene();\n  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n  renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n  const geometry = new THREE.BoxGeometry();\n  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n  const cube = new THREE.Mesh(geometry, material);\n  scene.add(cube);\n  camera.position.z = 5;\n  function animate() {\n    requestAnimationFrame(animate);\n    cube.rotation.x += 0.01;\n    cube.rotation.y += 0.01;\n    renderer.render(scene, camera);\n  }\n  animate();\n}`,
       'style.css': `body { margin: 0; background: #070913; color: #fff; }`,
       'script.py': `print("Execution Python Pyodide")`,
       'document.md': `# Document de suivi`,
@@ -455,7 +455,6 @@
     let chatHistory = []; 
     let activeFile = 'index.html';
     let editor = null;
-    let currentBlobUrl = null;
     let pyodideReady = false;
     let pyodideInstance = null;
 
@@ -700,6 +699,19 @@
       const content = editor ? editor.getValue() : files['document.md'];
       const iframe = document.getElementById('app-preview-frame');
       iframe.srcdoc = `<style>body{background:#fff;color:#000;padding:15px;font-family:sans-serif;}</style>${marked.parse(content)}`;
+    }
+
+    function popOutAppInNewTab() {
+      if (editor) files[activeFile] = editor.getValue();
+      let fullHtml = files['index.html'] || "";
+      if (files['style.css'] && !fullHtml.includes('style.css')) {
+        fullHtml = fullHtml.replace('</head>', `<style>${files['style.css']}</style></head>`);
+      }
+      const win = window.open();
+      if (win) {
+        win.document.write(fullHtml);
+        win.document.close();
+      }
     }
 
     function execute3DPhysicsCode() {
