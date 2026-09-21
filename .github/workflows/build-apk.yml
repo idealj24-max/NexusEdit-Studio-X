@@ -17,16 +17,20 @@ jobs:
       - name: 🟢 Configurer Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: ☕ Configurer Java JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: 🤖 Configurer Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 'latest'
+          accept-android-sdk-licenses: true
+          packages: 'platform-tools build-tools;34.0.0 platforms;android-34'
 
       - name: 📦 Installer Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
