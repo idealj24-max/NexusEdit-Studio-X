@@ -620,11 +620,11 @@
       <div class="api-config-box">
         <label>Modèle Orchestrateur :</label>
         <select id="ai-engine" style="margin-bottom:6px;">
+          <option value="gemini-3.6-flash">Google Gemini 3.6 Flash</option>
           <option value="nexus-auto">Nexus Auto-Swarm (Multi-Modèles)</option>
           <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Codage Élite)</option>
           <option value="gpt-4o">GPT-4o (Omni-Polyvalent)</option>
           <option value="deepseek-r1">DeepSeek R1 (Raisonnement Élite)</option>
-          <option value="gemini-3.6-flash">Google Gemini 3.6 Flash</option>
         </select>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin: 4px 0 6px 0;">
@@ -679,6 +679,18 @@
   </footer>
 
   <script>
+    // Helper sécurisé pour le rendu Markdown (évite 'marked is not defined')
+    function renderMarkdownSafe(text) {
+      if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+        try {
+          return marked.parse(text);
+        } catch(e) {
+          console.warn("Erreur de parsing Marked:", e);
+        }
+      }
+      return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swCode = `
@@ -1077,7 +1089,7 @@ if(canvas) {
             });
             const data = await response.json();
             if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                zoneRapport.innerHTML = marked.parse(data.candidates[0].content.parts[0].text);
+                zoneRapport.innerHTML = renderMarkdownSafe(data.candidates[0].content.parts[0].text);
             }
         } catch (error) { zoneRapport.innerHTML = "⚠️ Mode Fallback local appliqué."; }
     }
@@ -1166,7 +1178,7 @@ if(canvas) {
       chatHistory.forEach(msg => {
         let cls = msg.role === 'user' ? 'user' : 'ai';
         let searchLog = msg.searchLog ? `<div class="search-log">${msg.searchLog}</div>` : '';
-        let formattedText = typeof marked !== 'undefined' ? marked.parse(msg.text) : escapeHtml(msg.text);
+        let formattedText = renderMarkdownSafe(msg.text);
         html += `<div class="msg ${cls}">${searchLog}${formattedText}</div>`;
       });
       chatBox.innerHTML = html;
@@ -1328,7 +1340,7 @@ if(canvas) {
 
     function renderMarkdownPreview() {
       const content = editor ? editor.getValue() : files['document.md'];
-      document.getElementById('app-preview-frame').srcdoc = `<html><body style="background:#fff;color:#111;padding:20px;font-family:sans-serif;">${marked.parse(content)}</body></html>`;
+      document.getElementById('app-preview-frame').srcdoc = `<html><body style="background:#fff;color:#111;padding:20px;font-family:sans-serif;">${renderMarkdownSafe(content)}</body></html>`;
     }
 
     function executeCode() {
@@ -1542,15 +1554,15 @@ if(canvas) {
       if (!apiKey || !navigator.onLine) {
         setTimeout(() => {
           const offlineReply = `<b>[Nexus Mega-Mind Engine v10.0]</b>\n\nModèle : <b>${selectedEngine}</b>\n\nGrâce au moteur de synthèse autonome, j'ai analysé votre code local (${activeFile}).\n\n\`\`\`javascript\n// Solution générée par Nexus Mega-Mind\nconsole.log("Exécution optimale réussie pour : ${promptText.replace(/"/g, '')}");\n\`\`\``;
-          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + marked.parse(offlineReply);
+          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + renderMarkdownSafe(offlineReply);
           chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: offlineReply, searchLog: searchLogText });
           saveChatHistoryToDB();
-        }, 1000);
+        }, 800);
         return;
       }
 
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-      const systemContext = `Tu es Nexus AI Mega-Mind v10.0, l'orchestrateur IA le plus puissant au monde intégré à NexusEdit-Studio-X. Tu possèdes un accès réseau étendu, une omniscience technique et une expertise en codage supérieure. Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande utilisateur : ${promptText}`;
+      const systemContext = `Tu es Nexus AI Mega-Mind v10.0, l'orchestrateur IA l'intégré à NexusEdit-Studio-X. Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande utilisateur : ${promptText}`;
 
       try {
         const response = await fetch(endpoint, {
@@ -1559,7 +1571,18 @@ if(canvas) {
           body: JSON.stringify({ contents: [{ parts: [{ text: systemContext }] }] })
         });
         const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
+
+        if (data.error) {
+          let errCode = data.error.code || response.status;
+          let errMsg = data.error.message || "Erreur inconnue";
+          
+          if (errCode === 503 || errMsg.includes("high demand") || errCode === 429) {
+            aiMsgEl.innerHTML = `<span style="color:#ef4444;">⚠️ <b>Serveur Gemini en surcharge temporaire (503/429)</b>.<br>Veuillez réadapter le modèle sélectionné ou basculer en mode autonome hors-ligne.</span>`;
+            logConsole("Surcharge API Gemini détectée.", true);
+            return;
+          }
+          throw new Error(errMsg);
+        }
 
         let aiText = data.candidates[0].content.parts[0].text;
         let cleanCode = aiText.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
@@ -1571,11 +1594,12 @@ if(canvas) {
           aiText = "⚡ **Code généré et injecté directement dans '" + activeFile + "' !**\n\n" + aiText;
         }
 
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + marked.parse(aiText);
+        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + renderMarkdownSafe(aiText);
         chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: aiText, searchLog: searchLogText });
         saveChatHistoryToDB();
       } catch (e) {
         aiMsgEl.innerHTML = `<span style="color:#ef4444;">Erreur Nexus Engine : ${escapeHtml(e.message)}</span>`;
+        logConsole("Erreur API : " + e.message, true);
       }
     }
 
