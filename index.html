@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 10.0 - Omni-Mind Mega-Engine & Universal AI Platform</title>
+  <title>NexusEdit Studio 10.0 - Universal AI & Multi-Engine IDE</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Moteur 3D Three.js & Physique Cannon.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -21,8 +25,7 @@
   <!-- Utilitaires -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -104,7 +107,6 @@
     #editor-wrapper { flex: 1; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
     #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
 
-    /* Barrette de raccourcis virtuels tactiles */
     #touch-bar {
       display: flex;
       background: #0d1322;
@@ -212,7 +214,6 @@
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     .blink { animation: blink 1.2s infinite; color: var(--accent-cyan); }
 
-    /* Switch toggle */
     .switch { position: relative; display: inline-block; width: 36px; height: 18px; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 20px; }
@@ -220,7 +221,6 @@
     input:checked + .slider { background-color: var(--accent-cyan); }
     input:checked + .slider:before { transform: translateX(18px); }
 
-    /* Console Terminal Engine */
     #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border-color); font-family: var(--font-code); font-size: 0.7rem; padding: 6px 10px; overflow-y: auto; color: var(--accent-cyan); flex-shrink: 0; display: flex; flex-direction: column; }
     .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed var(--border-color); padding-bottom: 2px; color: #6b7280; font-size: 0.6rem; }
     .clear-console-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-family: monospace; font-size: 0.6rem; }
@@ -231,7 +231,6 @@
     .log-entry.error { color: var(--accent-magenta); }
     .log-entry.ai { color: var(--accent-cyan); }
 
-    /* Bottom Command Engine Bar */
     .prompt-container {
         height: 50px;
         background: var(--bg-secondary);
@@ -680,7 +679,6 @@
   </footer>
 
   <script>
-    // Enregistrement PWA Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swCode = `
@@ -705,7 +703,7 @@
 <head>
   <meta charset="UTF-8">
   <title>App Universelle - Nexus Studio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">
   <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">
@@ -772,7 +770,6 @@ if(canvas) {
       if (c) c.innerHTML = `<div class="log-entry system">[SYSTEM] Console réinitialisée.</div>`;
     }
 
-    // --- ENGINE DYNAMIC PROMPT & INTERPRÉTEUR ---
     function executePrompt() {
         const input = document.getElementById('promptInput');
         if (!input) return;
@@ -901,7 +898,6 @@ if(canvas) {
         }
     }
 
-    // --- TERMINAL BRIDGE & PACKAGES ---
     async function sendTermuxCommand() {
       const host = document.getElementById('termuxHostInput')?.value || "http://localhost:8080";
       const cmd = document.getElementById('termuxCommandInput')?.value;
@@ -931,7 +927,6 @@ if(canvas) {
       } else { alert("Pyodide est en cours d'initialisation..."); }
     }
 
-    // --- COLLABORATION P2P ---
     function initP2PPeer(isInitiator) {
       rtcPeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
       if (isInitiator) {
@@ -982,7 +977,6 @@ if(canvas) {
       }
     }
 
-    // --- ACOUSTIQUE & SCANNER AR ---
     async function startAudioDiagnostic() {
       const reportDiv = document.getElementById('audioDiagReport');
       const canvas = document.getElementById('audioSpectrumCanvas');
@@ -1233,12 +1227,33 @@ if(canvas) {
       if (!db) return;
       const request = db.transaction(["projects"], "readonly").objectStore("projects").getAll();
       request.onsuccess = () => {
-        let launcherHtml = `<div id="super-app-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#07090e; z-index:200; padding:20px; overflow-y:auto; font-family:monospace;"><h2 style="color:#00ffcc; margin-bottom:15px;">📦 Super App Launcher</h2><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">`;
-        request.result.forEach(p => {
-          launcherHtml += `<div onclick="loadAndRunMiniApp('${p.name}')" style="background:#0f172a; border:1px solid #1e293b; padding:15px; border-radius:8px; cursor:pointer; text-align:center;"><div>📱 ${p.name}</div></div>`;
-        });
-        launcherHtml += `</div><button onclick="closeSuperAppLauncher()" style="margin-top:20px; background:#ef4444; color:#fff; border:none; padding:10px; width:100%;">Fermer</button></div>`;
-        document.body.insertAdjacentHTML('beforeend', launcherHtml);
+        let itemsHtml = '';
+        if (request.result.length === 0) {
+          itemsHtml = '<div style="color:#9ca3af; grid-column: 1/-1; text-align:center;">Aucun projet enregistré dans IndexedDB.</div>';
+        } else {
+          request.result.forEach(p => {
+            itemsHtml += `
+              <div onclick="loadAndRunMiniApp('${p.name}')" style="background:#0f172a; border:1px solid #1e293b; padding:15px; border-radius:8px; cursor:pointer; text-align:center; transition: all 0.2s;" onmouseover="this.style.borderColor='#00ffcc'" onmouseout="this.style.borderColor='#1e293b'">
+                <div style="font-size:1.5rem; margin-bottom:5px;">📱</div>
+                <div style="color:#00ffcc; font-weight:bold; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</div>
+              </div>`;
+          });
+        }
+
+        const modalHtml = `
+          <div id="super-app-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(7,9,14,0.95); backdrop-filter:blur(10px); z-index:200; padding:20px; display:flex; flex-direction:column; font-family:sans-serif;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+              <h2 style="color:#00ffcc; font-size:1.1rem; font-weight:bold;">📦 Super App Launcher</h2>
+              <button onclick="closeSuperAppLauncher()" style="background:transparent; border:none; color:#ef4444; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:12px; align-content:start;">
+              ${itemsHtml}
+            </div>
+            <button onclick="closeSuperAppLauncher()" style="margin-top:15px; background:#ef4444; color:#fff; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; width:100%;">Fermer</button>
+          </div>`;
+          
+        closeSuperAppLauncher();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
       };
     }
 
@@ -1496,7 +1511,6 @@ if(canvas) {
       editor.focus();
     }
 
-    // --- MOTEUR OMNISCIENT NEXUS MEGA-MIND REAL ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
