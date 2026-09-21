@@ -321,7 +321,7 @@
       <div class="api-config-box">
         <label>Moteur IA :</label>
         <select id="ai-provider" style="margin-bottom:6px;">
-          <option value="gemini-2.5-flash">Google Gemini 2.5 Flash Engine</option>
+          <option value="gemini-3.6-flash">Google Gemini 3.6 Flash Engine</option>
         </select>
         <label>Clé API Google Gemini :</label>
         <input type="password" id="ai-api-key" placeholder="Colle ta clé API Google AI Studio...">
@@ -405,7 +405,7 @@
             nexusMediaStream.getTracks().forEach(track => track.stop());
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
         const payload = {
             contents: [{
                 parts: [
@@ -649,7 +649,7 @@
       if (!topic || !apiKey) return alert("Renseignez le sujet et la clé API.");
 
       logConsole("Génération du script vidéo avec Gemini...");
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       const promptText = `Rédige un script court optimisé pour format ${format} avec un ton ${tone} sur le sujet : ${topic}. Inclut la voix off et le storyboard visuel.`;
 
       try {
@@ -931,7 +931,7 @@
 
       logConsole("Envoi de la requête à Gemini...");
       try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
         
         const systemContext = `Tu es l'assistant de code de NexusEdit Studio. Tu travailles actuellement sur le fichier "${activeFile}". Si tu génères du code destinées à remplacer le fichier, renvoie uniquement le code brut.`;
 
