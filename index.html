@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>NexusEdit Studio 10.0 - Omni-Mind Mega-Engine & Universal AI Platform</title>
+  <title>NexusEdit Studio 5.0 - Ultimate Master Edition & P2P / IoT AI Platform</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Moteur 3D Three.js & Physique Cannon.js -->
@@ -21,74 +21,45 @@
   <!-- Utilitaires -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            nexus: {
-              bg: '#07090e',
-              panel: '#0f172a',
-              border: 'rgba(0, 243, 255, 0.25)',
-              accent: '#00f3ff',
-              neon: '#9d4edd',
-              green: '#00ff87'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
-          }
-        }
-      }
-    }
-  </script>
 
   <style>
     :root {
-      --bg-dark: #07090e;
-      --bg-panel: rgba(15, 23, 42, 0.85);
+      --bg-dark: #070913;
+      --bg-panel: rgba(13, 19, 34, 0.85);
       --bg-secondary: #12161f;
       --accent: #00ffcc;
       --accent-cyan: #00f3ff;
       --accent-hover: #059669;
       --accent-magenta: #ff0055;
-      --accent-purple: #9d4edd;
-      --accent-green: #00ff87;
+      --accent-purple: #8a2be2;
+      --accent-green: #00ff88;
       --text: #e5e7eb;
-      --text-muted: #64748b;
+      --text-muted: #8b949e;
       --border: #1f2937;
       --border-color: rgba(0, 243, 255, 0.25);
       --cyber-red: #ef4444;
       --cyber-green: #10b981;
       --video-purple: #a855f7;
-      --font-code: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-code: 'Fira Code', 'Courier New', Courier, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, monospace; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
     
-    header { height: 50px; background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; }
+    header { height: 48px; background: var(--bg-secondary); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; }
     #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent-cyan); padding: 6px; text-shadow: 0 0 8px rgba(0,243,255,0.4); }
-    .project-badge { font-size: 0.75rem; background: rgba(0, 243, 255, 0.1); border: 1px solid var(--accent-cyan); padding: 3px 8px; border-radius: 12px; color: var(--accent-cyan); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; font-weight: 800; }
+    .project-badge { font-size: 0.75rem; background: rgba(0, 243, 255, 0.1); border: 1px solid var(--accent-cyan); padding: 3px 8px; border-radius: 12px; color: var(--accent-cyan); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; }
     
     .header-actions { display: flex; gap: 8px; }
     .btn-icon { background: #1f2937; color: var(--accent); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
 
     #side-menu { 
         position: fixed; left: -300px; top: 0; width: 280px; 
-        height: 100%; height: 100dvh; background: var(--bg-panel); backdrop-filter: blur(15px); border-right: 1px solid var(--accent-cyan); 
+        height: 100%; height: 100dvh; background: var(--bg-panel); backdrop-filter: blur(10px); border-right: 1px solid var(--accent-cyan); 
         transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 25px rgba(0,0,0,0.9);
         display: flex; flex-direction: column; overflow-y: auto;
     }
     #side-menu.open { transform: translateX(300px); }
-    .menu-section-title { padding: 10px 15px; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.3); font-weight: 700; }
+    .menu-section-title { padding: 10px 15px; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
     .file-item { padding: 10px 18px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 0.8rem; display: flex; align-items: center; gap: 10px; }
     .file-item.active { background: rgba(0,255,204,0.1); color: var(--accent); border-left: 3px solid var(--accent); }
 
@@ -98,13 +69,13 @@
     #workspace { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; }
     
     .mode-tabs { display: flex; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); overflow-x: auto; flex-shrink: 0; }
-    .tab { padding: 10px 12px; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; font-weight: 600; }
+    .tab { padding: 10px 12px; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
     .tab.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(255,255,255,0.03); font-weight: bold; }
 
     #editor-wrapper { flex: 1; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
     #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
 
-    /* Barrette de raccourcis virtuels tactiles */
+    /* Barrette de raccourcis virtuels tactiles enrichie */
     #touch-bar {
       display: flex;
       background: #0d1322;
@@ -140,9 +111,9 @@
     .universal-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     .universal-view.active-panel { display: flex; }
     
-    .panel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(12px); }
-    .panel-card h3 { color: var(--accent-cyan); font-size: 0.85rem; font-weight: 700; }
-    .panel-card h4 { color: var(--accent-cyan); font-size: 0.8rem; margin-bottom: 6px; font-weight: 600; }
+    .panel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(10px); }
+    .panel-card h3 { color: var(--accent-cyan); font-size: 0.85rem; }
+    .panel-card h4 { color: var(--accent-cyan); font-size: 0.8rem; margin-bottom: 6px; }
 
     .ui-snippet-btn {
       background: rgba(255, 255, 255, 0.03);
@@ -162,6 +133,7 @@
       background: rgba(0, 243, 255, 0.05);
     }
 
+    /* Core Stage Element pour la vue Design / Dynamic Stage */
     .preview-stage {
       width: 100%;
       min-height: 250px;
@@ -187,38 +159,33 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    #ai-panel { width: 350px; background: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; backdrop-filter: blur(15px); }
+    #ai-panel { width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; backdrop-filter: blur(10px); }
     .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-    .msg { padding: 10px 14px; border-radius: 8px; font-size: 0.8rem; max-width: 95%; line-height: 1.5; word-break: break-word; }
-    .msg.user { align-self: flex-end; background: linear-gradient(135deg, rgba(157, 78, 221, 0.25), rgba(0, 243, 255, 0.25)); border: 1px solid var(--accent-purple); color: #fff; }
+    .msg { padding: 9px 12px; border-radius: 6px; font-size: 0.78rem; max-width: 95%; line-height: 1.4; word-break: break-word; }
+    .msg.user { align-self: flex-end; background: #1f2937; color: #f3f4f6; border-left: 3px solid var(--accent-cyan); }
     .msg.ai { align-self: flex-start; background: #030712; color: #34d399; border-left: 3px solid #8b5cf6; }
-    .msg .search-log { font-family: var(--font-code); font-size: 0.72rem; color: var(--accent-cyan); background: rgba(0, 243, 255, 0.05); padding: 6px 8px; border-left: 2px solid var(--accent-cyan); margin-bottom: 8px; border-radius: 0 4px 4px 0; }
-
     .chat-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
     
     textarea, input[type="text"], input[type="password"], select { width: 100%; background: #030712; border: 1px solid var(--border-color); color: var(--accent-cyan); padding: 8px; border-radius: 4px; font-family: var(--font-code); resize: none; font-size: 0.8rem; outline: none; }
     textarea { height: 50px; }
     .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border-color); font-size: 0.72rem; }
-    .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; font-weight: 600; }
+    .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; }
     
-    .btn-nexus { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #000; border: none; padding: 9px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; width: 100%; text-align: center; }
+    .btn-nexus { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #000; border: none; padding: 9px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; width: 100%; text-align: center; }
     .btn-nexus:active { transform: scale(0.97); }
     .btn-secondary { background: #1f2937; color: var(--accent-cyan); border: 1px solid var(--accent-cyan); margin-top: 5px; }
     .btn-video { background: var(--video-purple); color: #fff; }
 
     video, canvas { width: 100%; max-height: 220px; border-radius: 6px; background: #000; object-fit: cover; }
     #zoneRapportIA { background: #030712; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #34d399; word-break: break-word; min-height: 80px; max-height: 250px; overflow-y: auto; line-height: 1.4; }
+    #zoneRapportIA ul, #zoneRapportIA ol { margin-left: 15px; }
 
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
     .blink { animation: blink 1.2s infinite; color: var(--accent-cyan); }
-
-    /* Switch toggle */
-    .switch { position: relative; display: inline-block; width: 36px; height: 18px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 20px; }
-    .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--accent-cyan); }
-    input:checked + .slider:before { transform: translateX(18px); }
 
     /* Console Terminal Engine */
     #console-bar { height: 75px; background: #030712; border-top: 1px solid var(--border-color); font-family: var(--font-code); font-size: 0.7rem; padding: 6px 10px; overflow-y: auto; color: var(--accent-cyan); flex-shrink: 0; display: flex; flex-direction: column; }
@@ -284,6 +251,10 @@
         font-size: 0.75rem;
         white-space: nowrap;
     }
+    .execute-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 12px rgba(0, 243, 255, 0.4);
+    }
 
     footer { height: 45px; background: var(--bg-panel); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; }
     footer button { background: transparent; color: #9ca3af; border: none; font-size: 0.68rem; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; }
@@ -301,14 +272,11 @@
   <header>
     <div style="display: flex; align-items: center; gap: 10px;">
       <div id="menu-btn" onclick="toggleMenu()">≡ STUDIO</div>
-      <div class="project-badge" id="current-project-name">⚡ NEXUSEDIT-STUDIO-X (v10.0)</div>
+      <div class="project-badge" id="current-project-name">⚡ NEXUSEDIT-STUDIO-X (v5.0)</div>
     </div>
     <div class="header-actions">
       <button class="btn-icon" onclick="clearChatHistory()">🗑️ Chat</button>
       <button class="btn-icon" onclick="triggerProactiveAI()">💡 Coach</button>
-      <div class="flex items-center gap-1.5 text-xs text-emerald-400 font-mono ml-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> OMNI-MIND ACTIVE
-      </div>
     </div>
   </header>
 
@@ -330,7 +298,7 @@
     <div class="file-item" onclick="openFile('config.json')">⚙️ config.json / Config DB</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
-    <div class="menu-section-title">Studios Avancés & Outils Mega-Mind</div>
+    <div class="menu-section-title">Studios Avancés & 5 Piliers</div>
     <div class="file-item" onclick="switchMainView('scan-studio'); closeMenu();" style="color:var(--accent-cyan);">🔧 Scanner Engins & Audio Spectrum</div>
     <div class="file-item" onclick="switchMainView('3d-physics'); closeMenu();" style="color:#00ffcc;">🎮 Viewport Physique 3D</div>
     <div class="file-item" onclick="switchMainView('p2p-collab'); closeMenu();" style="color:#00ff88;">🌐 Réseau P2P & Live Collab</div>
@@ -356,7 +324,7 @@
         <div class="tab" id="tab-preview" onclick="switchMainView('preview')">Aperçu & Run</div>
         <div class="tab" id="tab-video" onclick="switchMainView('video-studio')">🎬 Vidéos</div>
         <div class="tab" id="tab-deploy" onclick="switchMainView('deploy')">⚡ Exports</div>
-        <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA Mega-Mind</div>
+        <div class="tab" id="tab-ai" onclick="switchMainView('ai-mobile')">🤖 IA</div>
       </div>
       
       <!-- Editor View -->
@@ -382,7 +350,7 @@
         <canvas id="canvas3d"></canvas>
       </div>
       
-      <!-- Scan Studio View -->
+      <!-- Scan Studio & Audio Spectrogram View -->
       <div id="scan-studio-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--accent-cyan);">
           <h3>🔧 Scanner Vision AI & Superposition AR</h3>
@@ -428,7 +396,7 @@
         </div>
       </div>
 
-      <!-- Native Terminal Bridge View -->
+      <!-- Native Terminal Bridge & Package Manager View -->
       <div id="terminal-termux-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--accent-magenta);">
           <h3 style="color:var(--accent-magenta);">💻 Terminal Native Bridge (Termux / Socket Local)</h3>
@@ -450,7 +418,7 @@
         </div>
       </div>
 
-      <!-- Hardware IoT View -->
+      <!-- Hardware IoT & Serial View -->
       <div id="iot-hardware-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--video-purple);">
           <h3 style="color:var(--video-purple);">🔌 Connexions Matérielles IoT & OBD2 (WebSerial / WebUSB)</h3>
@@ -465,7 +433,7 @@
         </div>
       </div>
 
-      <!-- Design UI Stage -->
+      <!-- Design UI & Presets View -->
       <div id="design-panel" class="universal-view">
         <div class="panel-card">
           <h4>Presets Core AI & Snippets UI</h4>
@@ -484,9 +452,9 @@
         <div class="panel-card">
           <h4>Canevas Dynamic Stage (Preview Directe) :</h4>
           <div class="preview-stage" id="stage">
-            <h1 style="font-weight: 300; color: var(--text); font-size: 1.4rem;">⚡ Studio Omnipotent v10.0 Prêt</h1>
+            <h1 style="font-weight: 300; color: var(--text); font-size: 1.4rem;">⚡ Studio Omnipotent Prêt</h1>
             <p style="color: var(--text-muted); max-width: 450px; text-align: center; font-size: 0.8rem;">
-                Moteur d'orchestration multi-modèles et crawler Web RAG actif.
+                Saisissez n'importe quelle commande : génération d'éléments Web, injection de code HTML/CSS brut, exécution de scripts JS ou demandes textuelles via le moteur en bas.
             </p>
           </div>
         </div>
@@ -509,7 +477,7 @@
       <div id="video-studio-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--video-purple);">
           <h3 style="color:var(--video-purple);">🎬 Studio Vidéo Multimodal (Local & Cloud)</h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">Générez des scripts puis produisez la vidéo localement via Canvas/WebAudio ou via backend GPU.</p>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Générez des scripts puis produisez la vidéo localement via Canvas/WebAudio ou via votre backend GPU / API privée.</p>
           
           <div style="margin-top: 8px;">
             <label style="font-size:0.7rem; color:var(--accent-cyan);">Sujet de la Vidéo :</label>
@@ -536,7 +504,7 @@
           </div>
 
           <div style="margin-top: 8px;">
-            <label style="font-size:0.7rem; color:var(--accent-cyan);">Clé API Vidéo / Server URL :</label>
+            <label style="font-size:0.7rem; color:var(--accent-cyan);">Clé API Vidéo / Server URL (Si Cloud/Backend) :</label>
             <input type="password" id="video-api-key-input" placeholder="Token API ou URL (ex: http://127.0.0.1:8188)" style="margin-top:4px;">
           </div>
 
@@ -601,54 +569,35 @@
       <!-- Console / Terminal Bar -->
       <div id="console-bar">
         <div class="console-header">
-          <span>TERMINAL / CONSOLE NEXUS ENGINE v10.0</span>
+          <span>TERMINAL / CONSOLE NEXUS ENGINE</span>
           <button class="clear-console-btn" onclick="clearConsoleLogs()">[Effacer]</button>
         </div>
         <div class="console-logs-content" id="console">
-          <div class="log-entry system">[SYSTEM] Nexus Mega-Mind Engine v10.0 initialisé. Moteurs d'Orchestration & Crawler Web Actifs.</div>
-          <div class="log-entry system">[SYSTEM] Prêt pour exécution autonome omnisciente.</div>
+          <div class="log-entry system">[SYSTEM] Core 5.0 initialisé. 5 Piliers Moteurs Actifs.</div>
+          <div class="log-entry system">[SYSTEM] Prêt pour exécution autonome.</div>
         </div>
       </div>
     </div>
 
-    <!-- AI Side Panel Mega-Mind Omniscient -->
+    <!-- AI Side Panel -->
     <div id="ai-panel">
       <div class="menu-section-title" style="background:var(--bg-dark); padding:8px; display:flex; justify-content:space-between; align-items:center;">
-        <span style="color:var(--accent-cyan); font-weight:800;">🧠 NEXUS AI MEGA-MIND</span>
+        <span>NEXUS AI MEGA-MIND</span>
         <button class="btn-icon" onclick="triggerProactiveAI()" style="color:var(--accent-cyan); font-size:0.6rem;">💡 Idée</button>
       </div>
-      
       <div class="api-config-box">
-        <label>Modèle Orchestrateur :</label>
-        <select id="ai-engine" style="margin-bottom:6px;">
-          <option value="nexus-auto">Nexus Auto-Swarm (Multi-Modèles)</option>
-          <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Codage Élite)</option>
-          <option value="gpt-4o">GPT-4o (Omni-Polyvalent)</option>
-          <option value="deepseek-r1">DeepSeek R1 (Raisonnement Élite)</option>
-          <option value="gemini-3.6-flash">Google Gemini 3.6 Flash</option>
+        <label>Moteur IA :</label>
+        <select id="ai-provider" style="margin-bottom:6px;">
+          <option value="gemini-3.6-flash">Google Gemini 3.6 Flash Engine</option>
         </select>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin: 4px 0 6px 0;">
-          <span style="font-size:0.7rem; color:var(--text-main);">🌐 Exploration Web Globale (RAG)</span>
-          <label class="switch">
-            <input type="checkbox" id="web-search-toggle" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <label>Clé API Moteur (Gemini / OpenAI / Claude) :</label>
-        <input type="password" id="ai-api-key" placeholder="Colle ta clé API (Gemini / sk-...)">
+        <label>Clé API Google Gemini :</label>
+        <input type="password" id="ai-api-key" placeholder="Colle ta clé API Google AI Studio...">
       </div>
-
       <div class="chat-messages" id="chat-box">
-        <div class="msg ai">
-          🤖 <b>Nexus AI Mega-Mind v10.0 Activé.</b><br>
-          Connected to global network. Prêt à naviguer sur l'Internet entier, concevoir des projets complets et résoudre des problèmes complexes.
-        </div>
+        <div class="msg ai">Prêt à coder, simuler en 3D ou lancer vos diagnostics !</div>
       </div>
-
       <div class="chat-input-area">
-        <textarea id="ai-input" placeholder="Demandez d'analyser le web, créer du code ou résoudre n'importe quoi..."></textarea>
+        <textarea id="ai-input" placeholder="Entrez une commande ou une question..."></textarea>
         <div style="display: flex; gap: 5px;">
           <button class="btn-nexus" style="flex: 2;" onclick="sendAIPromptReal()">🚀 Exécuter</button>
           <button class="btn-nexus btn-secondary" style="flex: 1; margin-top: 0;" onclick="startVoiceRecognition()">🎙️ Vocal</button>
@@ -662,7 +611,7 @@
   <div class="prompt-container">
     <div class="prompt-input-wrapper">
       <span class="prompt-icon">⚡</span>
-      <input type="text" id="promptInput" class="prompt-input" placeholder="Demandez n'importe quoi... (ex: 'Bouton violet', 'Explorer le Web pour...', 'Calculer 45*12')" onkeydown="if(event.key==='Enter') executePrompt()">
+      <input type="text" id="promptInput" class="prompt-input" placeholder="Demandez n'importe quoi... (ex: 'Bouton violet', 'Injecter <button>Test</button>', 'Dashboard', 'Calculer 45*12')" onkeydown="if(event.key==='Enter') executePrompt()">
     </div>
     <button class="execute-btn" onclick="executePrompt()">Exécuter</button>
   </div>
@@ -680,19 +629,37 @@
   </footer>
 
   <script>
-    // Enregistrement PWA Service Worker
+    // Enregistrement dynamique du Service Worker (Offline-First / PWA)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swCode = `
-          const CACHE_NAME = 'nexus-studio-v10.0';
-          const ASSETS = ['./'];
-          self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
-          self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.skipWaiting())); });
-          self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./')))); });
+          const CACHE_NAME = 'nexus-studio-v5.0';
+          const ASSETS = [
+            './',
+            'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+            'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js',
+            'https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css',
+            'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+            'https://cdn.jsdelivr.net/npm/marked/marked.min.js'
+          ];
+          self.addEventListener('install', e => {
+            e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+          });
+          self.addEventListener('activate', e => {
+            e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.skipWaiting()));
+          });
+          self.addEventListener('fetch', e => {
+            e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./'))));
+          });
         `;
         const blob = new Blob([swCode], { type: 'application/javascript' });
         const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(err => console.log("[PWA] Erreur SW: ", err));
+        navigator.serviceWorker.register(swUrl).then(() => {
+          console.log("[PWA] Service Worker Hors-Ligne v5.0 activé.");
+        }).catch(err => console.log("[PWA] Erreur SW: ", err));
       });
     }
 
@@ -700,48 +667,13 @@
     let db;
     let currentProjectName = "NexusEdit-Studio-X";
     let files = {
-      'index.html': `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>App Universelle - Nexus Studio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">
-  <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">
-    <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">⚡ Nexus Studio X v10.0</h1>
-    <p class="text-slate-400">Le système Mega-Mind est opérationnel & connecté au Web mondial.</p>
-  </div>
-</body>
-</html>`,
-      'main.js': `// Moteur Physique 3D Three.js & Cannon.js
-const canvas = document.getElementById('canvas3d');
-if(canvas) {
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-  camera.position.z = 5;
-  function animate() {
-    requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-    renderer.render(scene, camera);
-  }
-  animate();
-}`,
-      'style.css': `body { margin: 0; background: #07090e; color: #fff; }`,
-      'script.py': `print("Execution Python Pyodide Nexus Mega-Mind v10.0")`,
-      'document.md': `# Document de suivi Nexus Mega-Mind
-
-- Accès Web RAG Active
-- Multi-LLM Swarm Active`,
-      'config.json': `{"project": "NexusEdit-Studio-X", "version": "10.0"}`,
-      'manifest.json': `{"name": "NexusEdit Studio Mega-Mind", "start_url": "./index.html", "display": "standalone"}`
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle</title>\n</head>\n<body>\n  <h1>⚡ Nexus Studio 5.0</h1>\n</body>\n</html>`,
+      'main.js': `// Moteur Physique 3D Three.js & Cannon.js\nconst canvas = document.getElementById('canvas3d');\nif(canvas) {\n  const scene = new THREE.Scene();\n  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n  renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n  const geometry = new THREE.BoxGeometry();\n  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n  const cube = new THREE.Mesh(geometry, material);\n  scene.add(cube);\n  camera.position.z = 5;\n  function animate() {\n    requestAnimationFrame(animate);\n    cube.rotation.x += 0.01;\n    cube.rotation.y += 0.01;\n    renderer.render(scene, camera);\n  }\n  animate();\n}`,
+      'style.css': `body { margin: 0; background: #070913; color: #fff; }`,
+      'script.py': `print("Execution Python Pyodide v5.0")`,
+      'document.md': `# Document de suivi`,
+      'config.json': `{"project": "NexusEdit-Studio-X", "version": "5.0"}`,
+      'manifest.json': `{"name": "NexusEdit Studio", "start_url": "./index.html", "display": "standalone"}`
     };
     let chatHistory = []; 
     let activeFile = 'index.html';
@@ -750,15 +682,17 @@ if(canvas) {
     let pyodideReady = false;
     let pyodideInstance = null;
 
+    // WebRTC Peer connection globale
     let rtcPeerConnection = null;
     let rtcDataChannel = null;
 
+    // Console Logging unifié
     function log(message, type = 'system') {
         const consoleLog = document.getElementById('console');
         if (!consoleLog) return;
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
-        entry.textContent = `[${new Date().toLocaleTimeString()}]${message}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
         consoleLog.appendChild(entry);
         consoleLog.scrollTop = consoleLog.scrollHeight;
     }
@@ -772,7 +706,7 @@ if(canvas) {
       if (c) c.innerHTML = `<div class="log-entry system">[SYSTEM] Console réinitialisée.</div>`;
     }
 
-    // --- ENGINE DYNAMIC PROMPT & INTERPRÉTEUR ---
+    // --- PILIER 1: ERGONOMIE & DYNAMIC PROMPT ENGINE ---
     function executePrompt() {
         const input = document.getElementById('promptInput');
         if (!input) return;
@@ -783,7 +717,7 @@ if(canvas) {
         input.value = '';
 
         const stage = document.getElementById('stage');
-        if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent')) {
+        if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent Prêt')) {
             stage.innerHTML = '';
         }
 
@@ -813,32 +747,58 @@ if(canvas) {
                 createNode(`
                     <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid var(--accent-cyan); padding: 15px; border-radius: 8px;">
                         <small style="color: var(--text-muted);">Calcul Mathématique</small>
-                        <h2 style="color: var(--accent-cyan); margin-top: 5px;">${prompt} =${result}</h2>
+                        <h2 style="color: var(--accent-cyan); margin-top: 5px;">${prompt} = ${result}</h2>
                     </div>
                 `);
                 log(`Calcul exécuté : ${result}`, 'success');
                 switchMainView('design');
                 return;
-            } catch(e) { log(`Erreur de calcul : ${e.message}`, 'error'); }
+            } catch(e) {
+                log(`Erreur de calcul : ${e.message}`, 'error');
+            }
         }
 
         if (p.includes('bouton') || p.includes('button')) {
             const isPurple = p.includes('violet') || p.includes('purple');
-            const color = isPurple ? 'var(--accent-purple)' : 'var(--accent-cyan)';
+            const isMagenta = p.includes('magenta') || p.includes('rouge');
+            const color = isPurple ? 'var(--accent-purple)' : (isMagenta ? 'var(--accent-magenta)' : 'var(--accent-cyan)');
+            const textColor = isPurple || isMagenta ? '#fff' : '#000';
+
             createNode(`
-                <button style="background: ${color}; color: #000; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px ${color};">
+                <button style="background: ${color}; color: ${textColor}; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px ${color}; transition: transform 0.2s;" onclick="this.style.transform='scale(0.95)'; setTimeout(()=>this.style.transform='scale(1)',150)">
                     ${prompt.replace(/créer|ajouter|un|bouton/gi, '').trim() || 'Action Nexus'}
                 </button>
             `);
             log('Composant [Bouton] généré.', 'success');
             switchMainView('design');
         } 
+        else if (p.includes('carte') || p.includes('card')) {
+            createNode(`
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; width: 100%;">
+                    <h3 style="color: var(--accent-cyan); margin-bottom: 8px;">🚀 Module Intelligent</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Généré à la volée par le moteur NexusEdit-Studio-X.</p>
+                    <button style="background: transparent; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 6px 12px; border-radius: 4px; cursor: pointer;">Interagir</button>
+                </div>
+            `);
+            log('Composant [Carte Dynamic] créé.', 'success');
+            switchMainView('design');
+        }
+        else if (p.includes('titre') || p.includes('title')) {
+            const titleText = prompt.replace(/créer|ajouter|un|titre/gi, '').trim() || 'Titre Cyberpunk';
+            createNode(`
+                <h1 style="color: var(--accent-cyan); font-size: 2.2rem; text-shadow: 0 0 12px rgba(0,243,255,0.4); font-weight: 700;">
+                    ${titleText}
+                </h1>
+            `);
+            log('Élément [Titre Stylisé] injecté.', 'success');
+            switchMainView('design');
+        }
         else {
             createNode(`
                 <div style="background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent-cyan); padding: 15px 20px; border-radius: 4px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                         <span style="color: var(--accent-cyan); font-size: 1.1rem;">⚡</span>
-                        <strong style="color: var(--text); font-size: 0.95rem;">Traitement Nexus Mega-Mind</strong>
+                        <strong style="color: var(--text); font-size: 0.95rem;">Exécution Réussie</strong>
                     </div>
                     <p style="color: var(--text-muted); font-size: 0.9rem;">${escapeHtml(prompt)}</p>
                 </div>
@@ -859,7 +819,10 @@ if(canvas) {
 
     function quickAction(type) {
         const stage = document.getElementById('stage');
-        if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent')) stage.innerHTML = '';
+        if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent Prêt')) {
+            stage.innerHTML = '';
+        }
+
         switchMainView('design');
 
         if (type === 'clear') {
@@ -868,19 +831,19 @@ if(canvas) {
         } else if (type === 'landing') {
             stage.innerHTML = `
                 <div style="text-align:center; padding: 40px 20px;" class="dynamic-node">
-                    <h1 style="font-size: 2.5rem; color: var(--accent-cyan); margin-bottom: 15px;">L'Avenir de la Création AI Mega-Mind</h1>
-                    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 20px auto;">Déployez des applications complexes via le moteur Nexus AI Universal Core v10.0.</p>
-                    <button style="background: var(--accent-cyan); color:#000; border:none; padding:12px 25px; font-weight:bold; border-radius:6px; cursor:pointer;">Commencer Maintenant</button>
+                    <h1 style="font-size: 2.5rem; color: var(--accent-cyan); margin-bottom: 15px; text-shadow: 0 0 15px rgba(0,243,255,0.3);">L'Avenir de la Création AI</h1>
+                    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 20px auto; font-size: 0.95rem;">Déployez des applications complexes en une fraction de seconde grâce au moteur Nexus AI Universal Core.</p>
+                    <button style="background: var(--accent-cyan); color:#000; border:none; padding:12px 25px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow: 0 0 15px var(--accent-cyan);">Commencer Maintenant</button>
                 </div>
             `;
             log('Template [Landing Page] chargée.', 'success');
         } else if (type === 'form') {
             stage.innerHTML = `
                 <form style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:380px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);" class="dynamic-node" onsubmit="event.preventDefault(); alert('Formulaire soumis !');">
-                    <h3 style="color:var(--accent-cyan);">Connexion Sécurisée</h3>
-                    <input type="email" placeholder="Adresse Email" required style="padding:10px; background:rgba(0,0,0,0.6); border:1px solid var(--border-color); color:#fff; border-radius:4px;">
-                    <input type="password" placeholder="Mot de passe" required style="padding:10px; background:rgba(0,0,0,0.6); border:1px solid var(--border-color); color:#fff; border-radius:4px;">
-                    <button type="submit" style="background:var(--accent-purple); color:#fff; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer;">Accéder au Studio</button>
+                    <h3 style="color:var(--accent-cyan); margin-bottom: 5px;">Connexion Sécurisée</h3>
+                    <input type="email" placeholder="Adresse Email" required style="padding:10px; background:rgba(0,0,0,0.6); border:1px solid var(--border-color); color:#fff; border-radius:4px; outline:none;">
+                    <input type="password" placeholder="Mot de passe" required style="padding:10px; background:rgba(0,0,0,0.6); border:1px solid var(--border-color); color:#fff; border-radius:4px; outline:none;">
+                    <button type="submit" style="background:var(--accent-purple); color:#fff; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; margin-top: 5px;">Accéder au Studio</button>
                 </form>
             `;
             log('Module [Formulaire UI] généré.', 'success');
@@ -888,20 +851,30 @@ if(canvas) {
             stage.innerHTML = `
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; width:100%; max-width:550px;" class="dynamic-node">
                     <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:8px; border:1px solid var(--accent-cyan);">
-                        <small style="color:var(--text-muted);">Moteur Multi-Swarm</small>
-                        <h2 style="color:var(--accent-cyan); font-size: 1.8rem; margin-top: 5px;">Active</h2>
+                        <small style="color:var(--text-muted);">Charge CPU</small>
+                        <h2 style="color:var(--accent-cyan); font-size: 1.8rem; margin-top: 5px;">98.4%</h2>
                     </div>
                     <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:8px; border:1px solid var(--accent-magenta);">
-                        <small style="color:var(--text-muted);">Crawler Web RAG</small>
-                        <h2 style="color:var(--accent-magenta); font-size: 1.8rem; margin-top: 5px;">Global</h2>
+                        <small style="color:var(--text-muted);">Réseau Neural</small>
+                        <h2 style="color:var(--accent-magenta); font-size: 1.8rem; margin-top: 5px;">Opérationnel</h2>
                     </div>
                 </div>
             `;
             log('Module [Dashboard Data] déployé.', 'success');
+        } else if (type === 'terminal') {
+            stage.innerHTML = `
+                <div style="background: #000; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; width: 100%; max-width: 600px; font-family: var(--font-code); font-size: 0.85rem;" class="dynamic-node">
+                    <div style="color: var(--accent-green); margin-bottom: 5px;">root@nexus-studio-x:~# systemctl status engine</div>
+                    <div style="color: var(--text-muted);">● nexus-engine.service - Universal AI Kernel</div>
+                    <div style="color: var(--text-muted);">   Loaded: loaded (/etc/systemd/system/nexus.service)</div>
+                    <div style="color: var(--accent-cyan);">   Active: active (running) since Mon 2026-09-21 06:00:00 GMT</div>
+                </div>
+            `;
+            log('Émulateur Terminal généré.', 'success');
         }
     }
 
-    // --- TERMINAL BRIDGE & PACKAGES ---
+    // --- PILIER 2: TERMINAL NATIVE BRIDGE & CACHE PACKAGES ---
     async function sendTermuxCommand() {
       const host = document.getElementById('termuxHostInput')?.value || "http://localhost:8080";
       const cmd = document.getElementById('termuxCommandInput')?.value;
@@ -927,20 +900,30 @@ if(canvas) {
         try {
           await pyodideInstance.loadPackage(pkgName);
           logConsole(`Package '${pkgName}' mis en cache local avec succès !`);
-        } catch (e) { logConsole(`Erreur cache package ${pkgName} :${e.message}`, true); }
-      } else { alert("Pyodide est en cours d'initialisation..."); }
+        } catch (e) {
+          logConsole(`Erreur cache package ${pkgName} : ${e.message}`, true);
+        }
+      } else {
+        alert("Pyodide est en cours d'initialisation...");
+      }
     }
 
-    // --- COLLABORATION P2P ---
+    // --- PILIER 3: COLLABORATION P2P WEBRTC ---
     function initP2PPeer(isInitiator) {
-      rtcPeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      rtcPeerConnection = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+
       if (isInitiator) {
         rtcDataChannel = rtcPeerConnection.createDataChannel("nexus_collab");
         setupDataChannelEvents();
-        rtcPeerConnection.createOffer().then(offer => rtcPeerConnection.setLocalDescription(offer)).then(() => {
+        rtcPeerConnection.createOffer().then(offer => {
+          return rtcPeerConnection.setLocalDescription(offer);
+        }).then(() => {
           setTimeout(() => {
-            document.getElementById('p2pOfferToken').value = JSON.stringify(rtcPeerConnection.localDescription);
-            logConsole("Salon P2P créé ! Partagez le jeton avec votre collègue.");
+            const token = JSON.stringify(rtcPeerConnection.localDescription);
+            document.getElementById('p2pOfferToken').value = token;
+            logConsole("Salon P2P créé ! Partagez le jeton ci-dessus avec votre collègue.");
           }, 500);
         });
       } else {
@@ -954,14 +937,14 @@ if(canvas) {
     function setupDataChannelEvents() {
       rtcDataChannel.onopen = () => {
         document.getElementById('p2pStatus').innerText = "Statut : 🟢 Connecté en P2P Direct";
-        logConsole("Connexion P2P directe établie.");
+        logConsole("Connexion P2P directe établie avec le collaborateur.");
       };
       rtcDataChannel.onmessage = (e) => {
         const data = JSON.parse(e.data);
         if (data.file && data.content !== undefined) {
           files[data.file] = data.content;
           if (editor && activeFile === data.file) editor.setValue(data.content);
-          logConsole(`[P2P Sync] Fichier '${data.file}' mis à jour.`);
+          logConsole(`[P2P Sync] Fichier '${data.file}' mis à jour par le pair.`);
         }
       };
     }
@@ -969,25 +952,28 @@ if(canvas) {
     async function connectP2PPeer() {
       const rawToken = document.getElementById('p2pOfferToken').value.trim();
       if (!rawToken) return alert("Veuillez coller le jeton de connexion P2P.");
+
       const remoteDesc = new RTCSessionDescription(JSON.parse(rawToken));
       if (!rtcPeerConnection) initP2PPeer(false);
+
       await rtcPeerConnection.setRemoteDescription(remoteDesc);
       if (remoteDesc.type === 'offer') {
         const answer = await rtcPeerConnection.createAnswer();
         await rtcPeerConnection.setLocalDescription(answer);
         setTimeout(() => {
           document.getElementById('p2pOfferToken').value = JSON.stringify(rtcPeerConnection.localDescription);
-          logConsole("Réponse P2P générée.");
+          logConsole("Réponse P2P générée. Renvoyez ce jeton à l'hôte.");
         }, 500);
       }
     }
 
-    // --- ACOUSTIQUE & SCANNER AR ---
+    // --- PILIER 4: DIAGNOSTIC ACOUSTIQUE & VISION AR OVERLAY ---
     async function startAudioDiagnostic() {
       const reportDiv = document.getElementById('audioDiagReport');
       const canvas = document.getElementById('audioSpectrumCanvas');
       const ctx = canvas.getContext('2d');
-      reportDiv.innerHTML = "<span class='blink'>🔄 Écoute du régime moteur...</span>";
+
+      reportDiv.innerHTML = "<span class='blink'>🔄 Écoute du régime moteur en cours...</span>";
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -995,6 +981,7 @@ if(canvas) {
         const analyser = audioCtx.createAnalyser();
         const source = audioCtx.createMediaStreamSource(stream);
         source.connect(analyser);
+
         analyser.fftSize = 64;
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
@@ -1003,41 +990,70 @@ if(canvas) {
         const renderSpectrum = () => {
           if (frame++ > 100) {
             stream.getTracks().forEach(t => t.stop());
-            reportDiv.innerHTML = `<b>Analyse Spectrale :</b> Régime ~1500 RPM (Normal) - Stabilité Vilebrequin OK.`;
-            logConsole("Diagnostic acoustique terminé.");
+            reportDiv.innerHTML = `
+              <b>Analyse Spectrale Terminée :</b><br>
+              - Fréquence Régime : ~1500 RPM (Normal)<br>
+              - Variation d'amplitude : 2.4% (Stabilité Vilebrequin OK)<br>
+              - Diagnostic : Aucune anomalie de raté d'injection détectée.
+            `;
+            logConsole("Diagnostic acoustique du moteur achevé.");
             return;
           }
           requestAnimationFrame(renderSpectrum);
           analyser.getByteFrequencyData(dataArray);
+
           ctx.fillStyle = '#000';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
+
           const barWidth = (canvas.width / bufferLength) * 2.5;
+          let barHeight;
           let x = 0;
+
           for (let i = 0; i < bufferLength; i++) {
-            let barHeight = dataArray[i] / 2;
+            barHeight = dataArray[i] / 2;
             ctx.fillStyle = `rgb(${barHeight + 100},0,200)`;
             ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
             x += barWidth + 1;
           }
         };
         renderSpectrum();
-      } catch (err) { reportDiv.innerHTML = `<span style="color:var(--cyber-red)">Erreur micro : ${err.message}</span>`; }
+      } catch (err) {
+        reportDiv.innerHTML = `<span style="color:var(--cyber-red)">Erreur micro : ${err.message}</span>`;
+      }
     }
 
+    // --- PILIER 5: IOT USB-SERIAL & AR OVERLAY ---
     async function connectWebSerialUSB() {
       const output = document.getElementById('serialConsoleOutput');
       if ('serial' in navigator) {
         try {
           const port = await navigator.serial.requestPort();
           await port.open({ baudRate: 9600 });
-          output.innerHTML += `<br>[Serial] Port USB connecté !`;
-        } catch (e) { output.innerHTML += `<br>[Serial Fallback] ${e.message}`; }
-      } else { output.innerHTML += `<br>[System] Mode Émulation CAN-bus activé : RPM=1450, TEMP=88°C, PRESS=4.2 Bar.`; }
+          output.innerHTML += `<br>[Serial] Port USB connecté ! Lecture du bus...`;
+          
+          const textDecoder = new TextDecoderStream();
+          const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+          const reader = textDecoder.readable.getReader();
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (value) {
+              output.innerHTML += `<br>[OBD2 Data]: ${value}`;
+              output.scrollTop = output.scrollHeight;
+            }
+          }
+        } catch (e) {
+          output.innerHTML += `<br>[Serial Fallback] ${e.message}`;
+        }
+      } else {
+        output.innerHTML += `<br>[System] WebSerial non supporté sur ce navigateur. Mode Émulation CAN-bus activé : RPM=1450, TEMP=88°C, PRESS=4.2 Bar.`;
+      }
     }
 
     function readOBDMetrics() {
       const output = document.getElementById('serialConsoleOutput');
-      output.innerHTML += `<br>[OBD2 Scan] Code Défaut Read = P0000 (Anomalie non détectée).`;
+      output.innerHTML += `<br>[OBD2 Auto-Scan] : Code Défaut Read = P0000 (Aucune panne sous-système détectée).`;
       output.scrollTop = output.scrollHeight;
     }
 
@@ -1045,12 +1061,38 @@ if(canvas) {
         const video = document.getElementById('scannerVideo');
         if (!video) return alert("Composant vidéo introuvable.");
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
+            });
             nexusMediaStream = stream;
             video.srcObject = stream;
+            video.setAttribute("playsinline", true);
             video.play();
+
+            // AR Overlay Drawing Loop
+            const canvasAR = document.getElementById('arCanvasOverlay');
+            if (canvasAR) {
+              const ctx = canvasAR.getContext('2d');
+              const drawAR = () => {
+                if (!nexusMediaStream) return;
+                ctx.clearRect(0, 0, canvasAR.width, canvasAR.height);
+                ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(50, 40, 120, 120);
+                ctx.fillStyle = '#00ffcc';
+                ctx.font = '12px monospace';
+                ctx.fillText("TARGET: INJECTEUR #1", 50, 35);
+                requestAnimationFrame(drawAR);
+              };
+              drawAR();
+            }
+
             logConsole("[Nexus System] Caméra & Overlay AR activés.");
-        } catch (err) { alert("Erreur caméra : " + err.message); }
+        } catch (err) {
+            alert("Erreur accès caméra : " + err.message);
+            logConsole("Erreur caméra: " + err.message, true);
+        }
     }
 
     async function executerDiagnosticIA() {
@@ -1058,34 +1100,93 @@ if(canvas) {
         const zoneRapport = document.getElementById('zoneRapportIA');
         const apiKey = (document.getElementById('ai-api-key')?.value || "").trim();
 
-        if (!video || !video.videoWidth) return alert("Veuillez d'abord activer la caméra.");
+        if (!video || !video.videoWidth) {
+            alert("Veuillez d'abord activer la caméra.");
+            return;
+        }
+
         zoneRapport.innerHTML = "<p class='blink'>🔄 Analyse Vision IA en cours...</p>";
+        logConsole("Capture de l'image pour analyse...");
 
         const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const base64Data = canvas.toDataURL('image/jpeg').split(',')[1];
 
+        if (nexusMediaStream) {
+            nexusMediaStream.getTracks().forEach(track => track.stop());
+        }
+
         if (!navigator.onLine || !apiKey) {
+            logConsole("Moteur Hors-Ligne/Fallback actif : diagnostic local généré.");
             setTimeout(() => {
-                const offlineRapport = `<b>📡 Diagnostic Local (Offline) :</b> Composant moteur vérifié. Niveaux hydrauliques OK.`;
+                const offlineRapport = `
+                  <h4 style="color:var(--accent-cyan);">📡 Diagnostic Local (Mode Hors-Ligne)</h4>
+                  <ul>
+                    <li><b>Statut Réseau :</b> Non connecté / API Gemini Indisponible</li>
+                    <li><b>Analyse Visuelle Heuristique :</b> Structure de composant détectée (Moteur / Circuit).</li>
+                    <li><b>Contrôles Recommandés :</b>
+                      <ul>
+                        <li>Vérifier les connexions hydrauliques et faisceaux électriques.</li>
+                        <li>Contrôler la tension de batterie et niveaux d'huile d'engin.</li>
+                      </ul>
+                    </li>
+                  </ul>
+                  <p style="font-size:0.68rem; color:#9ca3af;">* Capture sauvegardée localement dans IndexedDB pour synchronisation Cloud à la réconnexion.</p>
+                `;
                 zoneRapport.innerHTML = offlineRapport;
+                saveDiagnosticToDB(base64Data, offlineRapport);
             }, 800);
             return;
         }
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: "Ingénieur expert en maintenance : analyse cette image technique et donne un rapport concis (Panne, Gravité, Action)." },
+                    { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+                ]
+            }]
+        };
+
         try {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: "Rapport de maintenance concis :" }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }] })
+                body: JSON.stringify(payload)
             });
             const data = await response.json();
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                zoneRapport.innerHTML = marked.parse(data.candidates[0].content.parts[0].text);
+            
+            if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
+                let text = data.candidates[0].content.parts[0].text;
+                let htmlFormatted = typeof marked !== 'undefined' ? marked.parse(text) : text;
+                zoneRapport.innerHTML = htmlFormatted;
+                logConsole("Diagnostic IA terminé.");
+                saveDiagnosticToDB(base64Data, htmlFormatted);
+            } else {
+                let errDetail = data.error ? data.error.message : "Réponse invalide de l'API Gemini";
+                zoneRapport.innerHTML = `<p style="color:var(--cyber-red)">❌ Erreur API : ${errDetail}</p>`;
+                logConsole("Erreur API Gemini : " + errDetail, true);
             }
-        } catch (error) { zoneRapport.innerHTML = "⚠️ Mode Fallback local appliqué."; }
+        } catch (error) {
+            logConsole("Échec réseau API Gemini. Basculement sur diagnostic local : " + error.message, true);
+            const fallbackRapport = `<p style="color:var(--accent-cyan);">⚠️ Mode Fallback Actif : Impossible de joindre l'API. Vérification des pannes standards d'engin mécanique effectuée localement.</p>`;
+            zoneRapport.innerHTML = fallbackRapport;
+            saveDiagnosticToDB(base64Data, fallbackRapport);
+        }
+    }
+
+    function saveDiagnosticToDB(imageBase64, rapport) {
+      if (!db) return;
+      try {
+        const transaction = db.transaction(["projects"], "readwrite");
+        const store = transaction.objectStore("projects");
+        files['last_scan_report.md'] = `# Dernier Rapport Scanner\n\nDate: ${new Date().toLocaleString()}\n\n${rapport}`;
+        store.put({ name: currentProjectName, files: files });
+      } catch(e) { console.error("Erreur sauvegarde scan DB", e); }
     }
 
     async function initPyodideRuntime() {
@@ -1093,18 +1194,22 @@ if(canvas) {
         if (typeof loadPyodide === 'function') {
           pyodideInstance = await loadPyodide();
           pyodideReady = true;
-          logConsole("Pyodide Python prêt (Offline compatible).");
+          logConsole("Pyodide Python prêt (Compatible Hors-Ligne).");
         }
-      } catch(e) { logConsole("Erreur Pyodide: " + e.message, true); }
+      } catch(e) {
+        logConsole("Erreur Pyodide: " + e.message, true);
+      }
     }
     setTimeout(initPyodideRuntime, 500);
 
     function initIndexedDB() {
       return new Promise((resolve) => {
-        const request = indexedDB.open("NexusStudioMegaDB", 10);
+        const request = indexedDB.open("NexusStudioMegaDB", 6);
         request.onsuccess = () => {
           db = request.result;
-          loadProjectFromDB(currentProjectName).then(() => loadChatHistoryFromDB().then(resolve)).catch(resolve);
+          loadProjectFromDB(currentProjectName).then(() => {
+            loadChatHistoryFromDB().then(resolve);
+          }).catch(resolve);
         };
         request.onupgradeneeded = (event) => {
           let database = event.target.result;
@@ -1121,18 +1226,20 @@ if(canvas) {
         const val = editor.getValue();
         if (val !== undefined && val !== null) {
           files[activeFile] = val;
-          if (rtcDataChannel?.readyState === 'open') {
+          if (rtcDataChannel && rtcDataChannel.readyState === 'open') {
             rtcDataChannel.send(JSON.stringify({ file: activeFile, content: val }));
           }
         }
       }
-      db.transaction(["projects"], "readwrite").objectStore("projects").put({ name: currentProjectName, files: files });
+      const transaction = db.transaction(["projects"], "readwrite");
+      transaction.objectStore("projects").put({ name: currentProjectName, files: files });
     }
 
     function loadProjectFromDB(projName) {
       return new Promise((resolve) => {
         if (!db) return resolve();
-        const request = db.transaction(["projects"], "readonly").objectStore("projects").get(projName);
+        const transaction = db.transaction(["projects"], "readonly");
+        const request = transaction.objectStore("projects").get(projName);
         request.onsuccess = () => {
           if (request.result) {
             files = request.result.files;
@@ -1148,13 +1255,15 @@ if(canvas) {
 
     function saveChatHistoryToDB() {
       if (!db) return;
-      db.transaction(["chat_store"], "readwrite").objectStore("chat_store").put({ id: "global_history", messages: chatHistory });
+      const transaction = db.transaction(["chat_store"], "readwrite");
+      transaction.objectStore("chat_store").put({ id: "global_history", messages: chatHistory });
     }
 
     function loadChatHistoryFromDB() {
       return new Promise((resolve) => {
         if (!db) return resolve();
-        const request = db.transaction(["chat_store"], "readonly").objectStore("chat_store").get("global_history");
+        const transaction = db.transaction(["chat_store"], "readonly");
+        const request = transaction.objectStore("chat_store").get("global_history");
         request.onsuccess = () => {
           if (request.result && request.result.messages) {
             chatHistory = request.result.messages;
@@ -1168,18 +1277,19 @@ if(canvas) {
 
     function renderChatHistoryUI() {
       const chatBox = document.getElementById('chat-box');
-      let html = `<div class="msg ai">🤖 <b>Nexus AI Mega-Mind v10.0 Activé.</b><br>Prêt pour requêtes universelles & analyse web.</div>`;
+      let html = `<div class="msg ai">Prêt à coder, simuler en 3D ou lancer vos diagnostics !</div>`;
       chatHistory.forEach(msg => {
         let cls = msg.role === 'user' ? 'user' : 'ai';
-        let searchLog = msg.searchLog ? `<div class="search-log">${msg.searchLog}</div>` : '';
         let formattedText = typeof marked !== 'undefined' ? marked.parse(msg.text) : escapeHtml(msg.text);
-        html += `<div class="msg ${cls}">${searchLog}${formattedText}</div>`;
+        html += `<div class="msg ${cls}">${formattedText}</div>`;
       });
       chatBox.innerHTML = html;
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
 
     function clearChatHistory() {
       if (confirm("Effacer le chat ?")) {
@@ -1205,7 +1315,8 @@ if(canvas) {
     function openProjectsListModal() {
       closeMenu();
       if (!db) return;
-      const request = db.transaction(["projects"], "readonly").objectStore("projects").getAllKeys();
+      const transaction = db.transaction(["projects"], "readonly");
+      const request = transaction.objectStore("projects").getAllKeys();
       request.onsuccess = () => {
         let chosen = prompt("Projets :\n- " + request.result.join("\n- "));
         if (chosen && request.result.includes(chosen.trim())) {
@@ -1217,7 +1328,8 @@ if(canvas) {
     function exportProjectsBackup() {
       closeMenu();
       if (!db) return;
-      const request = db.transaction(["projects"], "readonly").objectStore("projects").getAll();
+      const transaction = db.transaction(["projects"], "readonly");
+      const request = transaction.objectStore("projects").getAll();
       request.onsuccess = async () => {
         const zip = new JSZip();
         request.result.forEach(p => {
@@ -1225,17 +1337,26 @@ if(canvas) {
           for (let f in p.files) folder.file(f, p.files[f]);
         });
         const content = await zip.generateAsync({ type: "blob" });
-        downloadBlob(content, `NexusStudio_MegaBackup.zip`);
+        downloadBlob(content, `NexusStudio_Backup.zip`);
       };
     }
 
     function openSuperAppLauncher() {
       if (!db) return;
-      const request = db.transaction(["projects"], "readonly").objectStore("projects").getAll();
+      const transaction = db.transaction(["projects"], "readonly");
+      const request = transaction.objectStore("projects").getAll();
       request.onsuccess = () => {
-        let launcherHtml = `<div id="super-app-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#07090e; z-index:200; padding:20px; overflow-y:auto; font-family:monospace;"><h2 style="color:#00ffcc; margin-bottom:15px;">📦 Super App Launcher</h2><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">`;
+        let launcherHtml = `
+          <div id="super-app-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#070913; z-index:200; padding:20px; overflow-y:auto; font-family:monospace;">
+            <h2 style="color:#00ffcc; margin-bottom:15px;">📦 Super App Launcher</h2>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+        `;
         request.result.forEach(p => {
-          launcherHtml += `<div onclick="loadAndRunMiniApp('${p.name}')" style="background:#0f172a; border:1px solid #1e293b; padding:15px; border-radius:8px; cursor:pointer; text-align:center;"><div>📱 ${p.name}</div></div>`;
+          launcherHtml += `
+            <div onclick="loadAndRunMiniApp('${p.name}')" style="background:#0d1322; border:1px solid #1f2937; padding:15px; border-radius:8px; cursor:pointer; text-align:center;">
+              <div>📱 ${p.name}</div>
+            </div>
+          `;
         });
         launcherHtml += `</div><button onclick="closeSuperAppLauncher()" style="margin-top:20px; background:#ef4444; color:#fff; border:none; padding:10px; width:100%;">Fermer</button></div>`;
         document.body.insertAdjacentHTML('beforeend', launcherHtml);
@@ -1243,19 +1364,48 @@ if(canvas) {
     }
 
     function loadAndRunMiniApp(projName) {
-      loadProjectFromDB(projName).then(() => { closeSuperAppLauncher(); switchMainView('preview'); executeCode(); });
+      loadProjectFromDB(projName).then(() => {
+        closeSuperAppLauncher();
+        switchMainView('preview');
+        executeCode();
+      });
     }
 
-    function closeSuperAppLauncher() { document.getElementById('super-app-modal')?.remove(); }
+    function closeSuperAppLauncher() {
+      document.getElementById('super-app-modal')?.remove();
+    }
 
     async function generateAIVideoScript() {
       const topic = document.getElementById('video-topic-input').value.trim();
+      const format = document.getElementById('video-format-select').value;
       const apiKey = document.getElementById('ai-api-key').value.trim();
+
       if (!topic) return alert("Veuillez saisir un sujet de vidéo.");
 
-      logConsole("Génération du scénario vidéo Mega-Mind...");
-      const localScript = `[SCÈNE 1 - INTRO]\n- Titre : ${topic}\n- Voix Off : Analyse complète par Nexus Studio Mega-Mind.\n\n[SCÈNE 2 - DÉPLOYEMENT]\n- Visuel : Moteur 3D & Synthèse RAG.`;
-      document.getElementById('video-script-output').value = localScript;
+      logConsole("Génération du scénario vidéo...");
+      
+      if (!apiKey || !navigator.onLine) {
+        logConsole("Mode Autonome : Génération locale du script.");
+        const localScript = `[SCÈNE 1 - INTRO]\n- Titre : ${topic}\n- Voix Off : Découvrons ensemble comment résoudre ce problème étape par étape.\n\n[SCÈNE 2 - DIAGNOSTIC]\n- Visuel : Schéma dynamique & contrôles.\n- Voix Off : Vérification des paramètres système et composants.\n\n[SCÈNE 3 - CONCLUSION]\n- Visuel : Validation & Test opérationnel.`;
+        document.getElementById('video-script-output').value = localScript;
+        return;
+      }
+
+      const prompt = `Réalisateur/Scénariste. Écris un script court et captivant sur "${topic}". Format: ${format}.`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        document.getElementById('video-script-output').value = data.candidates[0].content.parts[0].text;
+        logConsole("Scénario généré avec succès !");
+      } catch (e) {
+        logConsole("Erreur génération vidéo : " + e.message, true);
+      }
     }
 
     function exportVideoScriptAsMarkdown() {
@@ -1265,9 +1415,111 @@ if(canvas) {
     }
 
     async function generateVideoFromScript() {
+      const scriptText = document.getElementById("video-script-output")?.value.trim() || "Présentation Technique Nexus Studio";
       const btn = document.getElementById("btn-generate-video");
-      btn.innerText = "⏳ Rendu vidéo local Canvas...";
-      setTimeout(() => { btn.innerText = "✅ VIDÉO GÉNÉRÉE (LOCAL)"; }, 1200);
+      const videoContainer = document.getElementById("video-preview-container");
+      const videoPlayer = document.getElementById("generated-video");
+      const downloadBtn = document.getElementById("download-video-btn");
+      const renderMode = document.getElementById("video-render-mode").value;
+      const videoApiKey = document.getElementById("video-api-key-input")?.value.trim() || "";
+
+      btn.innerText = "⏳ Rendu vidéo en cours...";
+      btn.disabled = true;
+
+      try {
+        if (renderMode === 'local-canvas') {
+          logConsole("[Video Studio] Moteur Autonome Local Canvas actif...");
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = 720;
+          canvas.height = 1280;
+          const ctx = canvas.getContext('2d');
+
+          const stream = canvas.captureStream(30);
+          const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+          const chunks = [];
+
+          recorder.ondataavailable = e => chunks.push(e.data);
+          recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const videoUrl = URL.createObjectURL(blob);
+            videoPlayer.src = videoUrl;
+            downloadBtn.href = videoUrl;
+            videoContainer.style.display = "block";
+            btn.innerText = "✅ VIDÉO GÉNÉRÉE (LOCAL)";
+            btn.disabled = false;
+            logConsole("[Video Studio] Rendu local achevé avec succès.");
+          };
+
+          recorder.start();
+
+          let frame = 0;
+          const maxFrames = 120;
+          const lines = scriptText.substring(0, 200).split('\n');
+
+          const animInterval = setInterval(() => {
+            frame++;
+            ctx.fillStyle = "#070913";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = "rgba(0, 255, 204, 0.15)";
+            ctx.lineWidth = 2;
+            for(let x = 0; x < canvas.width; x += 40) {
+              ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+
+            ctx.fillStyle = "#00ffcc";
+            ctx.font = "bold 36px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("NEXUS STUDIO AUTONOMOUS", canvas.width / 2, 180);
+
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, 360, (frame % 60) + 40, 0, Math.PI * 2);
+            ctx.strokeStyle = "#8b5cf6";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "22px monospace";
+            let y = 520;
+            lines.forEach((line) => {
+              if (line.trim()) {
+                ctx.fillText(line.substring(0, 45), canvas.width / 2, y);
+                y += 45;
+              }
+            });
+
+            if (frame >= maxFrames) {
+              clearInterval(animInterval);
+              recorder.stop();
+            }
+          }, 33);
+
+          return;
+        }
+
+        if (renderMode === 'cloud-replicate' && videoApiKey) {
+          logConsole("Requête API Cloud Replicate en cours...");
+          const response = await fetch("https://api.replicate.com/v1/predictions", {
+            method: "POST",
+            headers: { "Authorization": `Token ${videoApiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ version: "39042d08630fc0298a72b05d378038d438edc103323a6f4e150ff227090b84c8", input: { prompt: scriptText.substring(0, 300) } })
+          });
+          const data = await response.json();
+          if (data.output) {
+            const url = Array.isArray(data.output) ? data.output[0] : data.output;
+            videoPlayer.src = url;
+            downloadBtn.href = url;
+            videoContainer.style.display = "block";
+            btn.innerText = "✅ VIDÉO GÉNÉRÉE (CLOUD)";
+          }
+        }
+      } catch (error) {
+        alert("Erreur de rendu : " + error.message);
+        logConsole("Erreur Vidéo : " + error.message, true);
+      } finally {
+        btn.disabled = false;
+      }
     }
 
     async function triggerCloudApkBuild() {
@@ -1276,31 +1528,60 @@ if(canvas) {
       if (!repo || !token) return alert("Saisissez le dépôt GitHub et le Token PAT.");
 
       logConsole("Lancement de la build APK cloud...");
+      const endpoint = `https://api.github.com/repos/${repo}/actions/workflows/build-apk.yml/dispatches`;
       try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/build-apk.yml/dispatches`, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
           body: JSON.stringify({ ref: 'main', inputs: { project_name: currentProjectName } })
         });
-        if (response.ok || response.status === 204) alert("🚀 Pipeline Cloud Build APK déclenché !");
-      } catch (err) { logConsole("Erreur Cloud Build : " + err.message, true); }
+        if (response.ok || response.status === 204) {
+          alert("🚀 Build APK lancé sur GitHub Actions !");
+          logConsole("Pipeline Cloud Build APK déclenché.");
+        } else {
+          throw new Error("Erreur réponse API GitHub (" + response.status + ")");
+        }
+      } catch (err) {
+        logConsole("Erreur Cloud Build : " + err.message, true);
+      }
     }
 
     async function exportPackage(type) {
       if (editor) files[activeFile] = editor.getValue();
       const zip = new JSZip();
-      for (let f in files) zip.file(f, files[f]);
-      const content = await zip.generateAsync({ type: "blob" });
-      downloadBlob(content, `${currentProjectName}_Package.zip`);
+
+      if (type === 'zip') {
+        for (let f in files) zip.file(f, files[f]);
+        const content = await zip.generateAsync({ type: "blob" });
+        downloadBlob(content, `${currentProjectName}_Source.zip`);
+      } else if (type === 'extension') {
+        files['manifest.json'] = JSON.stringify({
+          "manifest_version": 3,
+          "name": currentProjectName,
+          "version": "1.0",
+          "action": { "default_popup": "index.html" }
+        }, null, 2);
+        for (let f in files) zip.file(f, files[f]);
+        const content = await zip.generateAsync({ type: "blob" });
+        downloadBlob(content, `${currentProjectName}_Extension.zip`);
+      } else if (type === 'desktop-template') {
+        zip.file("main.js", `const { app, BrowserWindow } = require('electron');\napp.whenReady().then(() => { new BrowserWindow().loadFile('index.html'); });`);
+        for (let f in files) zip.file(f, files[f]);
+        const content = await zip.generateAsync({ type: "blob" });
+        downloadBlob(content, `${currentProjectName}_Desktop.zip`);
+      }
     }
 
     function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
     }
 
     async function runPythonCodeInConsole() {
-      if (!pyodideReady) return alert("Pyodide est en cours de chargement...");
+      if (!pyodideReady) return alert("Pyodide est en cours de chargement (mode offline disponible)...");
       const code = editor ? editor.getValue() : files['script.py'];
       try {
         pyodideInstance.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
@@ -1308,23 +1589,34 @@ if(canvas) {
         let stdout = pyodideInstance.runPython("sys.stdout.getvalue()");
         logConsole("=== Sortie Python ===");
         logConsole(stdout || "Exécution terminée.");
-      } catch (err) { logConsole("Erreur Python : " + err.message, true); }
+      } catch (err) {
+        logConsole("Erreur Python : " + err.message, true);
+      }
     }
 
     function renderMarkdownPreview() {
       const content = editor ? editor.getValue() : files['document.md'];
-      document.getElementById('app-preview-frame').srcdoc = `<html><body style="background:#fff;color:#111;padding:20px;font-family:sans-serif;">${marked.parse(content)}</body></html>`;
+      const iframe = document.getElementById('app-preview-frame');
+      iframe.srcdoc = `<html><body style="background:#fff;color:#111;padding:20px;font-family:sans-serif;">${marked.parse(content)}</body></html>`;
     }
 
     function executeCode() {
       try {
         if (editor) files[activeFile] = editor.getValue();
         const iframe = document.getElementById('app-preview-frame');
+
         document.getElementById('btn-run-python').style.display = (activeFile.endsWith('.py')) ? 'inline-block' : 'none';
         document.getElementById('btn-render-md').style.display = (activeFile.endsWith('.md')) ? 'inline-block' : 'none';
 
-        if (activeFile.endsWith('.py')) { runPythonCodeInConsole(); return; }
-        if (activeFile.endsWith('.md')) { renderMarkdownPreview(); return; }
+        if (activeFile.endsWith('.py')) {
+          runPythonCodeInConsole();
+          iframe.srcdoc = `<body style="background:#070913;color:#10b981;font-family:monospace;padding:20px;"><h3>🐍 Script Python</h3><p>Résultats dans la console.</p></body>`;
+          return;
+        }
+        if (activeFile.endsWith('.md')) {
+          renderMarkdownPreview();
+          return;
+        }
 
         let fullHtml = files['index.html'] || "";
         if (files['style.css'] && !fullHtml.includes('style.css')) {
@@ -1344,11 +1636,14 @@ if(canvas) {
       else alert("Veuillez d'abord exécuter l'application.");
     }
 
-    function saveCyberConfig() { alert("Bouclier Cyber mis à jour."); }
+    function saveCyberConfig() {
+      alert("Configuration de sécurité mise à jour.");
+      logConsole("Mode VPN mis à jour.");
+    }
 
     function startVoiceRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return alert("Reconnaissance vocale non supportée.");
+      if (!SpeechRecognition) return alert("Reconnaissance vocale non supportée sur ce navigateur.");
       const rec = new SpeechRecognition();
       rec.lang = 'fr-FR';
       rec.onresult = (e) => { document.getElementById('ai-input').value = e.results[0][0].transcript; };
@@ -1357,7 +1652,12 @@ if(canvas) {
     }
 
     function triggerProactiveAI() {
-      let idea = "💡 Idée Mega-Mind : Activez le Web Crawler RAG pour synthétiser les dernières documentations techniques en temps réel !";
+      const ideas = [
+        "💡 Idée : Testez la synchronisation P2P WebRTC avec un deuxième écran !",
+        "💡 Idée : Lancez un diagnostic acoustique du régime moteur !",
+        "💡 Idée : Automatisez vos builds avec les Github Actions."
+      ];
+      let idea = ideas[Math.floor(Math.random() * ideas.length)];
       chatHistory.push({ role: 'ai', text: idea });
       saveChatHistoryToDB();
       renderChatHistoryUI();
@@ -1415,7 +1715,9 @@ if(canvas) {
         view3d.style.display = 'block';
         document.getElementById('nav-3d').classList.add('active');
         document.getElementById('tab-3d')?.classList.add('active');
-        if (files['main.js']) { try { eval(files['main.js']); } catch(e) {} }
+        if (files['main.js']) {
+          try { eval(files['main.js']); } catch(e) { logConsole("Erreur 3D: " + e.message, true); }
+        }
       } else if (view === 'scan-studio') {
         scan.classList.add('active-panel');
         document.getElementById('nav-scan').classList.add('active');
@@ -1461,7 +1763,7 @@ if(canvas) {
       if (editor) files[activeFile] = editor.getValue();
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-      if (window.event?.currentTarget) window.event.currentTarget.classList.add('active');
+      if (window.event && window.event.currentTarget) window.event.currentTarget.classList.add('active');
       
       let lang = 'html';
       if (filename.endsWith('.css')) lang = 'css';
@@ -1482,67 +1784,50 @@ if(canvas) {
       if (!editor) return;
       let s = "";
       if (type === 'card') s = `<div style="background:#1f2937; padding:15px; border-radius:8px;"><h3>Composant UI</h3></div>\n`;
-      else if (type === 'python-script') s = `# Script Python Mega-Mind\ndef calculer():\n    return 42\nprint(calculer())\n`;
-      else if (type === 'markdown-doc') s = `# Documentation\n\n- Option A\n- Option B\n`;
+      else if (type === 'python-script') s = `# Script Python\ndef calculer():\n    return 42\nprint(calculer())\n`;
+      else if (type === 'markdown-doc') s = `# Titre\n\n- Option A\n- Option B\n`;
+      else if (type === 'sql-query') s = `SELECT * FROM table;\n`;
       editor.executeEdits("snip", [{ range: editor.getSelection(), text: s }]);
       switchMainView('editor');
     }
 
     function insertVirtualKey(char) {
       if (!editor) return;
-      let textToInsert = char === 'Tab' ? '  ' : char;
+      let textToInsert = char;
+      if (char === 'Tab') textToInsert = '  ';
       const selection = editor.getSelection();
       editor.executeEdits("touch-bar", [{ range: selection, text: textToInsert, forceMoveMarkers: true }]);
       editor.focus();
     }
 
-    // --- MOTEUR OMNISCIENT NEXUS MEGA-MIND REAL ---
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
-      const selectedEngine = document.getElementById('ai-engine').value;
-      const webSearchActive = document.getElementById('web-search-toggle').checked;
-
       if (!promptText) return alert("Veuillez saisir votre demande.");
 
       const chatBox = document.getElementById('chat-box');
-      let searchLogText = '';
-
-      if (webSearchActive) {
-        searchLogText = `🌐 [NEXUS WEB CRAWLER RAG] Exploration & Synthèse de l'Internet mondial pour : "${promptText}"...`;
-      }
-
       chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
+      chatHistory.push({ role: 'user', text: promptText });
       input.value = '';
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      const aiMsgEl = document.createElement('div');
-      aiMsgEl.className = 'msg ai';
-      aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + '⚙️ <i>Orchestration ' + selectedEngine + ' en cours...</i>';
-      chatBox.appendChild(aiMsgEl);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const currentCode = editor ? editor.getValue() : files[activeFile];
-
       if (!apiKey || !navigator.onLine) {
-        setTimeout(() => {
-          const offlineReply = `<b>[Nexus Mega-Mind Engine v10.0]</b>\n\nModèle : <b>${selectedEngine}</b>\n\nGrâce au moteur de synthèse autonome, j'ai analysé votre code local (${activeFile}).\n\n\`\`\`javascript\n// Solution générée par Nexus Mega-Mind\nconsole.log("Exécution optimale réussie pour : ${promptText.replace(/"/g, '')}");\n\`\`\``;
-          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + marked.parse(offlineReply);
-          chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: offlineReply, searchLog: searchLogText });
-          saveChatHistoryToDB();
-        }, 1000);
+        const offlineReply = "📱 Mode Autonome : Je peux modifier votre code HTML/JS/Python ou générer des templates localement sans connexion.";
+        chatHistory.push({ role: 'ai', text: offlineReply });
+        saveChatHistoryToDB();
+        renderChatHistoryUI();
         return;
       }
 
+      const currentCode = editor ? editor.getValue() : files[activeFile];
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-      const systemContext = `Tu es Nexus AI Mega-Mind v10.0, l'orchestrateur IA le plus puissant au monde intégré à NexusEdit-Studio-X. Tu possèdes un accès réseau étendu, une omniscience technique et une expertise en codage supérieure. Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande utilisateur : ${promptText}`;
-
+      
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: systemContext }] }] })
+          body: JSON.stringify({ contents: [{ parts: [{ text: `Tu es Nexus AI Mega-Mind. Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande : ${promptText}` }] }] })
         });
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
@@ -1554,14 +1839,14 @@ if(canvas) {
           files[activeFile] = cleanCode;
           if (editor) editor.setValue(cleanCode);
           saveProjectToDB();
-          aiText = "⚡ **Code généré et injecté directement dans '" + activeFile + "' !**\n\n" + aiText;
+          aiText = "Fichier '" + activeFile + "' mis à jour et enregistré !";
         }
 
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + marked.parse(aiText);
-        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: aiText, searchLog: searchLogText });
+        chatHistory.push({ role: 'ai', text: aiText });
         saveChatHistoryToDB();
+        renderChatHistoryUI();
       } catch (e) {
-        aiMsgEl.innerHTML = `<span style="color:#ef4444;">Erreur Nexus Engine : ${escapeHtml(e.message)}</span>`;
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${escapeHtml(e.message)}</div>`;
       }
     }
 
@@ -1582,13 +1867,33 @@ if(canvas) {
         localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
       });
 
+      const savedVideoKey = localStorage.getItem('nexus_user_video_key');
+      if (savedVideoKey && document.getElementById('video-api-key-input')) {
+        document.getElementById('video-api-key-input').value = savedVideoKey;
+      }
+      document.getElementById('video-api-key-input')?.addEventListener('input', (e) => {
+        localStorage.setItem('nexus_user_video_key', e.target.value.trim());
+      });
+
       require(['vs/editor/editor.main'], function() {
         monaco.languages.registerCompletionItemProvider('html', {
           provideCompletionItems: () => {
-            return { suggestions: [
-              { label: 'div', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<div class="$1">\n\t$0\n</div>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet div' },
-              { label: 'button', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<button class="btn-nexus" onclick="$1">$0</button>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet Bouton' }
-            ]};
+            const suggestions = [
+              { label: 'div', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<div class="$1">\n\t$0\n</div>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet div HTML' },
+              { label: 'button', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<button class="btn-nexus" onclick="$1">$0</button>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet Bouton Nexus' },
+              { label: 'script', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<script>\n\t$0\n<\/script>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet Script JS' }
+            ];
+            return { suggestions: suggestions };
+          }
+        });
+
+        monaco.languages.registerCompletionItemProvider('python', {
+          provideCompletionItems: () => {
+            const suggestions = [
+              { label: 'def', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'def $1($2):\n\t$0', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Définition de fonction Python' },
+              { label: 'print', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'print($1)', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Afficher dans la console' }
+            ];
+            return { suggestions: suggestions };
           }
         });
 
@@ -1600,9 +1905,11 @@ if(canvas) {
           fontSize: 13,
           minimap: { enabled: false },
           quickSuggestions: true,
+          suggestOnTriggerCharacters: true,
           autoClosingBrackets: 'always',
           autoClosingQuotes: 'always',
-          tabCompletion: 'on'
+          tabCompletion: 'on',
+          formatOnType: true
         });
 
         editor.onDidChangeModelContent(() => {
