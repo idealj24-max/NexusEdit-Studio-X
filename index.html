@@ -157,9 +157,6 @@
     <div class="file-item" onclick="openFile('config.json')">⚙️ config.json / Config DB</div>
     <div class="file-item" onclick="openFile('manifest.json')">📦 manifest.json (PWA)</div>
     
-    <div class="menu-section-title">Actions Cloud & Git</div>
-    <div class="file-item" onclick="syncGitHub()">🐙 Synchroniser / Push GitHub</div>
-    
     <div class="menu-section-title">Studios Avancés & IA</div>
     <div class="file-item" onclick="switchMainView('scan-studio'); closeMenu();" style="color:var(--accent);">🔧 Scanner Engins & Pannes</div>
     <div class="file-item" onclick="switchMainView('3d-physics'); closeMenu();" style="color:#00ffcc;">🎮 Viewport Physique 3D</div>
@@ -274,7 +271,7 @@
           <p style="font-size: 0.72rem; color: #9ca3af;">Compilez votre PWA en fichier .apk Android via le Cloud GitHub Actions.</p>
           <input type="text" id="github-repo-input" value="idealj24-max/NexusEdit-Studio-X" placeholder="utilisateur/depot" style="margin-top:4px;">
           <input type="password" id="github-token-input" placeholder="Token personnel GitHub (PAT ghp_...)" style="margin-top:4px;">
-          <button class="btn-nexus" style="margin-top: 10px;" onclick="declencherPipelineAPK()">Lancer le Pipeline Build APK</button>
+          <button class="btn-nexus" style="margin-top: 10px;" onclick="triggerCloudApkBuild()">Lancer le Pipeline Build APK</button>
         </div>
 
         <div class="panel-card">
@@ -292,7 +289,7 @@
           <h3 style="color:var(--cyber-green);">🛡️ Bouclier Cyber & VPN</h3>
           <div style="margin-top: 10px; display:flex; flex-direction:column; gap:8px;">
             <label style="font-size:0.75rem; color:var(--accent);">Mode VPN :</label>
-            <select id="cyber-vpn-mode" onchange="toggleVPN()">
+            <select id="cyber-vpn-mode">
               <option value="aes256">Actif - AES-256</option>
               <option value="enterprise">Zero-Trust Enterprise</option>
               <option value="off">Désactivé</option>
@@ -356,6 +353,23 @@
 
   <script>
     let nexusMediaStream = null;
+    let db;
+    let currentProjectName = "NexusEdit-Studio-X";
+    let files = {
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle</title>\n</head>\n<body>\n  <h1>⚡ Nexus Studio</h1>\n</body>\n</html>`,
+      'main.js': `// Moteur Physique 3D Three.js & Cannon.js\nconst canvas = document.getElementById('canvas3d');\nif(canvas) {\n  const scene = new THREE.Scene();\n  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n  renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n  const geometry = new THREE.BoxGeometry();\n  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n  const cube = new THREE.Mesh(geometry, material);\n  scene.add(cube);\n  camera.position.z = 5;\n  function animate() {\n    requestAnimationFrame(animate);\n    cube.rotation.x += 0.01;\n    cube.rotation.y += 0.01;\n    renderer.render(scene, camera);\n  }\n  animate();\n}`,
+      'style.css': `body { margin: 0; background: #070913; color: #fff; }`,
+      'script.py': `print("Execution Python Pyodide")`,
+      'document.md': `# Document de suivi`,
+      'config.json': `{"project": "NexusEdit-Studio-X"}`,
+      'manifest.json': `{"name": "NexusEdit Studio", "start_url": "./index.html", "display": "standalone"}`
+    };
+    let chatHistory = []; 
+    let activeFile = 'index.html';
+    let editor = null;
+    let currentBlobUrl = null;
+    let pyodideReady = false;
+    let pyodideInstance = null;
 
     async function lancerScannerCam() {
         const video = document.getElementById('scannerVideo');
@@ -437,27 +451,6 @@
             logConsole("Erreur IA : " + error.message, true);
         }
     }
-
-    function declencherPipelineAPK() {
-        triggerCloudApkBuild();
-    }
-
-    let db;
-    let currentProjectName = "NexusEdit-Studio-X";
-    let files = {
-      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle</title>\n</head>\n<body>\n  <h1>⚡ Nexus Studio</h1>\n</body>\n</html>`,
-      'main.js': `// Moteur Physique 3D Three.js & Cannon.js\nconst canvas = document.getElementById('canvas3d');\nif(canvas) {\n  const scene = new THREE.Scene();\n  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n  renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n  const geometry = new THREE.BoxGeometry();\n  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n  const cube = new THREE.Mesh(geometry, material);\n  scene.add(cube);\n  camera.position.z = 5;\n  function animate() {\n    requestAnimationFrame(animate);\n    cube.rotation.x += 0.01;\n    cube.rotation.y += 0.01;\n    renderer.render(scene, camera);\n  }\n  animate();\n}`,
-      'style.css': `body { margin: 0; background: #070913; color: #fff; }`,
-      'script.py': `print("Execution Python Pyodide")`,
-      'document.md': `# Document de suivi`,
-      'config.json': `{"project": "NexusEdit-Studio-X"}`,
-      'manifest.json': `{"name": "NexusEdit Studio", "start_url": "./index.html", "display": "standalone"}`
-    };
-    let chatHistory = []; 
-    let activeFile = 'index.html';
-    let editor = null;
-    let pyodideReady = false;
-    let pyodideInstance = null;
 
     async function initPyodideRuntime() {
       try {
@@ -542,7 +535,7 @@
 
     function renderChatHistoryUI() {
       const chatBox = document.getElementById('chat-box');
-      let html = `<div class="msg ai">Prêt à coder ou simuler en 3D !</div>`;
+      let html = `<div class="msg ai">Prêt à coder, simuler en 3D ou lancer vos diagnostics !</div>`;
       chatHistory.forEach(msg => {
         let cls = msg.role === 'user' ? 'user' : 'ai';
         let formattedText = typeof marked !== 'undefined' ? marked.parse(msg.text) : escapeHtml(msg.text);
@@ -642,47 +635,86 @@
 
     async function generateAIVideoScript() {
       const topic = document.getElementById('video-topic-input').value.trim();
-      const apiKey = document.getElementById('ai-api-key').value.trim();
       const format = document.getElementById('video-format-select').value;
       const tone = document.getElementById('video-tone-select').value;
+      const apiKey = document.getElementById('ai-api-key').value.trim();
 
-      if (!topic || !apiKey) return alert("Renseignez le sujet et la clé API.");
+      if (!topic) return alert("Veuillez saisir un sujet de vidéo.");
+      if (!apiKey) return alert("Veuillez entrer la clé API Gemini.");
 
-      logConsole("Génération du script vidéo avec Gemini 3.6 Flash...");
+      logConsole("Génération du scénario vidéo...");
+      const prompt = `Réalisateur/Scénariste TikTok. Écris un script court et captivant sur "${topic}". Format: ${format}, Ton: ${tone}.`;
+      
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-      const promptText = `Rédige un script court optimisé pour format ${format} avec un ton ${tone} sur le sujet : ${topic}. Inclut la voix off et le storyboard visuel.`;
-
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const data = await response.json();
-        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
-          document.getElementById('video-script-output').value = data.candidates[0].content.parts[0].text;
-          logConsole("Script généré !");
-        } else {
-          let errDetail = data.error ? data.error.message : "Erreur API lors de la génération";
-          logConsole("Erreur Vidéo IA : " + errDetail, true);
-        }
+        if (data.error) throw new Error(data.error.message);
+        document.getElementById('video-script-output').value = data.candidates[0].content.parts[0].text;
+        logConsole("Scénario généré avec succès !");
       } catch (e) {
-        logConsole("Erreur vidéo: " + e.message, true);
+        logConsole("Erreur génération vidéo : " + e.message, true);
       }
     }
 
     function exportVideoScriptAsMarkdown() {
       const content = document.getElementById('video-script-output').value;
-      if (!content) return alert("Aucun script.");
+      if (!content) return alert("Aucun script à exporter.");
       downloadBlob(new Blob([content], { type: 'text/markdown' }), `${currentProjectName}_Script.md`);
     }
 
+    async function triggerCloudApkBuild() {
+      const repo = document.getElementById('github-repo-input').value.trim();
+      const token = document.getElementById('github-token-input').value.trim();
+      if (!repo || !token) return alert("Saisissez le dépôt GitHub et le Token PAT.");
+
+      logConsole("Lancement de la build APK cloud...");
+      const endpoint = `https://api.github.com/repos/${repo}/actions/workflows/build-apk.yml/dispatches`;
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: 'main', inputs: { project_name: currentProjectName } })
+        });
+        if (response.ok || response.status === 204) {
+          alert("🚀 Build APK lancé sur GitHub Actions !");
+          logConsole("Pipeline Cloud Build APK déclenché.");
+        } else {
+          throw new Error("Erreur réponse API GitHub (" + response.status + ")");
+        }
+      } catch (err) {
+        logConsole("Erreur Cloud Build : " + err.message, true);
+      }
+    }
+
     async function exportPackage(type) {
-      if(editor) files[activeFile] = editor.getValue();
+      if (editor) files[activeFile] = editor.getValue();
       const zip = new JSZip();
-      for (let f in files) zip.file(f, files[f]);
-      const content = await zip.generateAsync({ type: "blob" });
-      downloadBlob(content, `${currentProjectName}_${type}.zip`);
+
+      if (type === 'zip') {
+        for (let f in files) zip.file(f, files[f]);
+        const content = await zip.generateAsync({ type: "blob" });
+        downloadBlob(content, `${currentProjectName}_Source.zip`);
+      } else if (type === 'extension') {
+        files['manifest.json'] = JSON.stringify({
+          "manifest_version": 3,
+          "name": currentProjectName,
+          "version": "1.0",
+          "action": { "default_popup": "index.html" }
+        }, null, 2);
+        for (let f in files) zip.file(f, files[f]);
+        const content = await zip.generateAsync({ type: "blob" });
+        downloadBlob(content, `${currentProjectName}_Extension.zip`);
+      } else if (type === 'desktop-template') {
+        zip.file("main.js", `const { app, BrowserWindow } = require('electron');\napp.whenReady().then(() => { new BrowserWindow().loadFile('index.html'); });`);
+        for (let f in files) zip.file(f, files[f]);
+        const content = await zip.generateAsync({ type: "blob" });
+        downloadBlob(content, `${currentProjectName}_Desktop.zip`);
+      }
     }
 
     function downloadBlob(blob, filename) {
@@ -694,14 +726,14 @@
     }
 
     async function runPythonCodeInConsole() {
-      if (!pyodideReady) return alert("Python Pyodide en cours de chargement...");
+      if (!pyodideReady) return alert("Pyodide est en cours de chargement...");
       const code = editor ? editor.getValue() : files['script.py'];
-      logConsole("Exécution Python...");
       try {
         pyodideInstance.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
         pyodideInstance.runPython(code);
         let stdout = pyodideInstance.runPython("sys.stdout.getvalue()");
-        logConsole(stdout || "Exécuté sans sortie textuelle.");
+        logConsole("=== Sortie Python ===");
+        logConsole(stdout || "Exécution terminée.");
       } catch (err) {
         logConsole("Erreur Python : " + err.message, true);
       }
@@ -710,105 +742,71 @@
     function renderMarkdownPreview() {
       const content = editor ? editor.getValue() : files['document.md'];
       const iframe = document.getElementById('app-preview-frame');
-      iframe.srcdoc = `<style>body{background:#fff;color:#000;padding:15px;font-family:sans-serif;}</style>${marked.parse(content)}`;
-    }
-
-    function popOutAppInNewTab() {
-      if (editor) files[activeFile] = editor.getValue();
-      let fullHtml = files['index.html'] || "";
-      if (files['style.css'] && !fullHtml.includes('style.css')) {
-        fullHtml = fullHtml.replace('</head>', `<style>${files['style.css']}</style></head>`);
-      }
-      const win = window.open();
-      if (win) {
-        win.document.write(fullHtml);
-        win.document.close();
-      }
-    }
-
-    function execute3DPhysicsCode() {
-      try {
-        logConsole("Lancement de la simulation 3D...");
-        eval(files['main.js']);
-      } catch (err) {
-        logConsole("Erreur 3D: " + err.message, true);
-      }
+      iframe.srcdoc = `<html><body style="background:#fff;color:#111;padding:20px;font-family:sans-serif;">${marked.parse(content)}</body></html>`;
     }
 
     function executeCode() {
       try {
-        if(editor) files[activeFile] = editor.getValue();
+        if (editor) files[activeFile] = editor.getValue();
         const iframe = document.getElementById('app-preview-frame');
-        
+
         document.getElementById('btn-run-python').style.display = (activeFile.endsWith('.py')) ? 'inline-block' : 'none';
         document.getElementById('btn-render-md').style.display = (activeFile.endsWith('.md')) ? 'inline-block' : 'none';
 
-        if (activeFile.endsWith('.py')) return runPythonCodeInConsole();
-        if (activeFile.endsWith('.md')) return renderMarkdownPreview();
+        if (activeFile.endsWith('.py')) {
+          runPythonCodeInConsole();
+          iframe.srcdoc = `<body style="background:#070913;color:#10b981;font-family:monospace;padding:20px;"><h3>🐍 Script Python</h3><p>Résultats dans la console.</p></body>`;
+          return;
+        }
+        if (activeFile.endsWith('.md')) {
+          renderMarkdownPreview();
+          return;
+        }
 
         let fullHtml = files['index.html'] || "";
-        if(files['style.css'] && !fullHtml.includes('style.css')) {
+        if (files['style.css'] && !fullHtml.includes('style.css')) {
           fullHtml = fullHtml.replace('</head>', `<style>${files['style.css']}</style></head>`);
         }
-        iframe.srcdoc = fullHtml;
-        logConsole("App compilée et exécutée.");
+        
+        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+        const blob = new Blob([fullHtml], { type: 'text/html' });
+        currentBlobUrl = URL.createObjectURL(blob);
+        iframe.src = currentBlobUrl;
+        logConsole("Web App exécutée dans la sandbox.");
       } catch (err) { logConsole("Erreur : " + err.message, true); }
     }
 
-    async function triggerCloudApkBuild() {
-      const repo = document.getElementById('github-repo-input').value.trim();
-      const token = document.getElementById('github-token-input').value.trim();
-      if (!repo || !token) return alert("Entrez votre jeton GitHub PAT.");
-      
-      logConsole("Déclenchement du build APK sur GitHub Actions...");
-      const endpoint = `https://api.github.com/repos/${repo}/actions/workflows/build-apk.yml/dispatches`;
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ref: 'main', inputs: { project_name: currentProjectName } })
-        });
-        if (response.ok || response.status === 204) {
-          alert("🚀 Pipeline APK lancé sur GitHub !");
-          logConsole("Build Cloud APK démarré avec succès.");
-        } else {
-          throw new Error("Échec HTTP API GitHub (" + response.status + ")");
-        }
-      } catch (err) {
-        logConsole("Erreur GitHub Build: " + err.message, true);
-      }
-    }
-
-    let vpnConnected = false;
-    function toggleVPN() {
-      vpnConnected = !vpnConnected;
-      logConsole(vpnConnected ? "Tunnel VPN actif." : "Tunnel VPN fermé.");
+    function popOutAppInNewTab() {
+      if (currentBlobUrl) window.open(currentBlobUrl, '_blank');
+      else alert("Veuillez d'abord exécuter l'application.");
     }
 
     function saveCyberConfig() {
-      alert("Paramètres de sécurité mis à jour.");
-    }
-
-    function syncGitHub() {
-      const token = prompt("Entrez votre jeton PAT GitHub :");
-      if (token) alert("Synchronisation simulée avec succès.");
-      closeMenu();
+      alert("Configuration de sécurité mise à jour.");
+      logConsole("Mode VPN mis à jour.");
     }
 
     function startVoiceRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return alert("Commande vocale indisponible.");
+      if (!SpeechRecognition) return alert("Reconnaissance vocale non supportée sur ce navigateur.");
       const rec = new SpeechRecognition();
       rec.lang = 'fr-FR';
       rec.onresult = (e) => { document.getElementById('ai-input').value = e.results[0][0].transcript; };
       rec.start();
+      logConsole("Écoute vocale activée...");
     }
 
     function triggerProactiveAI() {
-      const idea = "💡 Idée : Ajoutez un script Python pour surveiller l'état des moteurs !";
+      const ideas = [
+        "💡 Idée : Créez une simulation physique 3D de collision de deux blocs !",
+        "💡 Idée : Créez un script Python de calcul matriciel.",
+        "💡 Idée : Automatisez vos builds avec les Github Actions."
+      ];
+      let idea = ideas[Math.floor(Math.random() * ideas.length)];
       chatHistory.push({ role: 'ai', text: idea });
       saveChatHistoryToDB();
       renderChatHistoryUI();
+      if (window.innerWidth <= 900) switchMainView('ai-mobile');
     }
 
     function toggleMenu() {
@@ -824,73 +822,76 @@
     }
 
     function switchMainView(view) {
-      const views = ['editor-container', '3d-viewport-container', 'scan-studio-view', 'design-panel', 'preview-container', 'video-studio-view', 'deploy-view', 'cyber-config-view'];
-      views.forEach(v => {
-        let el = document.getElementById(v);
-        if (el) { el.style.display = 'none'; el.classList.remove('active-panel'); }
-      });
+      const ed = document.getElementById('editor-container');
+      const view3d = document.getElementById('3d-viewport-container');
+      const scan = document.getElementById('scan-studio-view');
+      const des = document.getElementById('design-panel');
+      const prev = document.getElementById('preview-container');
+      const video = document.getElementById('video-studio-view');
+      const deploy = document.getElementById('deploy-view');
+      const cyber = document.getElementById('cyber-config-view');
+      const ai = document.getElementById('ai-panel');
 
-      document.getElementById('ai-panel').classList.remove('mobile-active');
+      ed.style.display = 'none';
+      view3d.style.display = 'none';
+      scan.classList.remove('active-panel');
+      des.style.display = 'none';
+      prev.style.display = 'none';
+      video.classList.remove('active-panel');
+      deploy.classList.remove('active-panel');
+      cyber.classList.remove('active-panel');
+      ai.classList.remove('mobile-active');
+
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
-      if (view === 'editor') { 
-        document.getElementById('editor-container').style.display = 'block'; 
-        if(editor) editor.layout(); 
-        document.getElementById('nav-code').classList.add('active'); 
-        document.getElementById('tab-editor').classList.add('active');
-      }
-      else if (view === '3d-physics') {
-        document.getElementById('3d-viewport-container').style.display = 'block';
+      if (view === 'editor') {
+        ed.style.display = 'block';
+        if (editor) editor.layout();
+        document.getElementById('nav-code').classList.add('active');
+      } else if (view === '3d-physics') {
+        view3d.style.display = 'block';
         document.getElementById('nav-3d').classList.add('active');
-        document.getElementById('tab-3d').classList.add('active');
-        execute3DPhysicsCode();
-      }
-      else if (view === 'scan-studio') { 
-        document.getElementById('scan-studio-view').classList.add('active-panel'); 
-        document.getElementById('nav-scan').classList.add('active'); 
-        document.getElementById('tab-scan').classList.add('active');
-        lancerScannerCam();
-      }
-      else if (view === 'preview') { 
-        document.getElementById('preview-container').style.display = 'flex'; 
-        executeCode(); 
-        document.getElementById('nav-prev').classList.add('active'); 
-        document.getElementById('tab-preview').classList.add('active');
-      }
-      else if (view === 'deploy') { 
-        document.getElementById('deploy-view').classList.add('active-panel'); 
-        document.getElementById('nav-deploy').classList.add('active'); 
-        document.getElementById('tab-deploy').classList.add('active');
-      }
-      else if (view === 'video-studio') {
-        document.getElementById('video-studio-view').classList.add('active-panel');
+        if (files['main.js']) {
+          try { eval(files['main.js']); } catch(e) { logConsole("Erreur 3D: " + e.message, true); }
+        }
+      } else if (view === 'scan-studio') {
+        scan.classList.add('active-panel');
+        document.getElementById('nav-scan').classList.add('active');
+      } else if (view === 'design') {
+        des.style.display = 'flex';
+      } else if (view === 'preview') {
+        prev.style.display = 'flex';
+        executeCode();
+        document.getElementById('nav-prev').classList.add('active');
+      } else if (view === 'video-studio') {
+        video.classList.add('active-panel');
         document.getElementById('nav-video').classList.add('active');
-        document.getElementById('tab-video').classList.add('active');
-      }
-      else if (view === 'cyber-config') {
-        document.getElementById('cyber-config-view').classList.add('active-panel');
-      }
-      else if (view === 'ai-mobile') {
-        document.getElementById('editor-container').style.display = 'block';
-        document.getElementById('ai-panel').classList.add('mobile-active');
-        document.getElementById('tab-ai').classList.add('active');
+      } else if (view === 'deploy') {
+        deploy.classList.add('active-panel');
+        document.getElementById('nav-deploy').classList.add('active');
+      } else if (view === 'cyber-config') {
+        cyber.classList.add('active-panel');
+      } else if (view === 'ai-mobile') {
+        ed.style.display = 'block';
+        ai.classList.add('mobile-active');
+        if (editor) editor.layout();
       }
     }
 
     function openFile(filename) {
-      if(editor) files[activeFile] = editor.getValue();
+      if (editor) files[activeFile] = editor.getValue();
       activeFile = filename;
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
       
       let lang = 'html';
-      if (filename.endsWith('.js')) lang = 'javascript';
-      else if (filename.endsWith('.css')) lang = 'css';
+      if (filename.endsWith('.css')) lang = 'css';
+      else if (filename.endsWith('.js')) lang = 'javascript';
       else if (filename.endsWith('.py')) lang = 'python';
       else if (filename.endsWith('.md')) lang = 'markdown';
       else if (filename.endsWith('.json')) lang = 'json';
 
-      if(editor) {
+      if (editor) {
         monaco.editor.setModelLanguage(editor.getModel(), lang);
         editor.setValue(files[filename] || '');
       }
@@ -900,19 +901,22 @@
 
     function logConsole(msg, isErr = false) {
       const c = document.getElementById('console-logs-body');
-      if (!c) return;
       const color = isErr ? '#ef4444' : '#10b981';
       c.innerHTML += `<span style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
       c.scrollTop = c.scrollHeight;
     }
 
     function clearConsoleLogs() {
-      document.getElementById('console-logs-body').innerHTML = `<span style="color:#6b7280">[System] Console effacée.</span><br>`;
+      document.getElementById('console-logs-body').innerHTML = `<span style="color:#6b7280">[System] Console réinitialisée.</span><br>`;
     }
 
     function insertSnippet(type) {
       if (!editor) return;
-      let s = (type === 'card') ? `<div class="card"><h3>Titre</h3></div>\n` : `# Snippet\n`;
+      let s = "";
+      if (type === 'card') s = `<div style="background:#1f2937; padding:15px; border-radius:8px;"><h3>Composant UI</h3></div>\n`;
+      else if (type === 'python-script') s = `# Script Python\ndef calculer():\n    return 42\nprint(calculer())\n`;
+      else if (type === 'markdown-doc') s = `# Titre\n\n- Option A\n- Option B\n`;
+      else if (type === 'sql-query') s = `SELECT * FROM table;\n`;
       editor.executeEdits("snip", [{ range: editor.getSelection(), text: s }]);
       switchMainView('editor');
     }
@@ -921,69 +925,55 @@
       const input = document.getElementById('ai-input');
       const promptText = input.value.trim();
       const apiKey = document.getElementById('ai-api-key').value.trim();
-      const model = document.getElementById('ai-provider')?.value || 'gemini-3.6-flash';
-
-      if (!promptText || !apiKey) return alert("Prompt et clé API requis.");
+      if (!promptText || !apiKey) return alert("Veuillez fournir un prompt et une clé API Gemini.");
 
       const chatBox = document.getElementById('chat-box');
       chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
       chatHistory.push({ role: 'user', text: promptText });
       input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
 
-      logConsole(`Envoi de la requête à ${model}...`);
+      const currentCode = editor ? editor.getValue() : files[activeFile];
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+      
       try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        
-        const systemContext = `Tu es l'assistant de code de NexusEdit Studio. Tu travailles actuellement sur le fichier "${activeFile}". Si tu génères du code destiné à remplacer le fichier, renvoie uniquement le code brut.`;
-
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            contents: [{ 
-              parts: [{ text: `${systemContext}\n\nCommande utilisateur: ${promptText}` }] 
-            }] 
-          })
+          body: JSON.stringify({ contents: [{ parts: [{ text: `Tu es Nexus AI Mega-Mind. Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande : ${promptText}` }] }] })
         });
-
         const data = await response.json();
-        
-        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
-          let aiResponse = data.candidates[0].content.parts[0].text;
-          
-          if (aiResponse.includes("```")) {
-            let cleanCode = aiResponse.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
-            files[activeFile] = cleanCode;
-            if(editor) editor.setValue(cleanCode);
-            saveProjectToDB();
-            
-            chatHistory.push({ role: 'ai', text: `Fichier **${activeFile}** mis à jour avec succès !` });
-          } else {
-            chatHistory.push({ role: 'ai', text: aiResponse });
-          }
-          
-          saveChatHistoryToDB();
-          renderChatHistoryUI();
-        } else {
-          let errMessage = data.error ? data.error.message : "Erreur lors du traitement de la réponse.";
-          chatBox.innerHTML += `<div class="msg ai" style="color: var(--cyber-red);">⚠️ Erreur : ${escapeHtml(errMessage)}</div>`;
-          logConsole("Erreur IA: " + errMessage, true);
+        if (data.error) throw new Error(data.error.message);
+
+        let aiText = data.candidates[0].content.parts[0].text;
+        let cleanCode = aiText.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
+
+        if (cleanCode.length > 20 && (cleanCode.startsWith('<') || cleanCode.startsWith('#') || cleanCode.startsWith('def') || cleanCode.startsWith('{') || cleanCode.startsWith('//'))) {
+          files[activeFile] = cleanCode;
+          if (editor) editor.setValue(cleanCode);
+          saveProjectToDB();
+          aiText = "Fichier '" + activeFile + "' mis à jour et enregistré !";
         }
-        chatBox.scrollTop = chatBox.scrollHeight;
+
+        chatHistory.push({ role: 'ai', text: aiText });
+        saveChatHistoryToDB();
+        renderChatHistoryUI();
       } catch (e) {
-        logConsole("Erreur IA: " + e.message, true);
+        chatBox.innerHTML += `<div class="msg ai" style="color:#ef4444;">Erreur : ${escapeHtml(e.message)}</div>`;
       }
     }
 
     function copyGeneratedCode() {
-      if(editor) { navigator.clipboard.writeText(editor.getValue()); alert("Code copié !"); }
+      if (editor) {
+        navigator.clipboard.writeText(editor.getValue());
+        alert("Code copié dans le presse-papier !");
+      }
     }
 
-    require.config({ paths: { 'vs': '[https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs](https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs)' }});
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
 
     window.addEventListener('DOMContentLoaded', async () => {
       await initIndexedDB();
-
       const savedKey = localStorage.getItem('nexus_user_ai_key');
       if (savedKey) document.getElementById('ai-api-key').value = savedKey;
       document.getElementById('ai-api-key').addEventListener('input', (e) => {
@@ -992,14 +982,13 @@
 
       require(['vs/editor/editor.main'], function() {
         editor = monaco.editor.create(document.getElementById('editor-container'), {
-          value: files[activeFile] || '',
+          value: files[activeFile],
           language: 'html',
           theme: 'vs-dark',
           automaticLayout: true,
           fontSize: 13,
           minimap: { enabled: false }
         });
-
         editor.onDidChangeModelContent(() => {
           files[activeFile] = editor.getValue();
           saveProjectToDB();
