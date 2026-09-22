@@ -867,6 +867,9 @@
                 </div>
             `;
             log('Module [Dashboard Data] déployé.', 'success');
+        } else if (type === 'terminal') {
+            createNode(`<div style="background:#000; color:#00ff87; padding:15px; font-family:var(--font-code); border-radius:6px; font-size:0.75rem;">$ nexus-cli run --mode=omni<br>[OK] Environnement isolé prêt.</div>`);
+            log('Module [Terminal Émulé] injecté.', 'success');
         }
     }
 
@@ -1354,6 +1357,13 @@
 
     function saveCyberConfig() { alert("Bouclier Cyber mis à jour."); }
 
+    function copyGeneratedCode() {
+      const code = editor ? editor.getValue() : files[activeFile];
+      if (code && navigator.clipboard) {
+        navigator.clipboard.writeText(code).then(() => logConsole("Code copié dans le presse-papier !"));
+      }
+    }
+
     function startVoiceRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) return alert("Reconnaissance vocale non supportée.");
@@ -1628,60 +1638,29 @@
         saveProjectToDB();
         const errFallback = `⚡ **Mode Local Secours** (Erreur réseau/API : ${escapeHtml(e.message)}). Modification appliquée directement sur <code>${activeFile}</code>.`;
         aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(errFallback);
-        logConsole("Fallback local appliqué sur erreur API.", true);
+        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: errFallback, searchLog: searchLogText });
+        saveChatHistoryToDB();
       }
     }
 
-    function copyGeneratedCode() {
-      if (editor) {
-        navigator.clipboard.writeText(editor.getValue());
-        alert("Code copié dans le presse-papier !");
-      }
-    }
-
-    if (typeof require !== 'undefined') {
-      require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      await initIndexedDB();
-      const apiKeyEl = document.getElementById('ai-api-key');
-      const savedKey = localStorage.getItem('nexus_user_ai_key');
-      if (savedKey && apiKeyEl) apiKeyEl.value = savedKey;
-      if (apiKeyEl) {
-        apiKeyEl.addEventListener('input', (e) => {
-          localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
+    window.addEventListener('DOMContentLoaded', () => {
+      initIndexedDB();
+      require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
+      require(['vs/editor/editor.main'], function() {
+        editor = monaco.editor.create(document.getElementById('editor-container'), {
+          value: files['index.html'] || '',
+          language: 'html',
+          theme: 'vs-dark',
+          automaticLayout: true,
+          fontSize: 13,
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false
         });
-      }
-
-      if (typeof require !== 'undefined') {
-        require(['vs/editor/editor.main'], function() {
-          monaco.languages.registerCompletionItemProvider('html', {
-            provideCompletionItems: () => {
-              return { suggestions: [
-                { label: 'div', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<div class="$1">\n\t$0\n</div>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet div' },
-                { label: 'button', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<button class="$1">\n\t$0\n</button>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet button' }
-              ]};
-            }
-          });
-
-          const container = document.getElementById('editor-container');
-          if (container) {
-            editor = monaco.editor.create(container, {
-              value: files[activeFile] || '',
-              language: 'html',
-              theme: 'vs-dark',
-              automaticLayout: true,
-              fontSize: 13,
-              minimap: { enabled: false }
-            });
-
-            editor.onDidChangeModelContent(() => {
-              saveProjectToDB();
-            });
-          }
+        editor.onDidChangeModelContent(() => {
+          saveProjectToDB();
         });
-      }
+        logConsole("[Monaco Editor] Initialisé et lié à IndexedDB.");
+      });
     });
   </script>
 </body>
