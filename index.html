@@ -683,7 +683,7 @@
       if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
         try { return marked.parse(text); } catch(e) { console.warn("Erreur de parsing Marked:", e); }
       }
-      return escapeHtml(text).replace(/\n/g, '<br>');
+      return escapeHtml(text || '').replace(/\n/g, '<br>');
     }
 
     if ('serviceWorker' in navigator) {
@@ -919,6 +919,7 @@
     }
 
     function setupDataChannelEvents() {
+      if (!rtcDataChannel) return;
       rtcDataChannel.onopen = () => {
         document.getElementById('p2pStatus').innerText = "Statut : 🟢 Connecté en P2P Direct";
         logConsole("Connexion P2P directe établie.");
@@ -952,6 +953,7 @@
     async function startAudioDiagnostic() {
       const reportDiv = document.getElementById('audioDiagReport');
       const canvas = document.getElementById('audioSpectrumCanvas');
+      if (!canvas || !reportDiv) return;
       const ctx = canvas.getContext('2d');
       reportDiv.innerHTML = "<span class='blink'>🔄 Écoute du régime moteur...</span>";
 
@@ -1003,8 +1005,10 @@
 
     function readOBDMetrics() {
       const output = document.getElementById('serialConsoleOutput');
-      output.innerHTML += `<br>[OBD2 Scan] Code Défaut Read = P0000 (Anomalie non détectée).`;
-      output.scrollTop = output.scrollHeight;
+      if (output) {
+        output.innerHTML += `<br>[OBD2 Scan] Code Défaut Read = P0000 (Anomalie non détectée).`;
+        output.scrollTop = output.scrollHeight;
+      }
     }
 
     async function lancerScannerCam() {
@@ -1024,13 +1028,13 @@
         const zoneRapport = document.getElementById('zoneRapportIA');
         const apiKey = (document.getElementById('ai-api-key')?.value || "").trim();
 
-        if (!video || !video.videoWidth) return alert("Veuillez d'abord activer la caméra.");
+        if (!video || !video.videoWidth || !zoneRapport) return alert("Veuillez d'abord activer la caméra.");
         zoneRapport.innerHTML = "<p class='blink'>🔄 Analyse Vision IA en cours...</p>";
 
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
-        const base64Data = canvas.toDataURL('image/jpeg').split(',');
+        const base64Data = canvas.toDataURL('image/jpeg').split(',') || '';
 
         if (!navigator.onLine || !apiKey) {
             setTimeout(() => {
@@ -1092,7 +1096,9 @@
           }
         }
       }
-      db.transaction(["projects"], "readwrite").objectStore("projects").put({ name: currentProjectName, files: files });
+      try {
+        db.transaction(["projects"], "readwrite").objectStore("projects").put({ name: currentProjectName, files: files });
+      } catch(e) { console.warn("Erreur sauvegarde DB:", e); }
     }
 
     function loadProjectFromDB(projName) {
@@ -1103,7 +1109,8 @@
           if (request.result) {
             files = request.result.files;
             currentProjectName = request.result.name;
-            document.getElementById('current-project-name').innerText = "⚡ " + currentProjectName;
+            const badge = document.getElementById('current-project-name');
+            if (badge) badge.innerText = "⚡ " + currentProjectName;
             if (editor && files[activeFile] !== undefined) editor.setValue(files[activeFile]);
           }
           resolve();
@@ -1114,7 +1121,9 @@
 
     function saveChatHistoryToDB() {
       if (!db) return;
-      db.transaction(["chat_store"], "readwrite").objectStore("chat_store").put({ id: "global_history", messages: chatHistory });
+      try {
+        db.transaction(["chat_store"], "readwrite").objectStore("chat_store").put({ id: "global_history", messages: chatHistory });
+      } catch(e) { console.warn("Erreur chat DB:", e); }
     }
 
     function loadChatHistoryFromDB() {
@@ -1134,10 +1143,11 @@
 
     function renderChatHistoryUI() {
       const chatBox = document.getElementById('chat-box');
+      if (!chatBox) return;
       let html = `<div class="msg ai">🤖 <b>Nexus AI Mega-Mind v10.0 Activé.</b><br>Prêt pour requêtes universelles & analyse web.</div>`;
       chatHistory.forEach(msg => {
         let cls = msg.role === 'user' ? 'user' : 'ai';
-        let searchLog = msg.searchLog ? `<div class="search-log">${msg.searchLog}</div>` : '';
+        let searchLog = msg.searchLog ? `<div class="search-log">${escapeHtml(msg.searchLog)}</div>` : '';
         let formattedText = renderMarkdownSafe(msg.text);
         html += `<div class="msg ${cls}">${searchLog}${formattedText}</div>`;
       });
@@ -1145,7 +1155,7 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function escapeHtml(text) { return (text || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
     function clearChatHistory() {
       if (confirm("Effacer le chat ?")) {
@@ -1163,7 +1173,8 @@
       currentProjectName = newName;
       files = { 'index.html': `<h1>${newName}</h1>`, 'main.js': '', 'style.css': '' };
       saveProjectToDB();
-      document.getElementById('current-project-name').innerText = "⚡ " + currentProjectName;
+      const badge = document.getElementById('current-project-name');
+      if (badge) badge.innerText = "⚡ " + currentProjectName;
       if(editor) editor.setValue(files['index.html']);
       switchMainView('editor');
     }
@@ -1173,7 +1184,7 @@
       if (!db) return;
       const request = db.transaction(["projects"], "readonly").objectStore("projects").getAllKeys();
       request.onsuccess = () => {
-        let chosen = prompt("Projets :\n- " + request.result.join("\n- "));
+        let chosen = prompt("Projets :\n- " + (request.result || []).join("\n- "));
         if (chosen && request.result.includes(chosen.trim())) {
           loadProjectFromDB(chosen.trim()).then(() => switchMainView('editor'));
         }
@@ -1186,7 +1197,7 @@
       const request = db.transaction(["projects"], "readonly").objectStore("projects").getAll();
       request.onsuccess = async () => {
         const zip = new JSZip();
-        request.result.forEach(p => {
+        (request.result || []).forEach(p => {
           let folder = zip.folder(p.name);
           for (let f in p.files) folder.file(f, p.files[f]);
         });
@@ -1200,14 +1211,14 @@
       const request = db.transaction(["projects"], "readonly").objectStore("projects").getAll();
       request.onsuccess = () => {
         let itemsHtml = '';
-        if (request.result.length === 0) {
+        if (!request.result || request.result.length === 0) {
           itemsHtml = '<div style="color:#9ca3af; grid-column: 1/-1; text-align:center;">Aucun projet enregistré dans IndexedDB.</div>';
         } else {
           request.result.forEach(p => {
             itemsHtml += `
-              <div onclick="loadAndRunMiniApp('${p.name}')" style="background:#0f172a; border:1px solid #1e293b; padding:15px; border-radius:8px; cursor:pointer; text-align:center; transition: all 0.2s;" onmouseover="this.style.borderColor='#00ffcc'" onmouseout="this.style.borderColor='#1e293b'">
+              <div onclick="loadAndRunMiniApp('${escapeHtml(p.name)}')" style="background:#0f172a; border:1px solid #1e293b; padding:15px; border-radius:8px; cursor:pointer; text-align:center; transition: all 0.2s;" onmouseover="this.style.borderColor='#00ffcc'" onmouseout="this.style.borderColor='#1e293b'">
                 <div style="font-size:1.5rem; margin-bottom:5px;">📱</div>
-                <div style="color:#00ffcc; font-weight:bold; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</div>
+                <div style="color:#00ffcc; font-weight:bold; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.name)}</div>
               </div>`;
           });
         }
@@ -1236,30 +1247,35 @@
     function closeSuperAppLauncher() { document.getElementById('super-app-modal')?.remove(); }
 
     async function generateAIVideoScript() {
-      const topic = document.getElementById('video-topic-input').value.trim();
-      const apiKey = document.getElementById('ai-api-key').value.trim();
+      const topicInput = document.getElementById('video-topic-input');
+      if (!topicInput) return;
+      const topic = topicInput.value.trim();
       if (!topic) return alert("Veuillez saisir un sujet de vidéo.");
 
       logConsole("Génération du scénario vidéo Mega-Mind...");
       const localScript = `[SCÈNE 1 - INTRO]\n- Titre : ${topic}\n- Voix Off : Analyse complète par Nexus Studio Mega-Mind.\n\n[SCÈNE 2 - DÉPLOYEMENT]\n- Visuel : Moteur 3D & Synthèse RAG.`;
-      document.getElementById('video-script-output').value = localScript;
+      const out = document.getElementById('video-script-output');
+      if (out) out.value = localScript;
     }
 
     function exportVideoScriptAsMarkdown() {
-      const content = document.getElementById('video-script-output').value;
+      const out = document.getElementById('video-script-output');
+      if (!out) return;
+      const content = out.value;
       if (!content) return alert("Aucun script à exporter.");
       downloadBlob(new Blob([content], { type: 'text/markdown' }), `${currentProjectName}_Script.md`);
     }
 
     async function generateVideoFromScript() {
       const btn = document.getElementById("btn-generate-video");
+      if (!btn) return;
       btn.innerText = "⏳ Rendu vidéo local Canvas...";
       setTimeout(() => { btn.innerText = "✅ VIDÉO GÉNÉRÉE (LOCAL)"; }, 1200);
     }
 
     async function triggerCloudApkBuild() {
-      const repo = document.getElementById('github-repo-input').value.trim();
-      const token = document.getElementById('github-token-input').value.trim();
+      const repo = document.getElementById('github-repo-input')?.value.trim();
+      const token = document.getElementById('github-token-input')?.value.trim();
       if (!repo || !token) return alert("Saisissez le dépôt GitHub et le Token PAT.");
 
       logConsole("Lancement de la build APK cloud...");
@@ -1284,10 +1300,11 @@
     function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
 
     async function runPythonCodeInConsole() {
-      if (!pyodideReady) return alert("Pyodide est en cours de chargement...");
+      if (!pyodideReady || !pyodideInstance) return alert("Pyodide est en cours de chargement...");
       const code = editor ? editor.getValue() : files['script.py'];
       try {
         pyodideInstance.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
@@ -1300,18 +1317,22 @@
 
     function renderMarkdownPreview() {
       const content = editor ? editor.getValue() : files['document.md'];
-      document.getElementById('app-preview-frame').srcdoc = `<html><body style="background:#fff;color:#111;padding:20px;font-family:sans-serif;">${renderMarkdownSafe(content)}</body></html>`;
+      const iframe = document.getElementById('app-preview-frame');
+      if (iframe) iframe.srcdoc = `<html><body style="background:#fff;color:#111;padding:20px;font-family:sans-serif;">${renderMarkdownSafe(content)}</body></html>`;
     }
 
     function executeCode() {
       try {
         if (editor) files[activeFile] = editor.getValue();
         const iframe = document.getElementById('app-preview-frame');
-        document.getElementById('btn-run-python').style.display = (activeFile.endsWith('.py')) ? 'inline-block' : 'none';
-        document.getElementById('btn-render-md').style.display = (activeFile.endsWith('.md')) ? 'inline-block' : 'none';
+        const btnPy = document.getElementById('btn-run-python');
+        const btnMd = document.getElementById('btn-render-md');
+        if (btnPy) btnPy.style.display = (activeFile.endsWith('.py')) ? 'inline-block' : 'none';
+        if (btnMd) btnMd.style.display = (activeFile.endsWith('.md')) ? 'inline-block' : 'none';
 
         if (activeFile.endsWith('.py')) { runPythonCodeInConsole(); return; }
         if (activeFile.endsWith('.md')) { renderMarkdownPreview(); return; }
+        if (!iframe) return;
 
         let fullHtml = files['index.html'] || "";
         if (files['style.css'] && !fullHtml.includes('style.css')) {
@@ -1338,7 +1359,10 @@
       if (!SpeechRecognition) return alert("Reconnaissance vocale non supportée.");
       const rec = new SpeechRecognition();
       rec.lang = 'fr-FR';
-      rec.onresult = (e) => { document.getElementById('ai-input').value = e.results[0][0].transcript; };
+      rec.onresult = (e) => { 
+        const input = document.getElementById('ai-input');
+        if (input) input.value = e.results[0][0].transcript; 
+      };
       rec.start();
       logConsole("Écoute vocale activée...");
     }
@@ -1354,13 +1378,16 @@
     function toggleMenu() {
       const m = document.getElementById('side-menu');
       const o = document.getElementById('overlay');
+      if (!m || !o) return;
       if (m.classList.contains('open')) closeMenu();
       else { m.classList.add('open'); o.style.display = 'block'; }
     }
 
     function closeMenu() {
-      document.getElementById('side-menu').classList.remove('open');
-      document.getElementById('overlay').style.display = 'none';
+      const m = document.getElementById('side-menu');
+      const o = document.getElementById('overlay');
+      if (m) m.classList.remove('open');
+      if (o) o.style.display = 'none';
     }
 
     function switchMainView(view) {
@@ -1377,68 +1404,68 @@
       const cyber = document.getElementById('cyber-config-view');
       const ai = document.getElementById('ai-panel');
 
-      ed.style.display = 'none';
-      view3d.style.display = 'none';
-      scan.classList.remove('active-panel');
-      p2p.classList.remove('active-panel');
-      termux.classList.remove('active-panel');
-      iot.classList.remove('active-panel');
-      des.classList.remove('active-panel');
-      prev.style.display = 'none';
-      video.classList.remove('active-panel');
-      deploy.classList.remove('active-panel');
-      cyber.classList.remove('active-panel');
-      ai.classList.remove('mobile-active');
+      if (ed) ed.style.display = 'none';
+      if (view3d) view3d.style.display = 'none';
+      if (scan) scan.classList.remove('active-panel');
+      if (p2p) p2p.classList.remove('active-panel');
+      if (termux) termux.classList.remove('active-panel');
+      if (iot) iot.classList.remove('active-panel');
+      if (des) des.classList.remove('active-panel');
+      if (prev) prev.style.display = 'none';
+      if (video) video.classList.remove('active-panel');
+      if (deploy) deploy.classList.remove('active-panel');
+      if (cyber) cyber.classList.remove('active-panel');
+      if (ai) ai.classList.remove('mobile-active');
 
       document.querySelectorAll('footer button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
       if (view === 'editor') {
-        ed.style.display = 'flex';
+        if (ed) ed.style.display = 'flex';
         if (editor) editor.layout();
-        document.getElementById('nav-code').classList.add('active');
+        document.getElementById('nav-code')?.classList.add('active');
         document.getElementById('tab-editor')?.classList.add('active');
       } else if (view === '3d-physics') {
-        view3d.style.display = 'block';
-        document.getElementById('nav-3d').classList.add('active');
+        if (view3d) view3d.style.display = 'block';
+        document.getElementById('nav-3d')?.classList.add('active');
         document.getElementById('tab-3d')?.classList.add('active');
-        if (files['main.js']) { try { eval(files['main.js']); } catch(e) {} }
+        if (files['main.js']) { try { Function(files['main.js'])(); } catch(e) {} }
       } else if (view === 'scan-studio') {
-        scan.classList.add('active-panel');
-        document.getElementById('nav-scan').classList.add('active');
+        if (scan) scan.classList.add('active-panel');
+        document.getElementById('nav-scan')?.classList.add('active');
         document.getElementById('tab-scan')?.classList.add('active');
       } else if (view === 'p2p-collab') {
-        p2p.classList.add('active-panel');
+        if (p2p) p2p.classList.add('active-panel');
         document.getElementById('nav-p2p')?.classList.add('active');
         document.getElementById('tab-p2p')?.classList.add('active');
       } else if (view === 'terminal-termux') {
-        termux.classList.add('active-panel');
+        if (termux) termux.classList.add('active-panel');
         document.getElementById('tab-termux')?.classList.add('active');
       } else if (view === 'iot-hardware') {
-        iot.classList.add('active-panel');
+        if (iot) iot.classList.add('active-panel');
         document.getElementById('tab-iot')?.classList.add('active');
       } else if (view === 'design') {
-        des.classList.add('active-panel');
+        if (des) des.classList.add('active-panel');
         document.getElementById('nav-design')?.classList.add('active');
         document.getElementById('tab-design')?.classList.add('active');
       } else if (view === 'preview') {
-        prev.style.display = 'flex';
+        if (prev) prev.style.display = 'flex';
         executeCode();
-        document.getElementById('nav-prev').classList.add('active');
+        document.getElementById('nav-prev')?.classList.add('active');
         document.getElementById('tab-preview')?.classList.add('active');
       } else if (view === 'video-studio') {
-        video.classList.add('active-panel');
-        document.getElementById('nav-video').classList.add('active');
+        if (video) video.classList.add('active-panel');
+        document.getElementById('nav-video')?.classList.add('active');
         document.getElementById('tab-video')?.classList.add('active');
       } else if (view === 'deploy') {
-        deploy.classList.add('active-panel');
-        document.getElementById('nav-deploy').classList.add('active');
+        if (deploy) deploy.classList.add('active-panel');
+        document.getElementById('nav-deploy')?.classList.add('active');
         document.getElementById('tab-deploy')?.classList.add('active');
       } else if (view === 'cyber-config') {
-        cyber.classList.remove('active-panel');
+        if (cyber) cyber.classList.add('active-panel');
       } else if (view === 'ai-mobile') {
-        ed.style.display = 'flex';
-        ai.classList.add('mobile-active');
+        if (ed) ed.style.display = 'flex';
+        if (ai) ai.classList.add('mobile-active');
         if (editor) editor.layout();
         document.getElementById('tab-ai')?.classList.add('active');
       }
@@ -1500,10 +1527,15 @@
 
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
+      const apiKeyEl = document.getElementById('ai-api-key');
+      const engineEl = document.getElementById('ai-engine');
+      const searchToggle = document.getElementById('web-search-toggle');
+
+      if (!input) return;
       const promptText = input.value.trim();
-      const apiKey = document.getElementById('ai-api-key').value.trim();
-      const selectedEngine = document.getElementById('ai-engine').value;
-      const webSearchActive = document.getElementById('web-search-toggle').checked;
+      const apiKey = (apiKeyEl?.value || "").trim();
+      const selectedEngine = engineEl?.value || "gemini-3.6-flash";
+      const webSearchActive = searchToggle ? searchToggle.checked : true;
 
       if (!promptText) return alert("Veuillez saisir votre demande.");
 
@@ -1514,17 +1546,21 @@
         searchLogText = `🌐 [NEXUS WEB CRAWLER RAG] Indexation sémantique & recherche contextuelle pour : "${promptText}"...`;
       }
 
-      chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
+      if (chatBox) {
+        chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
+      }
       input.value = '';
-      chatBox.scrollTop = chatBox.scrollHeight;
+      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
       const aiMsgEl = document.createElement('div');
       aiMsgEl.className = 'msg ai';
-      aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + '⚙️ <i>Orchestration ' + selectedEngine + ' en cours...</i>';
-      chatBox.appendChild(aiMsgEl);
-      chatBox.scrollTop = chatBox.scrollHeight;
+      aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + '⚙️ <i>Orchestration ' + escapeHtml(selectedEngine) + ' en cours...</i>';
+      if (chatBox) {
+        chatBox.appendChild(aiMsgEl);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
 
-      const currentCode = editor ? editor.getValue() : files[activeFile];
+      const currentCode = editor ? editor.getValue() : (files[activeFile] || '');
 
       if (!apiKey || !navigator.onLine) {
         setTimeout(() => {
@@ -1533,8 +1569,8 @@
           if (editor) editor.setValue(generatedCode);
           saveProjectToDB();
 
-          const offlineReply = `<b>[Nexus Mega-Mind Engine v10.0 - Fallback / Local Swarm]</b>\n\nModèle : <b>${selectedEngine} (Mode Local / Heuristique)</b>\n\nAction : Code ajusté directement dans <code>${activeFile}</code>.\n\n\`\`\`${activeFile.split('.').pop()}\n${generatedCode.slice(-300)}\n\`\`\``;
-          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + renderMarkdownSafe(offlineReply);
+          const offlineReply = `<b>[Nexus Mega-Mind Engine v10.0 - Fallback / Local Swarm]</b>\n\nModèle : <b>${escapeHtml(selectedEngine)} (Mode Local / Heuristique)</b>\n\nAction : Code ajusté directement dans <code>${activeFile}</code>.\n\n\`\`\`${activeFile.split('.').pop()}\n${generatedCode.slice(-300)}\n\`\`\``;
+          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(offlineReply);
           chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: offlineReply, searchLog: searchLogText });
           saveChatHistoryToDB();
         }, 600);
@@ -1556,7 +1592,7 @@
           let errCode = data.error.code || response.status;
           let errMsg = data.error.message || "Erreur inconnue";
           
-          if (errCode === 503 || errMsg.includes("high demand") || errCode === 429 || true) {
+          if (errCode === 503 || errMsg.includes("high demand") || errCode === 429) {
             logConsole("Surcharge API distante ou basculement de sécurité. Activation du Fallback Heuristique Local.", false);
             const generatedCode = generateHeuristicCodeSolution(promptText, currentCode, activeFile);
             files[activeFile] = generatedCode;
@@ -1564,7 +1600,7 @@
             saveProjectToDB();
 
             const fallbackText = `⚠️ **Note d'orchestration (${errCode || '503/429'}) :** Serveur distant occupé. Basculement transparent vers le **Moteur Heuristique Local Nexus**. Code mis à jour dans <code>${activeFile}</code>.`;
-            aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + renderMarkdownSafe(fallbackText);
+            aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(fallbackText);
             chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: fallbackText, searchLog: searchLogText });
             saveChatHistoryToDB();
             return;
@@ -1572,7 +1608,7 @@
           throw new Error(errMsg);
         }
 
-        let aiText = data.candidates[0].content.parts[0].text;
+        let aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Pas de réponse reçue.";
         let cleanCode = aiText.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
 
         if (cleanCode.length > 20 && (cleanCode.startsWith('<') || cleanCode.startsWith('#') || cleanCode.startsWith('def') || cleanCode.startsWith('{') || cleanCode.startsWith('//'))) {
@@ -1582,7 +1618,7 @@
           aiText = "⚡ **Code généré et injecté directement dans '" + activeFile + "' !**\n\n" + aiText;
         }
 
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + renderMarkdownSafe(aiText);
+        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(aiText);
         chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: aiText, searchLog: searchLogText });
         saveChatHistoryToDB();
       } catch (e) {
@@ -1591,7 +1627,7 @@
         if (editor) editor.setValue(generatedCode);
         saveProjectToDB();
         const errFallback = `⚡ **Mode Local Secours** (Erreur réseau/API : ${escapeHtml(e.message)}). Modification appliquée directement sur <code>${activeFile}</code>.`;
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${searchLogText}</div>` : '') + renderMarkdownSafe(errFallback);
+        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(errFallback);
         logConsole("Fallback local appliqué sur erreur API.", true);
       }
     }
@@ -1603,39 +1639,49 @@
       }
     }
 
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    if (typeof require !== 'undefined') {
+      require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    }
 
     window.addEventListener('DOMContentLoaded', async () => {
       await initIndexedDB();
+      const apiKeyEl = document.getElementById('ai-api-key');
       const savedKey = localStorage.getItem('nexus_user_ai_key');
-      if (savedKey) document.getElementById('ai-api-key').value = savedKey;
-      document.getElementById('ai-api-key').addEventListener('input', (e) => {
-        localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
-      });
+      if (savedKey && apiKeyEl) apiKeyEl.value = savedKey;
+      if (apiKeyEl) {
+        apiKeyEl.addEventListener('input', (e) => {
+          localStorage.setItem('nexus_user_ai_key', e.target.value.trim());
+        });
+      }
 
-      require(['vs/editor/editor.main'], function() {
-        monaco.languages.registerCompletionItemProvider('html', {
-          provideCompletionItems: () => {
-            return { suggestions: [
-              { label: 'div', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<div class="$1">\n\t$0\n</div>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet div' },
-              { label: 'button', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<button class="$1">\n\t$0\n</button>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet button' }
-            ]};
+      if (typeof require !== 'undefined') {
+        require(['vs/editor/editor.main'], function() {
+          monaco.languages.registerCompletionItemProvider('html', {
+            provideCompletionItems: () => {
+              return { suggestions: [
+                { label: 'div', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<div class="$1">\n\t$0\n</div>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet div' },
+                { label: 'button', kind: monaco.languages.CompletionItemKind.Snippet, insertText: '<button class="$1">\n\t$0\n</button>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Snippet button' }
+              ]};
+            }
+          });
+
+          const container = document.getElementById('editor-container');
+          if (container) {
+            editor = monaco.editor.create(container, {
+              value: files[activeFile] || '',
+              language: 'html',
+              theme: 'vs-dark',
+              automaticLayout: true,
+              fontSize: 13,
+              minimap: { enabled: false }
+            });
+
+            editor.onDidChangeModelContent(() => {
+              saveProjectToDB();
+            });
           }
         });
-
-        editor = monaco.editor.create(document.getElementById('editor-container'), {
-          value: files[activeFile] || '',
-          language: 'html',
-          theme: 'vs-dark',
-          automaticLayout: true,
-          fontSize: 13,
-          minimap: { enabled: false }
-        });
-
-        editor.onDidChangeModelContent(() => {
-          saveProjectToDB();
-        });
-      });
+      }
     });
   </script>
 </body>
