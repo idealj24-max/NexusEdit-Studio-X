@@ -123,7 +123,6 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  */
 async function generateWithGemini(prompt, apiKey) {
   if (!apiKey || apiKey.trim() === "") {
-    // Si pas de clé, bascule directe ou message explicite
     throw new Error("Clé API Gemini absente. Veuillez insérer votre Token.");
   }
 
@@ -142,7 +141,6 @@ async function generateWithGemini(prompt, apiKey) {
 
       lastStatus = response.status;
 
-      // Gestion spécifique Rate Limit (429) avec Retry exponentiel
       if (lastStatus === 429 && attempt < GEMINI_CONFIG.MAX_RETRIES) {
         const delay = GEMINI_CONFIG.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 500;
         aiErrorHandler.show(429, `Tentative ${attempt + 1}/${GEMINI_CONFIG.MAX_RETRIES} dans ${Math.round(delay/1000)}s...`);
@@ -166,7 +164,6 @@ async function generateWithGemini(prompt, apiKey) {
       }
 
     } catch (error) {
-      // Épuisement des retries 429 ou erreur 503 -> Basculement transparent vers Moteur Heuristique Local Nexus
       if (lastStatus === 429 || lastStatus === 503 || error.message.includes('429') || error.message.includes('503')) {
         aiErrorHandler.show(lastStatus || 503, null, true);
         return runNexusLocalHeuristic(prompt);
@@ -192,13 +189,16 @@ Inclus les instructions visuelles, audio et le texte à dire à la caméra.`;
   return await generateWithGemini(prompt, apiKey);
 }
 
-// Exemple de liaison d'événement UI sécurisée (Zéro innerHTML non contrôlé)
-document.getElementById("btn-execute")?.addEventListener("click", async () => {
+// Fonction centrale d'exécution pour le bouton
+async function executeNexusAction() {
   const apiKey = document.getElementById("api-key-input")?.value;
   const prompt = document.getElementById("prompt-input")?.value;
   const outputContainer = document.getElementById("output-result");
 
   if (!outputContainer) return;
+
+  // Persistance de la clé si saisie
+  if (apiKey) localStorage.setItem("nexus_gemini_api_key", apiKey);
 
   try {
     outputContainer.textContent = "Génération en cours via Nexus AI Mega-Mind...";
@@ -214,25 +214,34 @@ document.getElementById("btn-execute")?.addEventListener("click", async () => {
     errorSpan.textContent = err.message;
     outputContainer.appendChild(errorSpan);
   }
-});
+}
+
+// Liaison d'événement UI sécurisée
+document.getElementById("btn-execute")?.addEventListener("click", executeNexusAction);
+
 // ==========================================
-// AJOUT : Gestionnaire d'init et de rejouabilité
+// INITIALISATION & REJOUABILITÉ (Nexus 4.0)
 // ==========================================
 
 function initNexusApp(options = { restoreState: true }) {
-  console.log("⚡ NexusEdit Studio - Initialisation...");
+  console.log("⚡ NexusEdit Studio - Initialisation / Rejeu...");
   
-  // Ajustez les sélecteurs selon vos IDs réels dans index.html
-  const executeBtn = document.getElementById("btn-execute") || document.querySelector(".btn-execute");
-  
-  if (executeBtn && !executeBtn.dataset.bound) {
-    executeBtn.addEventListener("click", () => {
-      // Appel à votre fonction d'exécution existante
-      if (typeof handleExecution === "function") {
-        handleExecution();
-      }
+  if (options.restoreState) {
+    const savedApiKey = localStorage.getItem("nexus_gemini_api_key");
+    const apiKeyInput = document.getElementById("api-key-input");
+    if (savedApiKey && apiKeyInput && !apiKeyInput.value) {
+      apiKeyInput.value = savedApiKey;
+      console.log("🔑 Clé API restaurée.");
+    }
+  }
+
+  // Sauvegarde automatique de la clé API lors de la frappe
+  const apiKeyInput = document.getElementById("api-key-input");
+  if (apiKeyInput && !apiKeyInput.dataset.savedBound) {
+    apiKeyInput.addEventListener("input", () => {
+      localStorage.setItem("nexus_gemini_api_key", apiKeyInput.value);
     });
-    executeBtn.dataset.bound = "true";
+    apiKeyInput.dataset.savedBound = "true";
   }
 }
 
@@ -244,15 +253,16 @@ function replayNexusApp() {
   initNexusApp({ restoreState: true });
 }
 
-// Auto-démarrage
+// Auto-démarrage sécurisé
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => initNexusApp());
 } else {
   initNexusApp();
 }
 
-// Exposition globale pour megamind-patcher.js
+// Exposition globale pour megamind-patcher.js (ex: window.NexusStudio.replay())
 window.NexusStudio = {
   init: initNexusApp,
-  replay: replayNexusApp
+  replay: replayNexusApp,
+  execute: executeNexusAction
 };
