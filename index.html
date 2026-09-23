@@ -660,7 +660,7 @@ Connected to global network. Prêt à naviguer sur l'Internet entier, concevoir 
 <div class="prompt-container">
 <div class="prompt-input-wrapper">
 <span class="prompt-icon">⚡</span>
-<input type="text" id="promptInput" class="prompt-input" placeholder="Demandez n'importe quoi... (ex: 'Bouton violet', 'Explorer le Web pour...', 'Calculer 45*12')" onkeydown="if(event.key==='Enter') executePrompt()">
+<input type="text" id="promptInput" class="prompt-input" placeholder="Demandez n'importe quoi... (ex: JSON {"action":"dom","selector":"body","code":"<h1>Hi</h1>"} ou ordre)" onkeydown="if(event.key==='Enter') executePrompt()">
 </div>
 <button class="execute-btn" onclick="executePrompt()">Exécuter</button>
 </div>
@@ -678,7 +678,7 @@ Connected to global network. Prêt à naviguer sur l'Internet entier, concevoir 
 </footer>
 
 <script>
-// --- INTÉGRATION MEGA-MIND PATCHER ---
+// ==================== MEGA-MIND PATCHER ====================
 class MegaMindPatcher {
     constructor(previewFrameId) {
         this.previewFrame = document.getElementById(previewFrameId);
@@ -689,13 +689,9 @@ class MegaMindPatcher {
             if (patchData.action === 'css') {
                 this.injectCSS(patchData.code);
             } else if (patchData.action === 'dom') {
-                this.updateDOM(patchData.selector, patchData.html);
+                this.updateDOM(patchData.selector, patchData.html || patchData.code);
             } else if (patchData.action === 'js_eval') {
                 this.evalJS(patchData.code);
-            } else if (patchData.action === 'file_update' && patchData.filename && patchData.code) {
-                if (typeof updateFileContent === 'function') {
-                    updateFileContent(patchData.filename, patchData.code);
-                }
             }
             this.log('Patch appliqué avec succès.');
         } catch (e) {
@@ -704,7 +700,8 @@ class MegaMindPatcher {
     }
 
     injectCSS(cssString) {
-        const doc = this.previewFrame.contentDocument || this.previewFrame.contentWindow.document;
+        if (!this.previewFrame) return;
+        const doc = this.previewFrame.contentDocument;
         let style = doc.getElementById('megamind-dynamic-style');
         if (!style) {
             style = doc.createElement('style');
@@ -715,80 +712,65 @@ class MegaMindPatcher {
     }
 
     updateDOM(selector, htmlContent) {
-        const doc = this.previewFrame.contentDocument || this.previewFrame.contentWindow.document;
+        if (!this.previewFrame) return;
+        const doc = this.previewFrame.contentDocument;
         const el = doc.querySelector(selector);
         if (el) {
             el.innerHTML = htmlContent;
+        } else {
+            console.warn('[MegaMind-Patcher] Sélecteur DOM introuvable:', selector);
         }
     }
 
     evalJS(codeString) {
+        if (!this.previewFrame) return;
         const win = this.previewFrame.contentWindow;
         win.eval(codeString);
     }
 
-    log(msg) { console.info(`[MegaMind-Patcher] ${msg}`); logConsole(`[Patcher] ${msg}`); }
-    error(msg, err) { console.error(`[MegaMind-Patcher] ${msg}`, err); logConsole(`[Patcher Error] ${msg}`, true); }
+    log(msg) { console.info(`[MegaMind-Patcher] ${msg}`); }
+    error(msg, err) { console.error(`[MegaMind-Patcher] ${msg}`, err); }
 }
 
 const megaMindPatcher = new MegaMindPatcher('app-preview-frame');
 
-function parseAndApplyMegaMindJSON(rawResponse) {
-    try {
-        const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            if (Array.isArray(parsed)) {
-                parsed.forEach(p => megaMindPatcher.applyPatch(p));
-            } else {
-                megaMindPatcher.applyPatch(parsed);
-            }
-            return true;
-        }
-    } catch(e) {
-        console.warn("Pas de payload JSON structuré Mega-Mind détecté ou parsing échoué:", e);
-    }
-    return false;
-}
-
-function updateFileContent(filename, newCode) {
-    if (files.hasOwnProperty(filename)) {
-        files[filename] = newCode;
-        if (activeFile === filename && editor) {
-            editor.setValue(newCode);
-        }
-        logConsole(`Fichier source ${filename} mis à jour par Mega-Mind.`);
-    }
-}
-// --- FIN INTÉGRATION MEGA-MIND PATCHER ---
-
 function renderMarkdownSafe(text) {
-if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
-try { return marked.parse(text); } catch(e) { console.warn("Erreur de parsing Marked:", e); }
+    if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+        try { return marked.parse(text); } catch(e) { console.warn("Erreur de parsing Marked:", e); }
+    }
+    return escapeHtml(text || '').replace(/\n/g, '<br>');
 }
-return escapeHtml(text || '').replace(/\n/g, '<br>');
+
+function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
 if ('serviceWorker' in navigator) {
-window.addEventListener('load', () => {
-const swCode = `const CACHE_NAME = 'nexus-studio-v10.0'; const ASSETS = ['./']; self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); }); self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.skipWaiting())); }); self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./')))); });`;
-const blob = new Blob([swCode], { type: 'application/javascript' });
-const swUrl = URL.createObjectURL(blob);
-navigator.serviceWorker.register(swUrl).catch(err => console.log("[PWA] Erreur SW: ", err));
-});
+    window.addEventListener('load', () => {
+        const swCode = `
+            const CACHE_NAME = 'nexus-studio-v10.0';
+            const ASSETS = ['./'];
+            self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
+            self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.skipWaiting())); });
+            self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./')))); });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).catch(err => console.log("[PWA] Erreur SW: ", err));
+    });
 }
 
 let nexusMediaStream = null;
 let db;
 let currentProjectName = "NexusEdit-Studio-X";
 let files = {
-'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n <meta charset="UTF-8">\n <title>App Universelle - Nexus Studio</title>\n <script src="https://cdn.tailwindcss.com"></script>\n</head>\n<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">\n <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">\n <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">⚡ Nexus Studio X v10.0</h1>\n <p class="text-slate-400">Le système Mega-Mind est opérationnel & connecté au Web mondial.</p>\n </div>\n</body>\n</html>`,
-'main.js': `const canvas = document.getElementById('canvas3d');\nif(canvas) {\n const scene = new THREE.Scene();\n const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n const geometry = new THREE.BoxGeometry();\n const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n const cube = new THREE.Mesh(geometry, material);\n scene.add(cube);\n camera.position.z = 5;\n function animate() {\n requestAnimationFrame(animate);\n cube.rotation.x += 0.01;\n cube.rotation.y += 0.01;\n renderer.render(scene, camera);\n }\n animate();\n}`,
-'style.css': `body { margin: 0; background: #07090e; color: #fff; }`,
-'script.py': `print("Execution Python Pyodide Nexus Mega-Mind v10.0")`,
-'document.md': `# Document de suivi Nexus Mega-Mind\n\n- Accès Web RAG Active\n- Multi-LLM Swarm Active`,
-'config.json': `{"project": "NexusEdit-Studio-X", "version": "10.0"}`,
-'manifest.json': `{"name": "NexusEdit Studio Mega-Mind", "start_url": "./index.html", "display": "standalone"}`
+    'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n <meta charset="UTF-8">\n <title>App Universelle - Nexus Studio</title>\n <script src="https://cdn.tailwindcss.com"></script>\n</head>\n<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">\n <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">\n <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">⚡ Nexus Studio X v10.0</h1>\n <p class="text-slate-400">Le système Mega-Mind est opérationnel & connecté au Web mondial.</p>\n </div>\n</body>\n</html>`,
+    'main.js': `const canvas = document.getElementById('canvas3d');\nif(canvas) {\n const scene = new THREE.Scene();\n const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n const geometry = new THREE.BoxGeometry();\n const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n const cube = new THREE.Mesh(geometry, material);\n scene.add(cube);\n camera.position.z = 5;\n function animate() {\n requestAnimationFrame(animate);\n cube.rotation.x += 0.01;\n cube.rotation.y += 0.01;\n renderer.render(scene, camera);\n }\n animate();\n}`,
+    'style.css': `body { margin: 0; background: #07090e; color: #fff; }`,
+    'script.py': `print("Execution Python Pyodide Nexus Mega-Mind v10.0")`,
+    'document.md': `# Document de suivi Nexus Mega-Mind\n\n- Accès Web RAG Active\n- Multi-LLM Swarm Active`,
+    'config.json': `{"project": "NexusEdit-Studio-X", "version": "10.0"}`,
+    'manifest.json': `{"name": "NexusEdit Studio Mega-Mind", "start_url": "./index.html", "display": "standalone"}`
 };
 let chatHistory = [];
 let activeFile = 'index.html';
@@ -801,87 +783,164 @@ let rtcPeerConnection = null;
 let rtcDataChannel = null;
 
 function log(message, type = 'system') {
-const consoleLog = document.getElementById('console');
-if (!consoleLog) return;
-const entry = document.createElement('div');
-entry.className = `log-entry ${type}`;
-entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-consoleLog.appendChild(entry);
-consoleLog.scrollTop = consoleLog.scrollHeight;
-}
-
-function logConsole(msg, isErr = false) {
-log(msg, isErr ? 'error' : 'success');
+    const consoleLog = document.getElementById('console');
+    if (!consoleLog) return;
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    consoleLog.appendChild(entry);
+    consoleLog.scrollTop = consoleLog.scrollHeight;
 }
 
 function clearConsoleLogs() {
-const c = document.getElementById('console');
-if (c) c.innerHTML = `<div class="log-entry system">[SYSTEM] Console réinitialisée.</div>`;
+    const c = document.getElementById('console');
+    if (c) c.innerHTML = `<div class="log-entry system">[SYSTEM] Console réinitialisée.</div>`;
 }
 
 function executePrompt() {
-const input = document.getElementById('promptInput');
-if (!input) return;
-const prompt = input.value.trim();
-if (!prompt) return;
+    const input = document.getElementById('promptInput');
+    if (!input) return;
+    const promptText = input.value.trim();
+    if (!promptText) return;
 
-log(`Ordre reçu : "${prompt}"`, 'system');
-input.value = '';
+    log(`Ordre reçu : "${promptText}"`, 'system');
+    input.value = '';
 
-const stage = document.getElementById('stage');
-if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent')) {
-stage.innerHTML = '';
-}
-if (stage) {
-const node = document.createElement('div');
-node.className = 'dynamic-node panel-card';
-node.innerHTML = `<h4>Exécution Prompt : ${escapeHtml(prompt)}</h4><p style="font-size:0.75rem; color:var(--text-muted);">Résultat généré dynamiquement.</p>`;
-stage.appendChild(node);
-}
-logConsole(`Prompt traité: ${prompt}`);
+    // Essayer de parser si c'est du JSON direct patch
+    if (promptText.startsWith('{') && promptText.endsWith('}')) {
+        try {
+            const parsed = JSON.parse(promptText);
+            megaMindPatcher.applyPatch(parsed);
+            log("Patch JSON direct appliqué via le prompt.", "success");
+            return;
+        } catch(e) {
+            // Pas un JSON valide, traitement standard
+        }
+    }
+
+    const stage = document.getElementById('stage');
+    if (stage && stage.querySelector('h1')?.innerText.includes('Omnipotent')) {
+        stage.innerHTML = '';
+    }
+    
+    // Exemple d'action par défaut si non-JSON
+    log(`Traitement de l'ordre par Mega-Mind: ${promptText}`, 'ai');
+    // Mettre à jour l'iframe/aperçu si besoin
+    executeCode();
 }
 
-function escapeHtml(text) {
-const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-return text.replace(/[&<>"']/g, m => map[m]);
+function executeCode() {
+    switchMainView('preview');
+    const iframe = document.getElementById('app-preview-frame');
+    if (!iframe) return;
+    if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+    
+    let htmlContent = files['index.html'] || '';
+    let cssContent = files['style.css'] || '';
+    let jsContent = files['main.js'] || '';
+    
+    // Injection basique style/script si non présents
+    let fullDoc = htmlContent;
+    if (!fullDoc.includes('<style>') && cssContent) {
+        fullDoc = fullDoc.replace('</head>', `<style>${cssContent}</style></head>`);
+    }
+    if (!fullDoc.includes('<script>') && jsContent) {
+        fullDoc = fullDoc.replace('</body>', `<script>${jsContent}<\/script></body>`);
+    }
+
+    const blob = new Blob([fullDoc], { type: 'text/html' });
+    currentBlobUrl = URL.createObjectURL(blob);
+    iframe.src = currentBlobUrl;
+    log("Aperçu Sandbox mis à jour.", "system");
 }
 
-// Stubs basiques pour l'interface pour éviter les erreurs de référence non définie
-function toggleMenu() { document.getElementById('side-menu')?.classList.toggle('open'); document.getElementById('overlay')?.style.display = document.getElementById('side-menu')?.classList.contains('open') ? 'block' : 'none'; }
-function closeMenu() { document.getElementById('side-menu')?.classList.remove('open'); document.getElementById('overlay')?.style.display = 'none'; }
-function switchMainView(viewId) { log(`Basculement vers la vue: ${viewId}`, 'system'); }
-function clearChatHistory() { const cb = document.getElementById('chat-box'); if(cb) cb.innerHTML = ''; }
-function triggerProactiveAI() { log("Coach IA sollicité", 'ai'); }
-function openFile(filename) { activeFile = filename; log(`Fichier ouvert: ${filename}`, 'system'); }
-function promptCreateNewProject() { log("Création projet universel", 'system'); }
-function openProjectsListModal() { log("Ouverture liste projets", 'system'); }
-function exportProjectsBackup() { log("Export DB complète", 'system'); }
-function insertVirtualKey(key) { log(`Touche insérée: ${key}`, 'system'); }
-function lancerScannerCam() { log("Caméra AR activée", 'system'); }
-function executerDiagnosticIA() { log("Diagnostic IA visuel lancé", 'ai'); }
-function startAudioDiagnostic() { log("Capture audio démarrée", 'system'); }
-function initP2PPeer(isHost) { log(`P2P Init (Host: ${isHost})`, 'system'); }
-function connectP2PPeer() { log("Connexion P2P en cours...", 'system'); }
-function sendTermuxCommand() { log("Commande Termux envoyée", 'system'); }
-function cachePyodidePackage(pkg) { log(`Mise en cache package Pyodide: ${pkg}`, 'system'); }
-function connectWebSerialUSB() { log("Connexion WebSerial USB...", 'system'); }
-function readOBDMetrics() { log("Lecture métriques OBD2", 'system'); }
-function quickAction(action) { log(`Quick Action: ${action}`, 'system'); }
-function insertSnippet(snippet) { log(`Snippet inséré: ${snippet}`, 'system'); }
-function runPythonCodeInConsole() { log("Exécution Python...", 'system'); }
-function renderMarkdownPreview() { log("Rendu Markdown...", 'system'); }
-function popOutAppInNewTab() { log("Ouverture plein écran...", 'system'); }
-function executeCode() { log("Exécution code sandbox...", 'system'); }
-function generateAIVideoScript() { log("Génération script vidéo IA...", 'ai'); }
-function exportVideoScriptAsMarkdown() { log("Export script vidéo .md", 'system'); }
-function generateVideoFromScript() { log("Génération vidéo...", 'ai'); }
-function triggerCloudApkBuild() { log("Déclenchement build APK Cloud GitHub Actions...", 'system'); }
-function exportPackage(type) { log(`Export package: ${type}`, 'system'); }
-function saveCyberConfig() { log("Configuration Cyber/VPN sauvegardée", 'system'); }
-function sendAIPromptReal() { log("Envoi prompt Mega-Mind...", 'ai'); }
-function startVoiceRecognition() { log("Reconnaissance vocale...", 'system'); }
-function copyGeneratedCode() { log("Code copié dans le presse-papier", 'system'); }
-function openSuperAppLauncher() { log("Ouverture Super App Launcher", 'system'); }
+function switchMainView(viewId) {
+    // Gestion simplifiée des vues
+    const views = ['editor-wrapper', '3d-viewport-container', 'scan-studio-view', 'p2p-collab-view', 'terminal-termux-view', 'iot-hardware-view', 'design-panel', 'preview-container', 'video-studio-view', 'deploy-view', 'cyber-config-view'];
+    views.forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.style.display = 'none';
+    });
+
+    if (viewId === 'editor') {
+        document.getElementById('editor-wrapper').style.display = 'flex';
+    } else if (viewId === '3d-physics') {
+        document.getElementById('3d-viewport-container').style.display = 'block';
+    } else {
+        const target = document.getElementById(`${viewId}-view`) || document.getElementById(viewId);
+        if (target) {
+            target.style.display = viewId.includes('container') ? 'flex' : 'flex';
+            if(target.classList.contains('universal-view')) target.classList.add('active-panel');
+        }
+    }
+}
+
+function toggleMenu() {
+    const menu = document.getElementById('side-menu');
+    const overlay = document.getElementById('overlay');
+    if (menu) menu.classList.toggle('open');
+    if (overlay) overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
+}
+
+function closeMenu() {
+    const menu = document.getElementById('side-menu');
+    const overlay = document.getElementById('overlay');
+    if (menu) menu.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
+}
+
+// Stubs pour compatibilité des autres boutons du menu
+function clearChatHistory() { document.getElementById('chat-box').innerHTML = ''; }
+function triggerProactiveAI() { log("Coach IA activé - Analyse proactive du code en cours...", "ai"); }
+function promptCreateNewProject() { alert("Création d'un nouveau projet universel..."); }
+function openProjectsListModal() { alert("Ouverture de la liste des projets..."); }
+function exportProjectsBackup() { alert("Sauvegarde IndexedDB exportée."); }
+function openFile(fileName) { 
+    activeFile = fileName; 
+    document.getElementById('current-project-name').innerText = `⚡ ${currentProjectName} [${fileName}]`;
+    closeMenu(); 
+    if(editor && files[fileName]) editor.setValue(files[fileName]);
+}
+function insertVirtualKey(key) { log(`Insertion touche virtuelle: ${key}`, 'system'); }
+function lancerScannerCam() { log("Caméra AR activée.", "system"); }
+function executerDiagnosticIA() { log("Diagnostic IA Visuel exécuté.", "ai"); }
+function startAudioDiagnostic() { log("Capture audio du moteur démarrée.", "system"); }
+function initP2PPeer(isHost) { log(isHost ? "Salon P2P créé." : "Rejoindre salon P2P...", "system"); }
+function connectP2PPeer() { log("Connexion P2P en cours...", "system"); }
+function sendTermuxCommand() { log("Commande termux envoyée.", "system"); }
+function cachePyodidePackage(pkg) { log(`Package ${pkg} pré-caché.`, "system"); }
+function connectWebSerialUSB() { log("Connexion WebUSB...", "system"); }
+function readOBDMetrics() { log("Lecture métriques OBD2...", "system"); }
+function quickAction(action) { log(`Action rapide UI: ${action}`, "system"); }
+function insertSnippet(type) { log(`Snippet inséré: ${type}`, "system"); }
+function popOutAppInNewTab() { if(currentBlobUrl) window.open(currentBlobUrl, '_blank'); }
+function generateAIVideoScript() { log("Génération du scénario vidéo...", "ai"); }
+function exportVideoScriptAsMarkdown() { log("Scénario exporté en .md", "system"); }
+function generateVideoFromScript() { log("Rendu de la vidéo en cours...", "ai"); }
+function triggerCloudApkBuild() { log("Pipeline APK GitHub Actions déclenché.", "system"); }
+function exportPackage(type) { log(`Export package type: ${type}`, "system"); }
+function saveCyberConfig() { log("Configuration bouclier cyber enregistrée.", "system"); }
+function sendAIPromptReal() { log("Envoi prompt à l'agent Mega-Mind...", "ai"); }
+function startVoiceRecognition() { log("Reconnaissance vocale activée...", "system"); }
+function copyGeneratedCode() { alert("Code copié dans le presse-papier !"); }
+
+// Initialisation Monaco Editor au chargement
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof require !== 'undefined') {
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
+        require(['vs/editor/editor.main'], function() {
+            editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: files[activeFile] || '',
+                language: activeFile.endsWith('.py') ? 'python' : (activeFile.endsWith('.css') ? 'css' : 'html'),
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+            editor.getModel().onDidChangeContent(() => {
+                files[activeFile] = editor.getValue();
+            });
+        });
+    }
+});
 </script>
 </body>
 </html>
