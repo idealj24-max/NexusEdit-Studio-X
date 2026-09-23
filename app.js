@@ -189,7 +189,7 @@ Inclus les instructions visuelles, audio et le texte à dire à la caméra.`;
   return await generateWithGemini(prompt, apiKey);
 }
 
-// Fonction centrale d'exécution pour le bouton
+// Fonction centrale d'exécution pour le bouton UI direct
 async function executeNexusAction() {
   const apiKey = document.getElementById("api-key-input")?.value;
   const prompt = document.getElementById("prompt-input")?.value;
@@ -214,6 +214,27 @@ async function executeNexusAction() {
     errorSpan.textContent = err.message;
     outputContainer.appendChild(errorSpan);
   }
+}
+
+// Pont intelligent : Envoie à l'IA, parse le JSON de patch et sauvegarde en IndexedDB
+async function applyAIEditToSandbox(prompt) {
+    const apiKey = document.getElementById("api-key-input")?.value || localStorage.getItem("nexus_gemini_api_key");
+    const systemInstruction = `Tu es un assistant de patch UI/CSS/DOM. Réponds UNIQUEMENT par un JSON valide (ou tableau JSON) d'actions de patch au format: {"action": "css"|"dom"|"js_eval", "selector": "...", "code": "...", "html": "..."}.`;
+    
+    const fullPrompt = `${systemInstruction}\n\nRequête utilisateur : ${prompt}`;
+    const rawResponse = await generateWithGemini(fullPrompt, apiKey);
+
+    // Si MegaMind est chargé, parser et persister
+    if (window.MegaMind && window.MegaMind.parser) {
+        const parsed = window.MegaMind.parser.parseAndApply(rawResponse);
+        if (parsed.success && parsed.results) {
+            const patchesToSave = parsed.results.map(r => r.action);
+            await window.MegaMind.saveDeltaToIndexedDB(patchesToSave);
+            console.log("💾 Patchs appliqués et persistés via MegaMind IndexedDB.");
+        }
+        return parsed;
+    }
+    return rawResponse;
 }
 
 // Liaison d'événement UI sécurisée
@@ -260,9 +281,10 @@ if (document.readyState === "loading") {
   initNexusApp();
 }
 
-// Exposition globale pour megamind-patcher.js (ex: window.NexusStudio.replay())
+// Exposition globale pour megamind-patcher.js et chat de la PWA
 window.NexusStudio = {
   init: initNexusApp,
   replay: replayNexusApp,
-  execute: executeNexusAction
+  execute: executeNexusAction,
+  applyAIEdit: applyAIEditToSandbox
 };
