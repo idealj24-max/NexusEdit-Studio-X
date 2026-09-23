@@ -215,3 +215,44 @@ document.getElementById("btn-execute")?.addEventListener("click", async () => {
     outputContainer.appendChild(errorSpan);
   }
 });
+// ==========================================
+// AJOUT : Gestionnaire d'init et de rejouabilité
+// ==========================================
+
+function initNexusApp(options = { restoreState: true }) {
+  console.log("⚡ NexusEdit Studio - Initialisation...");
+  
+  // Ajustez les sélecteurs selon vos IDs réels dans index.html
+  const executeBtn = document.getElementById("btn-execute") || document.querySelector(".btn-execute");
+  
+  if (executeBtn && !executeBtn.dataset.bound) {
+    executeBtn.addEventListener("click", () => {
+      // Appel à votre fonction d'exécution existante
+      if (typeof handleExecution === "function") {
+        handleExecution();
+      }
+    });
+    executeBtn.dataset.bound = "true";
+  }
+}
+
+function replayNexusApp() {
+  console.log("🔄 Rejouabilité / Rechargement de l'état Nexus...");
+  if (typeof aiErrorHandler !== "undefined" && aiErrorHandler.clear) {
+    aiErrorHandler.clear();
+  }
+  initNexusApp({ restoreState: true });
+}
+
+// Auto-démarrage
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => initNexusApp());
+} else {
+  initNexusApp();
+}
+
+// Exposition globale pour megamind-patcher.js
+window.NexusStudio = {
+  init: initNexusApp,
+  replay: replayNexusApp
+};
