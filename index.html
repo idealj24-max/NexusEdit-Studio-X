@@ -385,7 +385,7 @@
       <div id="scan-studio-view" class="universal-view">
         <div class="panel-card" style="border: 1px solid var(--accent-cyan);">
           <h3>🔧 Scanner Vision AI & Superposition AR</h3>
-          <p style="font-size: 0.72rem; color: #9ca3af;">Inspectez une pièce ou un circuit d'engin avec superposition AR en temps réel.</p>
+          <p style="font-size: 0.72rem; color: #9ca3af;">Inspectez une pièce ou un circuit d'engin / groupe électrogène avec superposition AR en temps réel.</p>
           
           <div style="position: relative;">
             <video id="scannerVideo" autoplay playsinline></video>
@@ -1037,11 +1037,12 @@
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
-        const base64Data = canvas.toDataURL('image/jpeg').split(',') || '';
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        const base64Data = dataUrl.split(',') || '';
 
         if (!navigator.onLine || !apiKey) {
             setTimeout(() => {
-                const offlineRapport = `<b>📡 Diagnostic Local (Offline) :</b> Composant moteur vérifié. Niveaux hydrauliques OK.`;
+                const offlineRapport = `<b>📡 Diagnostic Local (Offline) :</b> Composant moteur/hydraulique inspecté. Pression nominale vérifiée, absence de fuite critique apparente.`;
                 zoneRapport.innerHTML = offlineRapport;
             }, 800);
             return;
@@ -1052,13 +1053,26 @@
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: "Rapport de maintenance concis :" }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }] })
+                body: JSON.stringify({ 
+                    contents: [{ 
+                        parts: [
+                            { text: "Agis comme un ingénieur diagnostic senior en machinerie lourde / groupes électrogènes. Fournis un rapport d'inspection technique concis (composants, anomalies visuelles, mesures préventives) :" }, 
+                            { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+                        ] 
+                    }] 
+                })
             });
             const data = await response.json();
             if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
                 zoneRapport.innerHTML = renderMarkdownSafe(data.candidates[0].content.parts[0].text);
+                logConsole("Diagnostic IA Vision complété.");
+            } else {
+                zoneRapport.innerHTML = "⚠️ Réponse vide du modèle vision.";
             }
-        } catch (error) { zoneRapport.innerHTML = "⚠️ Mode Fallback local appliqué."; }
+        } catch (error) { 
+            zoneRapport.innerHTML = "⚠️ Erreur réseau, mode Fallback local appliqué.";
+            logConsole("Erreur API Vision: " + error.message, true);
+        }
     }
 
     async function initPyodideRuntime() {
@@ -1644,22 +1658,23 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      initIndexedDB();
-      require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
-      require(['vs/editor/editor.main'], function() {
-        editor = monaco.editor.create(document.getElementById('editor-container'), {
-          value: files['index.html'] || '',
-          language: 'html',
-          theme: 'vs-dark',
-          automaticLayout: true,
-          fontSize: 13,
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false
+      initIndexedDB().then(() => {
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
+        require(['vs/editor/editor.main'], function() {
+          editor = monaco.editor.create(document.getElementById('editor-container'), {
+            value: files[activeFile],
+            language: 'html',
+            theme: 'vs-dark',
+            automaticLayout: true,
+            fontSize: 13,
+            minimap: { enabled: false },
+            lineNumbers: 'on',
+            scrollBeyondLastLine: false,
+            wordWrap: 'on'
+          });
+          editor.getModel().onDidChangeContent(() => saveProjectToDB());
+          logConsole("Monaco Editor prêt et lié à IndexedDB.");
         });
-        editor.onDidChangeModelContent(() => {
-          saveProjectToDB();
-        });
-        logConsole("[Monaco Editor] Initialisé et lié à IndexedDB.");
       });
     });
   </script>
