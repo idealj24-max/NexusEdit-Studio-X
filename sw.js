@@ -1,8 +1,10 @@
-const CACHE_NAME = 'nexus-studio-v6';
+const CACHE_NAME = 'nexus-studio-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './app.js',
+  './megamind-patcher.js',
   'https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js',
   'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.css',
@@ -15,7 +17,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Mise en cache des ressources');
+      console.log('[Service Worker] Mise en cache des ressources v7');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
