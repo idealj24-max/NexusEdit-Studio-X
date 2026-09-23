@@ -160,3 +160,29 @@ async function replayAllDeltas(patcherInstance) {
         console.info(`[MegaMind-Persistent] ${records.length} delta(s) rejoué(s).`);
     };
 }
+
+// --- INTÉGRATION & AUTO-REPLAY INDEXEDDB ---
+window.addEventListener('DOMContentLoaded', async () => {
+    // Remplacez 'live-preview-iframe' par l'ID réel de votre iframe si nécessaire
+    const previewId = 'live-preview-iframe'; 
+    const iframeEl = document.getElementById(previewId);
+    
+    // Si l'iframe existe, on initialise le patcher et on rejoue l'IndexedDB
+    if (iframeEl) {
+        const patcher = new MegaMindPatcher(previewId);
+        const parser = new MegaMindResponseParser(patcher);
+        await replayAllDeltas(patcher);
+        window.MegaMind = { patcher, parser, saveDeltaToIndexedDB, replayAllDeltas };
+    }
+});
+
+// Pont de synchronisation avec NexusStudio
+if (window.NexusStudio) {
+    const originalReplay = window.NexusStudio.replay;
+    window.NexusStudio.replay = async function() {
+        if (originalReplay) originalReplay();
+        if (window.MegaMind?.patcher && typeof window.MegaMind.replayAllDeltas === 'function') {
+            await window.MegaMind.replayAllDeltas(window.MegaMind.patcher);
+        }
+    };
+}
