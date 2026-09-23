@@ -57,7 +57,7 @@
   <style>
     :root {
       --bg-dark: #07090e;
-      --bg-panel: rgba(15, 23, 42, 0.85);
+      --bg-panel: rgba(15, 23, 42, 0.95);
       --bg-secondary: #12161f;
       --accent: #00ffcc;
       --accent-cyan: #00f3ff;
@@ -75,7 +75,7 @@
       --font-code: 'JetBrains Mono', 'Fira Code', monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+    html, body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-dark); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; width: 100vw; }
     
     header { height: 50px; background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; }
     #menu-btn { cursor: pointer; font-weight: bold; font-size: 0.9rem; color: var(--accent-cyan); padding: 6px; text-shadow: 0 0 8px rgba(0,243,255,0.4); }
@@ -86,7 +86,7 @@
 
     #side-menu { 
         position: fixed; left: -300px; top: 0; width: 280px; 
-        height: 100%; height: 100dvh; background: var(--bg-panel); backdrop-filter: blur(15px); border-right: 1px solid var(--accent-cyan); 
+        height: 100vh; height: 100dvh; background: var(--bg-panel); backdrop-filter: blur(15px); border-right: 1px solid var(--accent-cyan); 
         transition: transform 0.3s ease; padding-top: 50px; z-index: 120; box-shadow: 10px 0 25px rgba(0,0,0,0.9);
         display: flex; flex-direction: column; overflow-y: auto;
     }
@@ -97,15 +97,15 @@
 
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; z-index: 110; }
 
-    #main-layout { display: flex; flex: 1; height: calc(100dvh - 128px); position: relative; overflow: hidden; }
-    #workspace { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; }
+    #main-layout { display: flex; flex: 1; min-height: 0; position: relative; overflow: hidden; width: 100%; }
+    #workspace { flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%; overflow: hidden; }
     
     .mode-tabs { display: flex; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); overflow-x: auto; flex-shrink: 0; }
     .tab { padding: 10px 12px; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; color: #9ca3af; white-space: nowrap; flex-shrink: 0; font-weight: 600; }
     .tab.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(255,255,255,0.03); font-weight: bold; }
 
-    #editor-wrapper { flex: 1; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
-    #editor-container { flex: 1; width: 100%; height: 100%; position: relative; display: block; }
+    #editor-wrapper { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+    #editor-container { flex: 1; min-height: 0; width: 100%; position: relative; display: block; }
 
     #touch-bar {
       display: flex;
@@ -113,8 +113,8 @@
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       overflow-x: auto;
-      padding: 4px;
-      gap: 5px;
+      padding: 6px;
+      gap: 6px;
       flex-shrink: 0;
       z-index: 10;
     }
@@ -122,8 +122,8 @@
       background: #1f2937;
       color: var(--accent-cyan);
       border: 1px solid var(--border);
-      padding: 6px 12px;
-      font-size: 0.75rem;
+      padding: 8px 14px;
+      font-size: 0.8rem;
       border-radius: 4px;
       font-family: var(--font-code);
       cursor: pointer;
@@ -132,17 +132,17 @@
     }
     .touch-btn:active { background: var(--accent-cyan); color: #000; }
 
-    #preview-container { flex: 1; display: none; background: #030712; position: relative; flex-direction: column; width: 100%; overflow: hidden; }
-    .preview-toolbar { background: #0d1322; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
-    #app-preview-frame { flex: 1; width: 100%; border: none; background: #fff; }
+    #preview-container { flex: 1; min-height: 0; display: none; background: #030712; position: relative; flex-direction: column; width: 100%; overflow: hidden; }
+    .preview-toolbar { background: #0d1322; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 0.7rem; flex-shrink: 0; }
+    #app-preview-frame { flex: 1; width: 100%; min-height: 0; border: none; background: #fff; }
 
-    #3d-viewport-container { flex: 1; display: none; background: #000; position: relative; width: 100%; height: 100%; }
+    #3d-viewport-container { flex: 1; min-height: 0; display: none; background: #000; position: relative; width: 100%; }
     #canvas3d { width: 100%; height: 100%; display: block; }
 
-    .universal-view { display: none; flex: 1; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
+    .universal-view { display: none; flex: 1; min-height: 0; flex-direction: column; background: var(--bg-dark); padding: 15px; overflow-y: auto; gap: 12px; }
     .universal-view.active-panel { display: flex; }
     
-    .panel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(12px); }
+    .panel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(12px); flex-shrink: 0; }
     .panel-card h3 { color: var(--accent-cyan); font-size: 0.85rem; font-weight: 700; }
     .panel-card h4 { color: var(--accent-cyan); font-size: 0.8rem; margin-bottom: 6px; font-weight: 600; }
 
@@ -189,18 +189,18 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    #ai-panel { width: 350px; background: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; backdrop-filter: blur(15px); }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    #ai-panel { width: 350px; background: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 95; backdrop-filter: blur(15px); min-height: 0; }
+    .chat-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
     .msg { padding: 10px 14px; border-radius: 8px; font-size: 0.8rem; max-width: 95%; line-height: 1.5; word-break: break-word; }
     .msg.user { align-self: flex-end; background: linear-gradient(135deg, rgba(157, 78, 221, 0.25), rgba(0, 243, 255, 0.25)); border: 1px solid var(--accent-purple); color: #fff; }
     .msg.ai { align-self: flex-start; background: #030712; color: #34d399; border-left: 3px solid #8b5cf6; }
     .msg .search-log { font-family: var(--font-code); font-size: 0.72rem; color: var(--accent-cyan); background: rgba(0, 243, 255, 0.05); padding: 6px 8px; border-left: 2px solid var(--accent-cyan); margin-bottom: 8px; border-radius: 0 4px 4px 0; }
 
-    .chat-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); }
+    .chat-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; flex-direction: column; background: var(--bg-panel); flex-shrink: 0; }
     
     textarea, input[type="text"], input[type="password"], select { width: 100%; background: #030712; border: 1px solid var(--border-color); color: var(--accent-cyan); padding: 8px; border-radius: 4px; font-family: var(--font-code); resize: none; font-size: 0.8rem; outline: none; }
     textarea { height: 50px; }
-    .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border-color); font-size: 0.72rem; }
+    .api-config-box { padding: 8px 10px; background: #030712; border-bottom: 1px solid var(--border-color); font-size: 0.72rem; flex-shrink: 0; }
     .api-config-box label { color: #9ca3af; display: block; margin-bottom: 3px; font-weight: 600; }
     
     .btn-nexus { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #000; border: none; padding: 9px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; width: 100%; text-align: center; }
@@ -210,9 +210,6 @@
 
     video, canvas { width: 100%; max-height: 220px; border-radius: 6px; background: #000; object-fit: cover; }
     #zoneRapportIA { background: #030712; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #34d399; word-break: break-word; min-height: 80px; max-height: 250px; overflow-y: auto; line-height: 1.4; }
-
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .blink { animation: blink 1.2s infinite; color: var(--accent-cyan); }
 
     .switch { position: relative; display: inline-block; width: 36px; height: 18px; }
     .switch input { opacity: 0; width: 0; height: 0; }
@@ -747,9 +744,6 @@
     window.editorSetValue = function(finalCode) {
       if (editor) {
         editor.setValue(finalCode);
-      } else {
-        const codeTab = document.getElementById('code-textarea-or-editor');
-        if (codeTab) codeTab.value = finalCode;
       }
       files[activeFile] = finalCode;
       saveProjectToDB();
@@ -757,23 +751,15 @@
 
     // --- Parser & Injecteur Mega-Mind ---
     function handleMegaMindResponse(apiResponseText) {
-      // 1. Extraire le code s'il est encadré par des backticks ```html/js/css ... ```
       const codeMatch = apiResponseText.match(/```(?:html|javascript|css)?([\s\S]*?)```/i);
       const finalCode = codeMatch ? codeMatch.trim() : apiResponseText;
-
-      // 2. Injecter dans l'éditeur Code actif
       window.editorSetValue(finalCode);
 
-      // Si le code contient une structure HTML complète et qu'on n'est pas ciblé sur un sous-fichier strict, synchroniser index.html
       if (finalCode.includes('<!DOCTYPE html>') || finalCode.includes('<html')) {
         files['index.html'] = finalCode;
         activeFile = 'index.html';
       }
-
-      // 3. Mettre à jour automatiquement le mode Run / Preview (iframe)
       executeCode();
-
-      // 4. Confirmer visuellement la mise à jour réelle
       showToast("✅ Code injecté dans l'éditeur et rendu en mode Run !");
     }
 
@@ -817,6 +803,7 @@
         }
       });
       
+      window.addEventListener('resize', () => { if (editor) editor.layout(); });
       logConsole("Monaco Editor v0.38 initialisé.");
     });
 
@@ -947,7 +934,7 @@
       };
       if (activeTabMap[viewId]) document.getElementById(activeTabMap[viewId])?.classList.add('active');
 
-      if (viewId === 'editor' && editor) editor.layout();
+      if (viewId === 'editor' && editor) setTimeout(() => editor.layout(), 50);
       if (viewId === 'preview') executeCode();
       if (viewId === '3d-physics' && files['main.js']) { try { Function(files['main.js'])(); } catch(e) {} }
     }
@@ -1080,11 +1067,6 @@
       });
     }
 
-    function saveChatHistoryToDB() {
-      if (!db) return;
-      try { db.transaction(["chat_store"], "readwrite").objectStore("chat_store").put({ id: "global_history", messages: chatHistory }); } catch(e) {}
-    }
-
     function loadChatHistoryFromDB() {
       return new Promise((resolve) => {
         if (!db) return resolve();
@@ -1214,12 +1196,10 @@
       const selectedEngine = engineEl ? engineEl.value : 'gemini-3.6-flash';
       const useWeb = webSearchToggle ? webSearchToggle.checked : false;
 
-      // Ajouter prompt utilisateur
       chatHistory.push({ role: 'user', text: promptText, searchLog: useWeb ? 'Recherche Web RAG / Multi-Model Swarm Active' : null });
       renderChatHistoryUI();
       inputEl.value = '';
 
-      // Ajouter state chargement temporaire
       chatHistory.push({ role: 'ai', text: '<i>⏳ Mega-Mind analyse et génère le code/réponse...</i>' });
       renderChatHistoryUI();
 
@@ -1240,24 +1220,21 @@
           const data = await response.json();
           aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Pas de réponse valide de l'API Gemini.";
         } else {
-          // Simulation intelligente si aucune clé API n'est saisie (test rapide de ton snippet)
           await new Promise(r => setTimeout(r, 600));
           if (promptText.toLowerCase().includes('h1') || promptText.toLowerCase().includes('test')) {
             aiResponseText = "Voici le snippet demandé :\n```html\n<h1>Test</h1>\n```";
           } else if (promptText.toLowerCase().includes('bouton') || promptText.toLowerCase().includes('violet')) {
             aiResponseText = "```html\n<button style='background:#9d4edd;color:#fff;padding:12px 24px;border-radius:8px;border:none;font-weight:bold;'>Action Violette</button>\n```";
           } else {
-            aiResponseText = `🤖 Analyse Mega-Mind pour "${escapeHtml(promptText)}":\n```html\n<div class='p-6 bg-slate-900 border border-cyan-400/40 rounded-xl text-center'>\n  <h2 class='text-cyan-400 font-bold mb-2'>Résultat Dyn-UI</h2>\n  <p class='text-slate-300 text-sm'>${escapeHtml(promptText)}</p>\n</div>\n````;
+            aiResponseText = `🤖 Analyse Mega-Mind pour "${escapeHtml(promptText)}":\n```html\n<div class='p-6 bg-slate-900 border border-cyan-400/40 rounded-xl text-center'>\n  <h2 class='text-cyan-400 font-bold mb-2'>Résultat Dyn-UI</h2>\n  <p class='text-slate-300 text-sm'>${escapeHtml(promptText)}</p>\n</div>\n\`\`\``;
           }
         }
 
-        // Remplacer message chargement
         chatHistory.pop();
         chatHistory.push({ role: 'ai', text: aiResponseText });
         saveChatHistoryToDB();
         renderChatHistoryUI();
 
-        // **Appel du parser et injection réelle code / run**
         handleMegaMindResponse(aiResponseText);
         logConsole("Réponse IA Mega-Mind exécutée et injectée.");
 
