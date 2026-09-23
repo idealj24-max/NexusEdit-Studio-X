@@ -305,7 +305,6 @@
     <div class="header-actions">
       <button class="btn-icon" onclick="clearChatHistory()">🗑️ Chat</button>
       <button class="btn-icon" onclick="triggerProactiveAI()">💡 Coach</button>
-      <button class="btn-icon" onclick="saveCommitToDB('Commit manuel local')" style="border-color:var(--accent-green); color:var(--accent-green);">📌 Commit</button>
       <div class="flex items-center gap-1.5 text-xs text-emerald-400 font-mono ml-2">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> OMNI-MIND ACTIVE
       </div>
@@ -320,7 +319,6 @@
     <div class="file-item" onclick="promptCreateNewProject()" style="color:var(--accent-cyan);">➕ Créer un projet universel</div>
     <div class="file-item" onclick="openProjectsListModal()">📂 Mes projets enregistrés</div>
     <div class="file-item" onclick="exportProjectsBackup()">💾 Sauvegarde DB complète</div>
-    <div class="file-item" onclick="openCommitsHistoryModal()" style="color:var(--accent-green);">📜 Historique des Commits</div>
     
     <div class="menu-section-title">Fichiers du Projet</div>
     <div class="file-item active" onclick="openFile('index.html')">📄 index.html (Web App)</div>
@@ -694,7 +692,7 @@
           const CACHE_NAME = 'nexus-studio-v10.0';
           const ASSETS = ['./'];
           self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
-          self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)))).then(() => self.skipWaiting())); });
+          self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.skipWaiting())); });
           self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./')))); });
         `;
         const blob = new Blob([swCode], { type: 'application/javascript' });
@@ -707,7 +705,7 @@
     let db;
     let currentProjectName = "NexusEdit-Studio-X";
     let files = {
-      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle - Nexus Studio</title>\n  <script src="https://cdn.tailwindcss.com"></script>\n</head>\n<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">\n  <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">\n    <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">⚡ Nexus Studio X v10.0</h1>\n    <p class="text-slate-400">Le système Mega-Mind est opérationnel & connecté au Web mondial.</p>\n  </div>\n</body>\n</html>`,
+      'index.html': `<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="UTF-8">\n  <title>App Universelle - Nexus Studio</title>\n  <script src="https://cdn.tailwindcss.com"><\\/script>\n</head>\n<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">\n  <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/30 shadow-2xl">\n    <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">⚡ Nexus Studio X v10.0</h1>\n    <p class="text-slate-400">Le système Mega-Mind est opérationnel & connecté au Web mondial.</p>\n  </div>\n</body>\n</html>`,
       'main.js': `const canvas = document.getElementById('canvas3d');\nif(canvas) {\n  const scene = new THREE.Scene();\n  const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);\n  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });\n  renderer.setSize(canvas.clientWidth, canvas.clientHeight);\n  const geometry = new THREE.BoxGeometry();\n  const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });\n  const cube = new THREE.Mesh(geometry, material);\n  scene.add(cube);\n  camera.position.z = 5;\n  function animate() {\n    requestAnimationFrame(animate);\n    cube.rotation.x += 0.01;\n    cube.rotation.y += 0.01;\n    renderer.render(scene, camera);\n  }\n  animate();\n}`,
       'style.css': `body { margin: 0; background: #07090e; color: #fff; }`,
       'script.py': `print("Execution Python Pyodide Nexus Mega-Mind v10.0")`,
@@ -724,32 +722,6 @@
 
     let rtcPeerConnection = null;
     let rtcDataChannel = null;
-
-    window.addEventListener('DOMContentLoaded', () => {
-      initIndexedDB().then(() => {
-        initMonacoEditor();
-      });
-    });
-
-    function initMonacoEditor() {
-      require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
-      require(['vs/editor/editor.main'], function() {
-        const container = document.getElementById('editor-container');
-        if (container) {
-          editor = monaco.editor.create(container, {
-            value: files[activeFile] || '',
-            language: 'html',
-            theme: 'vs-dark',
-            automaticLayout: true,
-            fontSize: 13,
-            minimap: { enabled: false }
-          });
-          editor.onDidChangeModelContent(() => {
-            saveProjectToDB();
-          });
-        }
-      });
-    }
 
     function log(message, type = 'system') {
         const consoleLog = document.getElementById('console');
@@ -810,7 +782,7 @@
                 createNode(`
                     <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid var(--accent-cyan); padding: 15px; border-radius: 8px;">
                         <small style="color: var(--text-muted);">Calcul Mathématique</small>
-                        <h2 style="color: var(--accent-cyan); margin-top: 5px;">${prompt} = ${result}</h2>
+                        <h2 style="color: var(--accent-cyan); margin-top: 5px;">${prompt} =${result}</h2>
                     </div>
                 `);
                 log(`Calcul exécuté : ${result}`, 'success');
@@ -926,7 +898,7 @@
         try {
           await pyodideInstance.loadPackage(pkgName);
           logConsole(`Package '${pkgName}' mis en cache local avec succès !`);
-        } catch (e) { logConsole(`Erreur cache package ${pkgName} : ${e.message}`, true); }
+        } catch (e) { logConsole(`Erreur cache package ${pkgName} :${e.message}`, true); }
       } else { alert("Pyodide est en cours d'initialisation..."); }
     }
 
@@ -1102,7 +1074,7 @@
 
     function initIndexedDB() {
       return new Promise((resolve) => {
-        const request = indexedDB.open("NexusStudioMegaDB", 11);
+        const request = indexedDB.open("NexusStudioMegaDB", 10);
         request.onsuccess = () => {
           db = request.result;
           loadProjectFromDB(currentProjectName).then(() => loadChatHistoryFromDB().then(resolve)).catch(resolve);
@@ -1111,7 +1083,6 @@
           let database = event.target.result;
           if (!database.objectStoreNames.contains("projects")) database.createObjectStore("projects", { keyPath: "name" });
           if (!database.objectStoreNames.contains("chat_store")) database.createObjectStore("chat_store", { keyPath: "id" });
-          if (!database.objectStoreNames.contains("commits")) database.createObjectStore("commits", { keyPath: "id" });
         };
         request.onerror = () => resolve();
       });
@@ -1131,85 +1102,6 @@
       try {
         db.transaction(["projects"], "readwrite").objectStore("projects").put({ name: currentProjectName, files: files });
       } catch(e) { console.warn("Erreur sauvegarde DB:", e); }
-    }
-
-    function saveCommitToDB(message = "Commit automatique") {
-      if (!db) return;
-      if (editor) files[activeFile] = editor.getValue();
-      const commitData = {
-        id: "commit_" + Date.now(),
-        project: currentProjectName,
-        message: message,
-        timestamp: new Date().toISOString(),
-        files: JSON.parse(JSON.stringify(files))
-      };
-      try {
-        const tx = db.transaction(["commits"], "readwrite");
-        tx.objectStore("commits").put(commitData);
-        tx.oncomplete = () => {
-          logConsole(`[Commit] Enregistré : "${message}"`);
-        };
-      } catch(e) { logConsole("Erreur commit DB: " + e.message, true); }
-    }
-
-    function openCommitsHistoryModal() {
-      closeMenu();
-      if (!db) return;
-      const request = db.transaction(["commits"], "readonly").objectStore("commits").getAll();
-      request.onsuccess = () => {
-        const commits = request.result || [];
-        let itemsHtml = '';
-        if (commits.length === 0) {
-          itemsHtml = '<div style="color:#9ca3af; text-align:center; padding:20px;">Aucun commit enregistré pour l\'instant.</div>';
-        } else {
-          commits.sort((a, b) => b.timestamp.localeCompare(a.timestamp)).forEach(c => {
-            itemsHtml += `
-              <div style="background:#0f172a; border:1px solid #1e293b; padding:12px; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                  <div style="color:var(--accent-green); font-weight:bold; font-size:0.8rem;">📌 ${escapeHtml(c.message)}</div>
-                  <div style="color:#6b7280; font-size:0.68rem;">Proj: ${escapeHtml(c.project)} | Date:${new Date(c.timestamp).toLocaleString()}</div>
-                </div>
-                <button onclick="restoreCommit('${c.id}')" style="background:#1f2937; color:var(--accent-cyan); border:1px solid var(--border-color); padding:6px 10px; border-radius:4px; font-size:0.7rem; cursor:pointer;">Restaurer</button>
-              </div>`;
-          });
-        }
-
-        const modalHtml = `
-          <div id="commits-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(7,9,14,0.95); backdrop-filter:blur(10px); z-index:200; padding:20px; display:flex; flex-direction:column; font-family:sans-serif;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-              <h2 style="color:var(--accent-green); font-size:1.1rem; font-weight:bold;">📜 Historique des Commits (IndexedDB v11)</h2>
-              <button onclick="closeCommitsModal()" style="background:transparent; border:none; color:#ef4444; font-size:1.2rem; cursor:pointer;">✕</button>
-            </div>
-            <div style="flex:1; overflow-y:auto;">
-              ${itemsHtml}
-            </div>
-            <button onclick="closeCommitsModal()" style="margin-top:15px; background:#ef4444; color:#fff; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; width:100%;">Fermer</button>
-          </div>`;
-        closeCommitsModal();
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-      };
-    }
-
-    function closeCommitsModal() { document.getElementById('commits-modal')?.remove(); }
-
-    function restoreCommit(commitId) {
-      if (!db) return;
-      const request = db.transaction(["commits"], "readonly").objectStore("commits").get(commitId);
-      request.onsuccess = () => {
-        const commit = request.result;
-        if (commit && commit.files) {
-          files = JSON.parse(JSON.stringify(commit.files));
-          currentProjectName = commit.project;
-          saveProjectToDB();
-          if (editor && files[activeFile] !== undefined) {
-            editor.setValue(files[activeFile]);
-          }
-          const badge = document.getElementById('current-project-name');
-          if (badge) badge.innerText = "⚡ " + currentProjectName;
-          closeCommitsModal();
-          logConsole(`[Commit] Restauré : "${commit.message}"`);
-        }
-      };
     }
 
     function loadProjectFromDB(projName) {
@@ -1284,7 +1176,6 @@
       currentProjectName = newName;
       files = { 'index.html': `<h1>${newName}</h1>`, 'main.js': '', 'style.css': '' };
       saveProjectToDB();
-      saveCommitToDB("Initialisation projet " + newName);
       const badge = document.getElementById('current-project-name');
       if (badge) badge.innerText = "⚡ " + currentProjectName;
       if(editor) editor.setValue(files['index.html']);
@@ -1635,48 +1526,142 @@
         if (p.includes('contact') || p.includes('form')) {
           return currentCode.replace('</body>', `<div class="p-4 bg-slate-800 rounded m-4"><input class="w-full bg-slate-900 p-2 mb-2 rounded border border-cyan-500/30" placeholder="Nom"><button class="bg-cyan-500 text-black px-4 py-2 rounded font-bold">Envoyer</button></div></body>`);
         }
-        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-slate-900 text-white p-8"><h1 class="text-3xl text-cyan-400 font-bold mb-4">Module Généré : ${escapeHtml(promptText)}</h1><div class="p-6 bg-slate-800 rounded-lg border border-slate-700">Composant injecté par Nexus Mega-Mind (Mode Autonome).</div></body></html>`;
+        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"><\\/script></head><body class="bg-slate-900 text-white p-8"><h1 class="text-3xl text-cyan-400 font-bold mb-4">Module Généré : ${escapeHtml(promptText)}</h1><div class="p-6 bg-slate-800 rounded-lg border border-slate-700">Composant injecté par Nexus Mega-Mind (Mode Autonome).</div></body></html>`;
       } else if (targetFile.endsWith('.css')) {
         return currentCode + `\n\n/* Gen: ${escapeHtml(promptText)} */\n.nexus-custom {\n  border: 1px solid var(--accent-cyan);\n  box-shadow: 0 0 12px rgba(0, 243, 255, 0.2);\n}\n`;
-      } else {
-        return currentCode + `\n// Gen: ${escapeHtml(promptText)}\n`;
+      } else if (targetFile.endsWith('.js')) {
+        return currentCode + `\n\n// Module Logic: ${escapeHtml(promptText)}\nconsole.log("Exécution active : ${escapeHtml(promptText)}");\n`;
       }
+      return currentCode + `\n\n# Note / Gen\n- ${escapeHtml(promptText)}\n`;
     }
 
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
-      if (!input || !input.value.trim()) return;
-      const userText = input.value.trim();
-      input.value = '';
+      const apiKeyEl = document.getElementById('ai-api-key');
+      const engineEl = document.getElementById('ai-engine');
+      const searchToggle = document.getElementById('web-search-toggle');
 
-      chatHistory.push({ role: 'user', text: userText });
-      saveChatHistoryToDB();
-      renderChatHistoryUI();
+      if (!input) return;
+      const promptText = input.value.trim();
+      const apiKey = (apiKeyEl?.value || "").trim();
+      const selectedEngine = engineEl?.value || "gemini-3.6-flash";
+      const webSearchActive = searchToggle ? searchToggle.checked : true;
 
-      const aiEngine = document.getElementById('ai-engine')?.value || 'gemini-3.6-flash';
-      const webSearch = document.getElementById('web-search-toggle')?.checked;
-      const apiKey = (document.getElementById('ai-api-key')?.value || '').trim();
+      if (!promptText) return alert("Veuillez saisir votre demande.");
 
-      let searchLogText = webSearch ? '🌐 [RAG] Recherche Web globale effectuée' : null;
-      let replyText = "";
+      const chatBox = document.getElementById('chat-box');
+      let searchLogText = '';
 
-      if (!apiKey) {
-        replyText = `**Mode Heuristique Autonome (Offline / Sans Clé API)**\n\nAnalyse de votre demande : "${userText}"\n\n*Suggestion de code générée et intégrée au buffer actif.*`;
-        if (editor) {
-          const currentCode = editor.getValue();
-          const updated = generateHeuristicCodeSolution(userText, currentCode, activeFile);
-          files[activeFile] = updated;
-          editor.setValue(updated);
-        }
-      } else {
-        replyText = `Traitement distant via **${aiEngine}** complété avec succès pour : *${userText}*.`;
+      if (webSearchActive) {
+        searchLogText = `🌐 [NEXUS WEB CRAWLER RAG] Indexation sémantique & recherche contextuelle pour : "${promptText}"...`;
       }
 
-      chatHistory.push({ role: 'ai', text: replyText, searchLog: searchLogText });
-      saveChatHistoryToDB();
-      renderChatHistoryUI();
-      logConsole("Réponse IA Mega-Mind injectée.");
+      if (chatBox) {
+        chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
+      }
+      input.value = '';
+      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+      const aiMsgEl = document.createElement('div');
+      aiMsgEl.className = 'msg ai';
+      aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + '⚙️ <i>Orchestration ' + escapeHtml(selectedEngine) + ' en cours...</i>';
+      if (chatBox) {
+        chatBox.appendChild(aiMsgEl);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      const currentCode = editor ? editor.getValue() : (files[activeFile] || '');
+
+      if (!apiKey || !navigator.onLine) {
+        setTimeout(() => {
+          const generatedCode = generateHeuristicCodeSolution(promptText, currentCode, activeFile);
+          files[activeFile] = generatedCode;
+          if (editor) editor.setValue(generatedCode);
+          saveProjectToDB();
+
+          const offlineReply = `<b>[Nexus Mega-Mind Engine v10.0 - Fallback / Local Swarm]</b>\n\nModèle : <b>${escapeHtml(selectedEngine)} (Mode Local / Heuristique)</b>\n\nAction : Code ajusté directement dans <code>${activeFile}</code>.\n\n\`\`\`${activeFile.split('.').pop()}\n${generatedCode.slice(-300)}\n\`\`\``;
+          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(offlineReply);
+          chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: offlineReply, searchLog: searchLogText });
+          saveChatHistoryToDB();
+        }, 600);
+        return;
+      }
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+      const systemContext = `Tu es Nexus AI Mega-Mind v10.0, l'orchestrateur IA intégré à NexusEdit-Studio-X. Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande utilisateur : ${promptText}. Retourne soit du code direct soit une explication synthétique.`;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: systemContext }] }] })
+        });
+        const data = await response.json();
+
+        if (data.error) {
+          let errCode = data.error.code || response.status;
+          let errMsg = data.error.message || "Erreur inconnue";
+          
+          if (errCode === 503 || errMsg.includes("high demand") || errCode === 429) {
+            logConsole("Surcharge API distante ou basculement de sécurité. Activation du Fallback Heuristique Local.", false);
+            const generatedCode = generateHeuristicCodeSolution(promptText, currentCode, activeFile);
+            files[activeFile] = generatedCode;
+            if (editor) editor.setValue(generatedCode);
+            saveProjectToDB();
+
+            const fallbackText = `⚠️ **Note d'orchestration (${errCode || '503/429'}) :** Serveur distant occupé. Basculement transparent vers le **Moteur Heuristique Local Nexus**. Code mis à jour dans <code>${activeFile}</code>.`;
+            aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(fallbackText);
+            chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: fallbackText, searchLog: searchLogText });
+            saveChatHistoryToDB();
+            return;
+          }
+          throw new Error(errMsg);
+        }
+
+        let aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Pas de réponse reçue.";
+        let cleanCode = aiText.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
+
+        if (cleanCode.length > 20 && (cleanCode.startsWith('<') || cleanCode.startsWith('#') || cleanCode.startsWith('def') || cleanCode.startsWith('{') || cleanCode.startsWith('//'))) {
+          files[activeFile] = cleanCode;
+          if (editor) editor.setValue(cleanCode);
+          saveProjectToDB();
+          aiText = "⚡ **Code généré et injecté directement dans '" + activeFile + "' !**\n\n" + aiText;
+        }
+
+        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(aiText);
+        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: aiText, searchLog: searchLogText });
+        saveChatHistoryToDB();
+      } catch (e) {
+        const generatedCode = generateHeuristicCodeSolution(promptText, currentCode, activeFile);
+        files[activeFile] = generatedCode;
+        if (editor) editor.setValue(generatedCode);
+        saveProjectToDB();
+        const errFallback = `⚡ **Mode Local Secours** (Erreur réseau/API : ${escapeHtml(e.message)}). Modification appliquée directement sur <code>${activeFile}</code>.`;
+        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(errFallback);
+        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: errFallback, searchLog: searchLogText });
+        saveChatHistoryToDB();
+      }
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initIndexedDB();
+      require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
+      require(['vs/editor/editor.main'], function() {
+        editor = monaco.editor.create(document.getElementById('editor-container'), {
+          value: files['index.html'] || '',
+          language: 'html',
+          theme: 'vs-dark',
+          automaticLayout: true,
+          fontSize: 13,
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false
+        });
+        editor.onDidChangeModelContent(() => {
+          saveProjectToDB();
+        });
+        logConsole("[Monaco Editor] Initialisé et lié à IndexedDB.");
+      });
+    });
   </script>
 </body>
 </html>
