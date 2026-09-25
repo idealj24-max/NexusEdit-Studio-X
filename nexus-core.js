@@ -277,7 +277,7 @@
             }),
 
             this.createTask({
-              title: 'Construire l'architecture',
+              title: "Construire l'architecture",
               agent: AGENTS.coder,
               action: 'design_architecture',
               dependsOn: ['previous']
