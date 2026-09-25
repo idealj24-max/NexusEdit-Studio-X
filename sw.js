@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nexus-studio-v7';
+const CACHE_NAME = 'nexus-studio-v8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -17,8 +17,15 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Mise en cache des ressources v7');
-      return cache.addAll(ASSETS_TO_CACHE);
+      console.log('[Service Worker] Mise en cache des ressources v8');
+      // NOTE : cache.addAll() échoue entièrement si UNE seule ressource externe est indisponible
+      // (CDN down, hors-ligne au premier install...). On ajoute donc chaque ressource individuellement
+      // pour qu'un échec isolé ne bloque pas tout le cache applicatif.
+      return Promise.all(
+        ASSETS_TO_CACHE.map((url) =>
+          cache.add(url).catch((err) => console.warn('[SW] Ressource non mise en cache:', url, err))
+        )
+      );
     })
   );
   self.skipWaiting();
@@ -59,7 +66,6 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.claim();
 });
