@@ -620,7 +620,7 @@
       <div class="api-config-box">
         <label>Modèle Orchestrateur :</label>
         <select id="ai-engine" style="margin-bottom:6px;">
-          <option value="gemini">Google Gemini 2.5 Flash</option>
+          <option value="gemini">Google Gemini 3.6 Flash</option>
           <option value="openai">GPT-4o (OpenAI)</option>
           <option value="claude">Claude (Anthropic)</option>
           <option value="deepseek">DeepSeek R1</option>
@@ -1066,8 +1066,7 @@
             return;
         }
 
-        // FIX: nom de modèle Gemini valide (gemini-3.6-flash n'existe pas)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
         try {
             const response = await fetch(url, {
                 method: "POST",
