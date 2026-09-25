@@ -660,6 +660,7 @@
           <button class="btn-nexus btn-secondary" style="flex: 1; margin-top: 0;" onclick="startVoiceRecognition()">🎙️ Vocal</button>
         </div>
         <button class="btn-nexus btn-secondary" onclick="copyGeneratedCode()">📋 Copier le code</button>
+        <button class="btn-nexus btn-secondary" style="border-color:#a855f7; color:#a855f7;" onclick="proposeGitHubPullRequest()">🔀 Proposer en Pull Request GitHub</button>
       </div>
     </div>
   </div>
@@ -716,6 +717,7 @@
     // On clone toujours le template par défaut pour ne jamais le muter par référence
     let files = JSON.parse(JSON.stringify(DEFAULT_FILES));
     let chatHistory = []; 
+    let lastAIPromptText = '';
     let activeFile = 'index.html';
     let editor = null;
     let currentBlobUrl = null;
@@ -1508,6 +1510,141 @@
       }
     }
 
+    // ==========================================
+    // AUTO-DÉPLOIEMENT IA -> GITHUB (via Pull Request)
+    // ==========================================
+    // Encode une chaîne en base64 UTF-8 safe (l'API GitHub Contents exige du base64 sur les octets UTF-8)
+    function utf8ToBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
+    function ghHeaders(token) {
+      return {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      };
+    }
+
+    async function ghRequest(url, token, options = {}) {
+      const res = await fetch(url, { ...options, headers: ghHeaders(token) });
+      let data = {};
+      try { data = await res.json(); } catch (e) { /* réponse vide, ex: 204 */ }
+      if (!res.ok) {
+        throw new Error(data.message || `Erreur GitHub API (${res.status})`);
+      }
+      return data;
+    }
+
+    /**
+     * Crée une branche dédiée, y committe le fichier actif modifié par l'IA,
+     * puis ouvre une Pull Request vers la branche par défaut du dépôt.
+     * Ne touche JAMAIS directement à la branche principale : tu gardes le contrôle
+     * total via la review et le merge manuel sur GitHub.
+     */
+    async function proposeGitHubPullRequest() {
+      const repo = document.getElementById('github-repo-input')?.value.trim();
+      const token = document.getElementById('github-token-input')?.value.trim();
+
+      if (!repo || !token) {
+        return alert("Renseigne d'abord le dépôt GitHub et ton Token PAT dans l'onglet ⚡ Exports (ils sont réutilisés ici).");
+      }
+      if (!repo.includes('/')) {
+        return alert("Format du dépôt invalide. Utilise 'utilisateur/depot' (ex: idealj24-max/NexusEdit-Studio-X).");
+      }
+
+      const filePath = activeFile;
+      const content = editor ? editor.getValue() : (files[filePath] || '');
+      if (!content.trim()) {
+        return alert("Le fichier actif est vide, rien à proposer.");
+      }
+
+      const promptSummary = lastAIPromptText.trim() || `Mise à jour manuelle de ${filePath}`;
+      const branchName = `nexus-ai-${filePath.replace(/[^a-zA-Z0-9_.-]/g, '_')}-${Date.now()}`;
+
+      logConsole(`[GitHub PR] Préparation de la Pull Request pour '${filePath}'...`);
+
+      try {
+        // 1. Récupérer la branche par défaut du dépôt (main, master, etc.)
+        const repoInfo = await ghRequest(`https://api.github.com/repos/${repo}`, token);
+        const defaultBranch = repoInfo.default_branch || 'main';
+
+        // 2. Récupérer le SHA du dernier commit de cette branche
+        const refData = await ghRequest(`https://api.github.com/repos/${repo}/git/ref/heads/${defaultBranch}`, token);
+        const baseSha = refData.object.sha;
+
+        // 3. Créer une nouvelle branche pointant sur ce même commit
+        await ghRequest(`https://api.github.com/repos/${repo}/git/refs`, token, {
+          method: 'POST',
+          body: JSON.stringify({ ref: `refs/heads/${branchName}`, sha: baseSha })
+        });
+        logConsole(`[GitHub PR] Branche '${branchName}' créée.`);
+
+        // 4. Récupérer le sha existant du fichier sur cette nouvelle branche (nécessaire pour une mise à jour)
+        let existingSha = null;
+        try {
+          const fileData = await ghRequest(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(filePath)}?ref=${branchName}`, token);
+          existingSha = fileData.sha;
+        } catch (e) {
+          // Le fichier n'existe pas encore sur le dépôt : on le créera (pas de sha à fournir)
+        }
+
+        // 5. Committer le fichier modifié sur cette branche
+        const putBody = {
+          message: `🤖 Nexus AI Mega-Mind : mise à jour de ${filePath}`,
+          content: utf8ToBase64(content),
+          branch: branchName
+        };
+        if (existingSha) putBody.sha = existingSha;
+
+        await ghRequest(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(filePath)}`, token, {
+          method: 'PUT',
+          body: JSON.stringify(putBody)
+        });
+        logConsole(`[GitHub PR] Fichier '${filePath}' committé sur '${branchName}'.`);
+
+        // 6. Ouvrir la Pull Request vers la branche par défaut
+        const prBody = [
+          `Modification proposée automatiquement par **Nexus AI Mega-Mind**.`,
+          ``,
+          `**Demande originale :**`,
+          `> ${promptSummary}`,
+          ``,
+          `**Fichier modifié :** \`${filePath}\``,
+          ``,
+          `⚠️ Relis attentivement le code avant de merger — cette PR n'a pas été validée par un humain.`
+        ].join('\n');
+
+        const prData = await ghRequest(`https://api.github.com/repos/${repo}/pulls`, token, {
+          method: 'POST',
+          body: JSON.stringify({
+            title: `🤖 Nexus AI Mega-Mind — ${promptSummary.slice(0, 60)}`,
+            head: branchName,
+            base: defaultBranch,
+            body: prBody
+          })
+        });
+
+        logConsole(`[GitHub PR] Pull Request créée : ${prData.html_url}`);
+
+        const chatBox = document.getElementById('chat-box');
+        const successMsg = `✅ **Pull Request créée avec succès !**\n\n[${prData.html_url}](${prData.html_url})\n\nVa la relire et la merger toi-même sur GitHub quand tu es prêt — rien n'a été touché sur ta branche \`${defaultBranch}\`.`;
+        if (chatBox) {
+          const el = document.createElement('div');
+          el.className = 'msg ai';
+          el.innerHTML = renderMarkdownSafe(successMsg);
+          chatBox.appendChild(el);
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        chatHistory.push({ role: 'ai', text: successMsg });
+        saveChatHistoryToDB();
+
+      } catch (err) {
+        logConsole(`[GitHub PR] Erreur : ${err.message}`, true);
+        alert("Échec de la création de la Pull Request : " + err.message);
+      }
+    }
+
     function startVoiceRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) return alert("Reconnaissance vocale non supportée.");
@@ -1702,6 +1839,7 @@
       const autoApply = autoApplyToggle ? autoApplyToggle.checked : false;
 
       if (!promptText) return alert("Veuillez saisir votre demande.");
+      lastAIPromptText = promptText;
 
       const chatBox = document.getElementById('chat-box');
       let searchLogText = '';
@@ -1735,66 +1873,9 @@
             files[activeFile] = generatedCode;
             if (editor) editor.setValue(generatedCode);
             saveProjectToDB();
-            replyText = `<b>[Nexus Mega-Mind Engine v10.0 - Fallback / Local Swarm]</b>\n\nModèle : <b>${escapeHtml(selectedEngine)} (Mode Local / Heuristique)</b>\n\nAction : Code ajusté directement dans <code>${activeFile}</code> (Auto-application activée).\n\n\`\`\`${activeFile.split('.').pop()}\n${generatedCode.slice(-300)}\n\`\`\``;
+            replyText = `<b>[Nexus Mega-Mind Engine v10.0 - Fallback / Local Swarm]</b>\n\nModèle : <b>${escapeHtml(selectedEngine)} (Mode Local / Heuristique)</b>\n\nAction : Code ajusté directement dans <code>${activeFile}</code> (Auto-application activée) et affiché dans Aperçu & Run.\n\n\`\`\`${activeFile.split('.').pop()}\n${generatedCode.slice(-300)}\n\`\`\``;
+            switchMainView('preview');
           } else {
             replyText = `<b>[Nexus Mega-Mind - Mode Local / Heuristique]</b>\n\nAucune clé API ou hors-ligne. Voici une suggestion (non appliquée à ton fichier — active "✏️ Appliquer directement au fichier actif" si tu veux l'injecter automatiquement) :\n\n${generateHeuristicCodeSolution(promptText, currentCode, activeFile)}`;
           }
-          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(replyText);
-          chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: replyText, searchLog: searchLogText });
-          saveChatHistoryToDB();
-        }, 600);
-        return;
-      }
-
-      try {
-        // Passe désormais par le module partagé app.js (window.NexusStudio.generate) qui gère
-        // le retry 429, le fallback local, et route vers le bon moteur (Gemini / OpenAI / Claude / DeepSeek)
-        let aiText = await window.NexusStudio.generate(selectedEngine, currentCode ? `Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande utilisateur : ${promptText}. Retourne soit du code direct soit une explication synthétique.` : promptText, apiKey);
-        let cleanCode = aiText.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
-        const looksLikeCode = cleanCode.length > 20 && (cleanCode.startsWith('<') || cleanCode.startsWith('#') || cleanCode.startsWith('def') || cleanCode.startsWith('{') || cleanCode.startsWith('//'));
-
-        if (autoApply && looksLikeCode) {
-          files[activeFile] = cleanCode;
-          if (editor) editor.setValue(cleanCode);
-          saveProjectToDB();
-          aiText = "⚡ **Code généré et injecté directement dans '" + activeFile + "' (Auto-application activée) !**\n\n" + aiText;
-        } else if (looksLikeCode && !autoApply) {
-          aiText = "💡 **Réponse contenant du code — non appliquée automatiquement.** Active \"✏️ Appliquer directement au fichier actif\" pour l'injecter, ou copie-colle manuellement.\n\n" + aiText;
-        }
-
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(aiText);
-        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: aiText, searchLog: searchLogText });
-        saveChatHistoryToDB();
-      } catch (e) {
-        const errFallback = `⚡ **Erreur** (${escapeHtml(e.message)}). Aucune modification n'a été appliquée à ton fichier.`;
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(errFallback);
-        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: errFallback, searchLog: searchLogText });
-        saveChatHistoryToDB();
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      initIndexedDB().then(() => {
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
-        require(['vs/editor/editor.main'], function() {
-          editor = monaco.editor.create(document.getElementById('editor-container'), {
-            value: files[activeFile],
-            language: 'html',
-            theme: 'vs-dark',
-            automaticLayout: true,
-            fontSize: 13,
-            minimap: { enabled: false },
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            wordWrap: 'on'
-          });
-          editor.getModel().onDidChangeContent(() => saveProjectToDB());
-          logConsole("Monaco Editor prêt et lié à IndexedDB.");
-        });
-      });
-    });
-  </script>
-  <script src="app.js"></script>
-  <script src="megamind-patcher.js"></script>
-</body>
-</html>
+          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(rep
