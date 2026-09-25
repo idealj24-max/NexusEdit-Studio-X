@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      project_name:
+        description: 'Nom du projet (informatif, injecté depuis le studio)'
+        required: false
+        default: 'NexusEdit-Studio-X'
 
 jobs:
   build:
@@ -35,13 +40,35 @@ jobs:
       - name: 📦 Installer Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: 🔑 Générer Keystore de signature Android
+      # FIX CRITIQUE : le keystore est maintenant restauré depuis un secret GitHub (base64) au lieu
+      # d'être régénéré à chaque run. Sans ce fix, chaque APK a une signature différente et Android
+      # refuse toute mise à jour par-dessus une version déjà installée (il faut désinstaller à chaque fois).
+      #
+      # Pour activer ceci une fois :
+      #   1. Génère le keystore UNE SEULE FOIS en local :
+      #        keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 \
+      #          -validity 10000 -storepass <TON_MOT_DE_PASSE> -keypass <TON_MOT_DE_PASSE> \
+      #          -dname "CN=NexusEdit, OU=Dev, O=Nexus, L=Paris, S=France, C=FR"
+      #   2. Encode-le en base64 :  base64 -w0 android.keystore > keystore.b64
+      #   3. Dans GitHub > Settings > Secrets and variables > Actions, crée :
+      #        - ANDROID_KEYSTORE_BASE64 = contenu de keystore.b64
+      #        - ANDROID_KEYSTORE_PASSWORD = ton mot de passe
+      - name: 🔑 Restaurer le Keystore de signature Android (stable entre les builds)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          if [ ! -f android.keystore ]; then
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android.keystore
+            echo "✅ Keystore restauré depuis le secret GitHub (signature stable)."
+          else
+            echo "⚠️ Secret ANDROID_KEYSTORE_BASE64 absent : génération d'un keystore TEMPORAIRE."
+            echo "⚠️ Les mises à jour par-dessus une installation existante échoueront tant que ce secret n'est pas configuré."
             keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=NexusEdit, OU=Dev, O=Nexus, L=Paris, S=France, C=FR"
           fi
 
       - name: ⚙️ Configurer Bubblewrap & Builder l'APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           mkdir -p ~/.bubblewrap
           cat <<EOF > ~/.bubblewrap/config.json
@@ -51,11 +78,11 @@ jobs:
           }
           EOF
 
-          # Injection automatique de la réponse "n" si Bubblewrap pose la question de régénération
-          echo "n" | bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass=android --keystorePass=android --skip-update-check
+          STOREPASS="${KEYSTORE_PASSWORD:-android}"
+          echo "n" | bubblewrap build --manifest=twa-manifest.json --keyPath=android.keystore --keyAlias=android --keyPass="$STOREPASS" --keystorePass="$STOREPASS" --skip-update-check
 
       - name: 📦 Sauvegarder l'APK généré
         uses: actions/upload-artifact@v4
         with:
-          name: NexusEdit-Studio-APK
+          name: NexusEdit-Studio-APK-${{ github.event.inputs.project_name || 'NexusEdit-Studio-X' }}
           path: ./*.apk
