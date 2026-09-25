@@ -6,8 +6,8 @@
 
 const ENGINE_CONFIG = {
   gemini: {
-    label: "Google Gemini 2.5 Flash",
-    model: "gemini-2.5-flash"
+    label: "Google Gemini 3.6 Flash",
+    model: "gemini-3.6-flash"
   },
   openai: {
     label: "GPT-4o (OpenAI)",
