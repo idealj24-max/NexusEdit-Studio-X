@@ -1,10 +1,29 @@
 /**
- * NexusEdit Studio 4.0 - Module d'intégration API Gemini (Sécurisé & DOM-Safe + Thème Nexus Mega-Mind)
+ * NexusEdit Studio 10.0 - Module d'orchestration multi-moteur IA
+ * (Corrigé : nom de modèle Gemini valide, vrai routage multi-moteur, persistance clé API
+ *  sur le champ réellement utilisé par l'interface: #ai-api-key)
  */
 
-const GEMINI_CONFIG = {
-  MODEL_NAME: "gemini-3.6-flash",
-  BASE_URL: "https://generativelanguage.googleapis.com/v1beta/models",
+const ENGINE_CONFIG = {
+  gemini: {
+    label: "Google Gemini 2.5 Flash",
+    model: "gemini-2.5-flash"
+  },
+  openai: {
+    label: "GPT-4o (OpenAI)",
+    model: "gpt-4o"
+  },
+  claude: {
+    label: "Claude (Anthropic)",
+    model: "claude-sonnet-4-5"
+  },
+  deepseek: {
+    label: "DeepSeek R1",
+    model: "deepseek-reasoner"
+  }
+};
+
+const RETRY_CONFIG = {
   MAX_RETRIES: 3,
   BASE_DELAY_MS: 1500
 };
@@ -57,18 +76,18 @@ class AIErrorHandler {
 
         const header = document.createElement('div');
         header.style.cssText = `font-weight: 700; font-size: 12px; margin-bottom: 4px; color: ${borderColor}; display: flex; align-items: center; gap: 6px;`;
-        header.textContent = status === 429 
-            ? '⚠️ Note d\'orchestration (429)' 
+        header.textContent = status === 429
+            ? '⚠️ Note d\'orchestration (429)'
             : '🔌 Notice d\'orchestration (503)';
 
         const body = document.createElement('p');
         body.style.cssText = 'margin: 0; font-size: 11.5px; color: #8b949e; line-height: 1.45;';
-        
+
         if (isFallbackTriggered) {
-            body.innerHTML = 'Serveur distant occupé. Basculement transparent vers le <strong>Moteur Heuristique Local Nexus</strong>.';
+            body.innerHTML = 'Serveur distant occupé ou en erreur. Basculement transparent vers le <strong>Moteur Heuristique Local Nexus</strong>.';
         } else {
-            body.textContent = customMsg || (status === 429 
-                ? 'Tentative de récupération en cours...' 
+            body.textContent = customMsg || (status === 429
+                ? 'Tentative de récupération en cours...'
                 : 'Service IA temporairement surchargé.');
         }
 
@@ -110,157 +129,181 @@ const aiErrorHandler = new AIErrorHandler();
 // --- Moteur Heuristique Local Nexus (Fallback transparent 429/503) ---
 function runNexusLocalHeuristic(prompt) {
     return `[MOTEUR HEURISTIQUE LOCAL NEXUS - Mode Secours Actif]
-Analyse locale de la requête : "${prompt ? prompt.substring(0, 60) + '...' : 'Sourcing / E-commerce'}".
-- Génération structurée par patrons locaux (B2B/B2C, devises XOF/MRU, intégration WhatsApp/Bankily).
-- Code mis à jour en sandbox locale sans interruption d'affichage.`;
+Analyse locale de la requête : "${prompt ? prompt.substring(0, 60) + '...' : 'Requête vide'}".
+- Aucune réponse distante n'a pu être obtenue (quota, réseau ou erreur serveur).
+- Ceci est un texte générique, pas une génération IA réelle.`;
 }
 
-// Utilitaire de pause pour le retry
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Fonction générique pour interroger l'API Gemini avec Retry 429 + Fallback Local Nexus
+ * Appel Gemini (Google AI Studio)
  */
-async function generateWithGemini(prompt, apiKey) {
-  if (!apiKey || apiKey.trim() === "") {
-    throw new Error("Clé API Gemini absente. Veuillez insérer votre Token.");
+async function callGemini(prompt, apiKey, model) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const err = new Error(data.error?.message || `Erreur Gemini (${response.status})`);
+    err.status = response.status;
+    throw err;
   }
-
-  const url = `${GEMINI_CONFIG.BASE_URL}/${GEMINI_CONFIG.MODEL_NAME}:generateContent?key=${apiKey.trim()}`;
-  let lastStatus = null;
-
-  for (let attempt = 0; attempt <= GEMINI_CONFIG.MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-
-      lastStatus = response.status;
-
-      if (lastStatus === 429 && attempt < GEMINI_CONFIG.MAX_RETRIES) {
-        const delay = GEMINI_CONFIG.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 500;
-        aiErrorHandler.show(429, `Tentative ${attempt + 1}/${GEMINI_CONFIG.MAX_RETRIES} dans ${Math.round(delay/1000)}s...`);
-        await sleep(delay);
-        continue;
-      }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        const errorMsg = data.error?.message || "Erreur communication Gemini.";
-        throw new Error(`Erreur IA (${response.status}) : ${errorMsg}`);
-      }
-
-      aiErrorHandler.clear();
-
-      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-        return data.candidates[0].content.parts[0].text;
-      } else {
-        throw new Error("Format de réponse invalide reçu de l'API.");
-      }
-
-    } catch (error) {
-      if (lastStatus === 429 || lastStatus === 503 || error.message.includes('429') || error.message.includes('503')) {
-        aiErrorHandler.show(lastStatus || 503, null, true);
-        return runNexusLocalHeuristic(prompt);
-      }
-      
-      if (attempt === GEMINI_CONFIG.MAX_RETRIES) {
-        console.error("Gemini API Error (Final):", error);
-        aiErrorHandler.show(503, null, true);
-        return runNexusLocalHeuristic(prompt);
-      }
-    }
-  }
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Format de réponse Gemini invalide.");
+  return text;
 }
 
 /**
- * Action spécifique pour la génération de scripts TikTok / Réseaux sociaux
+ * Appel OpenAI (GPT-4o)
  */
-async function generateTikTokScript(sujet, format, ton, apiKey) {
-  const prompt = `Rédige un script complet et un storyboard pour une vidéo courte (Format: ${format}, Ton: ${ton}). 
-Sujet : ${sujet}.
-Inclus les instructions visuelles, audio et le texte à dire à la caméra.`;
-
-  return await generateWithGemini(prompt, apiKey);
-}
-
-// Fonction centrale d'exécution pour le bouton UI direct
-async function executeNexusAction() {
-  const apiKey = document.getElementById("api-key-input")?.value;
-  const prompt = document.getElementById("prompt-input")?.value;
-  const outputContainer = document.getElementById("output-result");
-
-  if (!outputContainer) return;
-
-  // Persistance de la clé si saisie
-  if (apiKey) localStorage.setItem("nexus_gemini_api_key", apiKey);
-
-  try {
-    outputContainer.textContent = "Génération en cours via Nexus AI Mega-Mind...";
-    outputContainer.style.color = "#00f0ff";
-    
-    const result = await generateWithGemini(prompt, apiKey);
-    outputContainer.textContent = result;
-    outputContainer.style.color = "inherit";
-  } catch (err) {
-    outputContainer.textContent = "";
-    const errorSpan = document.createElement("span");
-    errorSpan.style.color = "#ff5555";
-    errorSpan.textContent = err.message;
-    outputContainer.appendChild(errorSpan);
+async function callOpenAI(prompt, apiKey, model) {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const err = new Error(data.error?.message || `Erreur OpenAI (${response.status})`);
+    err.status = response.status;
+    throw err;
   }
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error("Format de réponse OpenAI invalide.");
+  return text;
 }
 
-// Pont intelligent : Envoie à l'IA, parse le JSON de patch et sauvegarde en IndexedDB
-async function applyAIEditToSandbox(prompt) {
-    const apiKey = document.getElementById("api-key-input")?.value || localStorage.getItem("nexus_gemini_api_key");
-    const systemInstruction = `Tu es un assistant de patch UI/CSS/DOM. Réponds UNIQUEMENT par un JSON valide (ou tableau JSON) d'actions de patch au format: {"action": "css"|"dom"|"js_eval", "selector": "...", "code": "...", "html": "..."}.`;
-    
-    const fullPrompt = `${systemInstruction}\n\nRequête utilisateur : ${prompt}`;
-    const rawResponse = await generateWithGemini(fullPrompt, apiKey);
+/**
+ * Appel Claude (Anthropic).
+ * NOTE : l'API Anthropic n'autorise les appels directs depuis un navigateur qu'avec
+ * l'en-tête "anthropic-dangerous-direct-browser-access". Selon la configuration CORS
+ * de votre compte, cet appel peut être bloqué — dans ce cas le fallback heuristique prendra le relais.
+ */
+async function callClaude(prompt, apiKey, model) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: model,
+      max_tokens: 2048,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const err = new Error(data.error?.message || `Erreur Claude (${response.status})`);
+    err.status = response.status;
+    throw err;
+  }
+  const text = data.content?.[0]?.text;
+  if (!text) throw new Error("Format de réponse Claude invalide.");
+  return text;
+}
 
-    // Si MegaMind est chargé, parser et persister
-    if (window.MegaMind && window.MegaMind.parser) {
-        const parsed = window.MegaMind.parser.parseAndApply(rawResponse);
-        if (parsed.success && parsed.results) {
-            const patchesToSave = parsed.results.map(r => r.action);
-            await window.MegaMind.saveDeltaToIndexedDB(patchesToSave);
-            console.log("💾 Patchs appliqués et persistés via MegaMind IndexedDB.");
-        }
-        return parsed;
+/**
+ * Appel DeepSeek (compatible format OpenAI)
+ */
+async function callDeepSeek(prompt, apiKey, model) {
+  const response = await fetch("https://api.deepseek.com/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const err = new Error(data.error?.message || `Erreur DeepSeek (${response.status})`);
+    err.status = response.status;
+    throw err;
+  }
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error("Format de réponse DeepSeek invalide.");
+  return text;
+}
+
+const ENGINE_CALLERS = {
+  gemini: callGemini,
+  openai: callOpenAI,
+  claude: callClaude,
+  deepseek: callDeepSeek
+};
+
+/**
+ * Point d'entrée unique : route vers le bon moteur, gère le retry 429 et le fallback local.
+ */
+async function generateWithEngine(engineKey, prompt, apiKey) {
+  if (!apiKey || apiKey.trim() === "") {
+    throw new Error("Clé API absente. Veuillez insérer votre token dans le panneau IA Mega-Mind.");
+  }
+  const engine = ENGINE_CONFIG[engineKey] || ENGINE_CONFIG.gemini;
+  const caller = ENGINE_CALLERS[engineKey] || ENGINE_CALLERS.gemini;
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= RETRY_CONFIG.MAX_RETRIES; attempt++) {
+    try {
+      const result = await caller(prompt, apiKey.trim(), engine.model);
+      aiErrorHandler.clear();
+      return result;
+    } catch (error) {
+      lastError = error;
+      const status = error.status;
+      if (status === 429 && attempt < RETRY_CONFIG.MAX_RETRIES) {
+        const delay = RETRY_CONFIG.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 500;
+        aiErrorHandler.show(429, `Tentative ${attempt + 1}/${RETRY_CONFIG.MAX_RETRIES} dans ${Math.round(delay / 1000)}s...`);
+        await sleep(delay);
+        continue;
+      }
+      // Erreur non récupérable ou dernier essai épuisé -> fallback local transparent
+      console.error(`Erreur ${engine.label}:`, error);
+      aiErrorHandler.show(status || 503, null, true);
+      return runNexusLocalHeuristic(prompt);
     }
-    return rawResponse;
+  }
+  return runNexusLocalHeuristic(prompt);
 }
 
-// Liaison d'événement UI sécurisée
-document.getElementById("btn-execute")?.addEventListener("click", executeNexusAction);
-
 // ==========================================
-// INITIALISATION & REJOUABILITÉ (Nexus 4.0)
+// INITIALISATION & PERSISTANCE CLÉ API
 // ==========================================
 
+// FIX : on cible désormais le vrai champ utilisé par l'UI (#ai-api-key), plus l'ancien #api-key-input inexistant
 function initNexusApp(options = { restoreState: true }) {
-  console.log("⚡ NexusEdit Studio - Initialisation / Rejeu...");
-  
+  console.log("⚡ NexusEdit Studio - Initialisation du module IA...");
+
+  const apiKeyInput = document.getElementById("ai-api-key");
+  if (!apiKeyInput) return;
+
   if (options.restoreState) {
-    const savedApiKey = localStorage.getItem("nexus_gemini_api_key");
-    const apiKeyInput = document.getElementById("api-key-input");
-    if (savedApiKey && apiKeyInput && !apiKeyInput.value) {
+    const savedApiKey = localStorage.getItem("nexus_ai_api_key");
+    if (savedApiKey && !apiKeyInput.value) {
       apiKeyInput.value = savedApiKey;
-      console.log("🔑 Clé API restaurée.");
+      console.log("🔑 Clé API restaurée depuis le stockage local.");
     }
   }
 
-  // Sauvegarde automatique de la clé API lors de la frappe
-  const apiKeyInput = document.getElementById("api-key-input");
-  if (apiKeyInput && !apiKeyInput.dataset.savedBound) {
+  if (!apiKeyInput.dataset.savedBound) {
     apiKeyInput.addEventListener("input", () => {
-      localStorage.setItem("nexus_gemini_api_key", apiKeyInput.value);
+      localStorage.setItem("nexus_ai_api_key", apiKeyInput.value);
     });
     apiKeyInput.dataset.savedBound = "true";
   }
@@ -274,17 +317,17 @@ function replayNexusApp() {
   initNexusApp({ restoreState: true });
 }
 
-// Auto-démarrage sécurisé
+// Auto-démarrage sécurisé (attend que le DOM de index.html soit prêt)
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => initNexusApp());
 } else {
   initNexusApp();
 }
 
-// Exposition globale pour megamind-patcher.js et chat de la PWA
+// Exposition globale pour index.html et megamind-patcher.js
 window.NexusStudio = {
   init: initNexusApp,
   replay: replayNexusApp,
-  execute: executeNexusAction,
-  applyAIEdit: applyAIEditToSandbox
+  generate: generateWithEngine,
+  engines: ENGINE_CONFIG
 };
