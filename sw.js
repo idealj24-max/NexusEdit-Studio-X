@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nexus-studio-v9';
+const CACHE_NAME = 'nexus-studio-v10';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -17,7 +17,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Mise en cache des ressources v9');
+      console.log('[Service Worker] Mise en cache des ressources v10');
       // NOTE : cache.addAll() échoue entièrement si UNE seule ressource externe est indisponible
       // (CDN down, hors-ligne au premier install...). On ajoute donc chaque ressource individuellement
       // pour qu'un échec isolé ne bloque pas tout le cache applicatif.
