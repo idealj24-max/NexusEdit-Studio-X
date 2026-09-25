@@ -6,6 +6,10 @@ class MegaMindPatcher {
 
     applyPatch(patchData) {
         try {
+            if (!this.previewFrame || !this.previewFrame.contentDocument) {
+                this.error('Iframe de preview introuvable ou non chargée.', patchData);
+                return;
+            }
             if (patchData.action === 'css') {
                 this.injectCSS(patchData.code);
             } else if (patchData.action === 'dom') {
@@ -56,12 +60,12 @@ class MegaMindResponseParser {
     parseAndApply(rawResponse) {
         const parsedData = this.extractJSON(rawResponse);
         if (!parsedData) {
-            this.patcher.error('Aucun JSON valide trouvé dans la réponse de Mega-Mind.', rawResponse);
+            this.error('Aucun JSON valide trouvé dans la réponse de Mega-Mind.', rawResponse);
             return { success: false, explanation: rawResponse };
         }
 
         const actions = Array.isArray(parsedData) ? parsedData : [parsedData];
-        
+
         const results = actions.map(actionObj => {
             const normalizedAction = this.normalizeAction(actionObj);
             this.patcher.applyPatch(normalizedAction);
@@ -88,7 +92,7 @@ class MegaMindResponseParser {
         const match = text.match(codeBlockRegex);
         if (match) {
             try {
-                return JSON.parse(match.trim());
+                return JSON.parse(match[1].trim());
             } catch (e) {
                 this.error('Bloc de code extrait invalide', e);
             }
@@ -100,7 +104,7 @@ class MegaMindResponseParser {
             try {
                 return JSON.parse(text.substring(firstBrace, lastBrace + 1));
             } catch (e) {
-                this.error('Extraction d’accolades invalide', e);
+                this.error('Extraction d\u2019accolades invalide', e);
             }
         }
 
@@ -151,28 +155,37 @@ async function replayAllDeltas(patcherInstance) {
     const tx = db.transaction(STORE_NAME, 'readonly');
     const store = tx.objectStore(STORE_NAME);
     const request = store.getAll();
-    
-    request.onsuccess = () => {
-        const records = request.result;
-        records.forEach(rec => {
-            patcherInstance.applyPatch(rec.action);
-        });
-        console.info(`[MegaMind-Persistent] ${records.length} delta(s) rejoué(s).`);
-    };
+
+    return new Promise((resolve) => {
+        request.onsuccess = () => {
+            const records = request.result;
+            records.forEach(rec => {
+                patcherInstance.applyPatch(rec.action);
+            });
+            console.info(`[MegaMind-Persistent] ${records.length} delta(s) rejoué(s).`);
+            resolve(records.length);
+        };
+        request.onerror = () => resolve(0);
+    });
 }
 
 // --- INTÉGRATION & AUTO-REPLAY INDEXEDDB ---
 window.addEventListener('DOMContentLoaded', async () => {
-    // Remplacez 'live-preview-iframe' par l'ID réel de votre iframe si nécessaire
-    const previewId = 'live-preview-iframe'; 
+    // FIX : l'iframe de preview réelle de NexusEdit-Studio-X s'appelle "app-preview-frame"
+    // (l'ancien ID "live-preview-iframe" ne correspondait à rien -> MegaMind ne s'initialisait jamais)
+    const previewId = 'app-preview-frame';
     const iframeEl = document.getElementById(previewId);
-    
-    // Si l'iframe existe, on initialise le patcher et on rejoue l'IndexedDB
+
     if (iframeEl) {
         const patcher = new MegaMindPatcher(previewId);
         const parser = new MegaMindResponseParser(patcher);
-        await replayAllDeltas(patcher);
         window.MegaMind = { patcher, parser, saveDeltaToIndexedDB, replayAllDeltas };
+
+        // On ne rejoue les deltas qu'une fois qu'une page a été chargée dans l'iframe
+        // (sinon contentDocument peut être vide/about:blank au premier chargement)
+        iframeEl.addEventListener('load', async () => {
+            await replayAllDeltas(patcher);
+        });
     }
 });
 
