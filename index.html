@@ -620,10 +620,10 @@
       <div class="api-config-box">
         <label>Modèle Orchestrateur :</label>
         <select id="ai-engine" style="margin-bottom:6px;">
-          <option value="gemini">Google Gemini 3.6 Flash</option>
-          <option value="openai">GPT-4o (OpenAI)</option>
+          <option value="gemini">Google Gemini 3.8 Flash</option>
+          <option value="openai">OpenAI GPT-5</option>
           <option value="claude">Claude (Anthropic)</option>
-          <option value="deepseek">DeepSeek R1</option>
+          <option value="deepseek">DeepSeek Flash</option>
         </select>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin: 4px 0 6px 0;">
@@ -642,8 +642,8 @@
           </label>
         </div>
 
-        <label>Clé API Moteur (Gemini / OpenAI / Claude) :</label>
-        <input type="password" id="ai-api-key" placeholder="Colle ta clé API (Gemini / sk-...)">
+        <label>URL du Gateway Nexus AI :</label>
+        <input type="password" id="ai-api-key" placeholder="https://ton-projet.vercel.app/api/nexus-ai">
       </div>
 
       <div class="chat-messages" id="chat-box">
@@ -1046,7 +1046,7 @@
     async function executerDiagnosticIA() {
         const video = document.getElementById('scannerVideo');
         const zoneRapport = document.getElementById('zoneRapportIA');
-        const apiKey = (document.getElementById('ai-api-key')?.value || "").trim();
+        const gatewayUrl = (document.getElementById('nexus-gateway-url')?.value || window.NEXUS_CONFIG?.gatewayUrl || '').trim();
 
         if (!video || !video.videoWidth || !zoneRapport) return alert("Veuillez d'abord activer la caméra.");
         zoneRapport.innerHTML = "<p class='blink'>🔄 Analyse Vision IA en cours...</p>";
@@ -1689,88 +1689,75 @@
     // Auparavant, toute réponse IA ressemblant à du code écrasait automatiquement le fichier ouvert (c'est ce qui a détruit ton index.html avec AfrikShop).
     async function sendAIPromptReal() {
       const input = document.getElementById('ai-input');
-      const apiKeyEl = document.getElementById('ai-api-key');
       const engineEl = document.getElementById('ai-engine');
       const searchToggle = document.getElementById('web-search-toggle');
       const autoApplyToggle = document.getElementById('auto-apply-toggle');
-
+      const gatewayInput = document.getElementById('nexus-gateway-url');
       if (!input) return;
-      const promptText = input.value.trim();
-      const apiKey = (apiKeyEl?.value || "").trim();
-      const selectedEngine = engineEl?.value || "gemini";
-      const webSearchActive = searchToggle ? searchToggle.checked : true;
-      const autoApply = autoApplyToggle ? autoApplyToggle.checked : false;
 
-      if (!promptText) return alert("Veuillez saisir votre demande.");
+      const promptText = input.value.trim();
+      const selectedEngine = engineEl?.value || 'gemini';
+      const webSearchActive = Boolean(searchToggle?.checked);
+      const autoApply = Boolean(autoApplyToggle?.checked);
+      if (!promptText) return alert('Veuillez saisir votre demande.');
+
+      const gateway = window.NexusAIGatewayInstance;
+      const gatewayUrl = gatewayInput?.value?.trim();
+      if (gatewayUrl) gateway.setEndpoint(gatewayUrl);
 
       const chatBox = document.getElementById('chat-box');
-      let searchLogText = '';
-
-      if (webSearchActive) {
-        searchLogText = `🌐 [NEXUS WEB CRAWLER RAG] Indexation sémantique & recherche contextuelle pour : "${promptText}"... (simulation locale — aucune vraie recherche web n'est effectuée)`;
-      }
-
       if (chatBox) {
-        chatBox.innerHTML += `<div class="msg user">${escapeHtml(promptText)}</div>`;
+        chatBox.insertAdjacentHTML('beforeend', `<div class="msg user">${escapeHtml(promptText)}</div>`);
       }
       input.value = '';
-      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
       const aiMsgEl = document.createElement('div');
       aiMsgEl.className = 'msg ai';
-      aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + '⚙️ <i>Orchestration ' + escapeHtml(selectedEngine) + ' en cours...</i>';
-      if (chatBox) {
-        chatBox.appendChild(aiMsgEl);
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-
-      const currentCode = editor ? editor.getValue() : (files[activeFile] || '');
-
-      // Sans clé API : mode heuristique local uniquement (jamais d'écrasement automatique sans le toggle)
-      if (!apiKey || !navigator.onLine) {
-        setTimeout(() => {
-          let replyText;
-          if (autoApply) {
-            const generatedCode = generateHeuristicCodeSolution(promptText, currentCode, activeFile);
-            files[activeFile] = generatedCode;
-            if (editor) editor.setValue(generatedCode);
-            saveProjectToDB();
-            replyText = `<b>[Nexus Mega-Mind Engine v10.0 - Fallback / Local Swarm]</b>\n\nModèle : <b>${escapeHtml(selectedEngine)} (Mode Local / Heuristique)</b>\n\nAction : Code ajusté directement dans <code>${activeFile}</code> (Auto-application activée).\n\n\`\`\`${activeFile.split('.').pop()}\n${generatedCode.slice(-300)}\n\`\`\``;
-          } else {
-            replyText = `<b>[Nexus Mega-Mind - Mode Local / Heuristique]</b>\n\nAucune clé API ou hors-ligne. Voici une suggestion (non appliquée à ton fichier — active "✏️ Appliquer directement au fichier actif" si tu veux l'injecter automatiquement) :\n\n${generateHeuristicCodeSolution(promptText, currentCode, activeFile)}`;
-          }
-          aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(replyText);
-          chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: replyText, searchLog: searchLogText });
-          saveChatHistoryToDB();
-        }, 600);
-        return;
-      }
+      aiMsgEl.innerHTML = `<div class="search-log">🧠 Nexus Agent Runtime · ${escapeHtml(selectedEngine)}${webSearchActive ? ' · 🌐 Recherche Web' : ''}</div>⚙️ <i>Planification et exécution des agents...</i>`;
+      chatBox?.appendChild(aiMsgEl);
+      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
-        // Passe désormais par le module partagé app.js (window.NexusStudio.generate) qui gère
-        // le retry 429, le fallback local, et route vers le bon moteur (Gemini / OpenAI / Claude / DeepSeek)
-        let aiText = await window.NexusStudio.generate(selectedEngine, currentCode ? `Fichier actif (${activeFile}) :\n${currentCode}\n\nDemande utilisateur : ${promptText}. Retourne soit du code direct soit une explication synthétique.` : promptText, apiKey);
-        let cleanCode = aiText.replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
-        const looksLikeCode = cleanCode.length > 20 && (cleanCode.startsWith('<') || cleanCode.startsWith('#') || cleanCode.startsWith('def') || cleanCode.startsWith('{') || cleanCode.startsWith('//'));
+        const history = chatHistory.slice(-12).map(m => ({ role: m.role, text: m.text }));
+        const context = {
+          webSearch: webSearchActive,
+          history,
+          activeFile,
+          currentCode: editor ? editor.getValue() : (files[activeFile] || ''),
+          projectName: currentProjectName
+        };
 
-        if (autoApply && looksLikeCode) {
-          files[activeFile] = cleanCode;
-          if (editor) editor.setValue(cleanCode);
-          saveProjectToDB();
-          aiText = "⚡ **Code généré et injecté directement dans '" + activeFile + "' (Auto-application activée) !**\n\n" + aiText;
-        } else if (looksLikeCode && !autoApply) {
-          aiText = "💡 **Réponse contenant du code — non appliquée automatiquement.** Active \"✏️ Appliquer directement au fichier actif\" pour l'injecter, ou copie-colle manuellement.\n\n" + aiText;
+        // Le moteur Mega-Mind réel : NexusCore -> Agents -> Gateway -> fournisseur.
+        const plan = await window.NexusAgentRuntimeInstance.run(promptText, context);
+        const completed = plan.tasks.filter(t => t.status === 'done');
+        const last = completed[completed.length - 1];
+        let aiText = last?.output?.text || last?.output || 'Le plan a été exécuté sans texte final.';
+        if (typeof aiText !== 'string') aiText = JSON.stringify(aiText, null, 2);
+
+        // Application volontaire du code uniquement si l'option est activée.
+        if (autoApply && activeFile && typeof aiText === 'string') {
+          const fenced = aiText.match(/```(?:html|css|javascript|js|json|python|md|markdown)?\s*([\s\S]*?)```/i);
+          const candidate = fenced?.[1]?.trim();
+          if (candidate && candidate.length > 20) {
+            files[activeFile] = candidate;
+            if (editor) editor.setValue(candidate);
+            await saveProjectToDB();
+            aiText = `⚡ **Code appliqué dans \\`${activeFile}\\`.**\n\n${aiText}`;
+          }
         }
 
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(aiText);
-        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: aiText, searchLog: searchLogText });
+        const planSummary = `\n\n---\n**Plan Mega-Mind :** ${completed.length}/${plan.tasks.length} tâches terminées.\n**Intention :** ${plan.intent}\n**Dernier agent :** ${last?.agent || '—'}`;
+        aiText += planSummary;
+        aiMsgEl.innerHTML = renderMarkdownSafe(aiText);
+        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: aiText });
         saveChatHistoryToDB();
       } catch (e) {
-        const errFallback = `⚡ **Erreur** (${escapeHtml(e.message)}). Aucune modification n'a été appliquée à ton fichier.`;
-        aiMsgEl.innerHTML = (searchLogText ? `<div class="search-log">${escapeHtml(searchLogText)}</div>` : '') + renderMarkdownSafe(errFallback);
-        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: errFallback, searchLog: searchLogText });
+        const msg = `⚠️ **Nexus AI Gateway indisponible.**\n\n${e.message}\n\nVérifie l'URL du Gateway et ses variables d'environnement.`;
+        aiMsgEl.innerHTML = renderMarkdownSafe(msg);
+        chatHistory.push({ role: 'user', text: promptText }, { role: 'ai', text: msg });
         saveChatHistoryToDB();
       }
+      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1795,7 +1782,8 @@
     });
   </script>
   <script src="nexus-core.js"></script>
-  <script src="nexus-ai-gateway.js"></script>
+  <script src="nexus-config.js"></script>
+<script src="nexus-ai-gateway.js"></script>
 <script src="nexus-agent-runtime.js"></script>
   <script src="app.js"></script>
   <script src="megamind-patcher.js"></script>
