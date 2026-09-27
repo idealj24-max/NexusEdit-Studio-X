@@ -252,12 +252,13 @@ réellement été fourni.
       const agent =
         this.getAgent(task.agent);
 
-      const prompt =
-        this.buildPrompt(
-          task,
-          plan,
-          project
-        );
+      const previousOutputs = (plan?.tasks || [])
+        .slice(0, Number.isInteger(taskIndex) ? taskIndex : 0)
+        .filter(t => t.status === 'done' || t.output)
+        .map(t => ({ id: t.id, title: t.title, action: t.action, output: t.output }))
+        .slice(-6);
+
+      const prompt = this.buildPrompt(task, plan, { ...project, previousOutputs });
 
       const result =
         await this.gateway.generate({
@@ -287,7 +288,11 @@ réellement été fourni.
 
           temperature: 0.7,
 
-          maxTokens: 4000
+          maxTokens: 6000,
+
+          webSearch: Boolean(context.webSearch),
+
+          history: context.history || []
 
         });
 
