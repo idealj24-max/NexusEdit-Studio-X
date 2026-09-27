@@ -1,0 +1,26 @@
+NexusEdit Studio X — Mega-Mind v11
+Architecture
+Frontend GitHub Pages -> Nexus AI Gateway -> provider API.
+Vercel environment variables
+GEMINI_API_KEY (required for Gemini)
+OPENAI_API_KEY (optional)
+ANTHROPIC_API_KEY (optional)
+DEEPSEEK_API_KEY (optional)
+Never commit these secrets to GitHub.
+Frontend configuration
+Edit nexus-config.js and set: gatewayUrl: 'https://YOUR-VERCEL-PROJECT.vercel.app/api/nexus-ai'
+The Mega-Mind panel also lets you enter this URL at runtime.
+Health test
+Open: https://YOUR-VERCEL-PROJECT.vercel.app/api/nexus-ai?health=1
+Expected JSON contains ok: true.
+What is real in this version
+Real provider calls through the server gateway.
+Gemini 3.8 Flash default.
+Optional Google Search grounding for Gemini.
+NexusCore planning.
+Planner/creative/coder/video/image/audio/voice/reviewer/exporter agent routing.
+Previous task outputs are passed into later tasks.
+Chat history is passed into Gemini.
+No provider API secret is stored in the frontend.
+Not claimed as complete
+Video/image/audio generation is still provider/tool dependent; the Mega-Mind text orchestration is the first production path to validate.
