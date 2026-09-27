@@ -324,14 +324,14 @@
             }),
 
             this.createTask({
-              title: 'Générer l'image',
+              title: "Générer l'image",
               agent: AGENTS.image,
               action: 'generate_image',
               dependsOn: ['previous']
             }),
 
             this.createTask({
-              title: 'Contrôler l'image',
+              title: "Contrôler l'image",
               agent: AGENTS.reviewer,
               action: 'review_image',
               dependsOn: ['previous']
@@ -357,7 +357,7 @@
             }),
 
             this.createTask({
-              title: 'Générer l'audio',
+              title: "Générer l'audio",
               agent: AGENTS.audio,
               action: 'generate_audio',
               dependsOn: ['previous']
@@ -440,7 +440,9 @@
           const output = await executor(task, {
             plan,
             project: this.project,
-            taskIndex: i
+            taskIndex: i,
+            webSearch: Boolean(plan.context?.webSearch),
+            history: plan.context?.history || []
           });
 
           task.output = output;
